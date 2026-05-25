@@ -7,18 +7,20 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start":       "electron .",
-    "dev":         "electron . --dev",
-    "build:win":   "electron-builder --win --x64",
-    "build:mac":   "electron-builder --mac",
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
-    "build:all":   "electron-builder -mwl"
+    "build:all": "electron-builder -mwl"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
     "ws": "^8.16.0"
   },
   "devDependencies": {
-    "electron":         "^29.0.0",
+    "electron": "^29.0.0",
     "electron-builder": "^24.13.0"
   },
   "build": {
@@ -31,12 +33,29 @@
       "!**/node_modules/.cache/**"
     ],
     "extraResources": [
-      { "from": "electron/assets", "to": "assets", "filter": ["**/*"] }
+      {
+        "from": "electron/assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
       "target": [
-        { "target": "nsis",     "arch": ["x64", "arm64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "electron/assets/icon.ico",
       "artifactName": "WiseSmartChurch-Setup-${version}.${ext}"
@@ -50,7 +69,10 @@
       "uninstallerIcon": "electron/assets/icon.ico"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "electron/assets/icon.icns",
       "category": "public.app-category.entertainment",
       "hardenedRuntime": true,
@@ -58,7 +80,10 @@
       "entitlementsInherit": "electron/assets/entitlements.mac.plist"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "electron/assets/icon.png",
       "category": "AudioVideo"
     },

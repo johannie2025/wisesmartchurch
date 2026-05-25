@@ -1,7 +1,7 @@
 {
   "appId": "com.wisesmartchurch.app",
   "appName": "Wise Smart Church",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "http",
