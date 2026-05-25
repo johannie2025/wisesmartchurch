@@ -31,7 +31,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 🛠️ FORCE L'INSTALLATION DIRECTE SUR LE SERVEUR GITHUB
       - name: Install Node dependencies
         run: |
           npm install

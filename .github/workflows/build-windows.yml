@@ -21,14 +21,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # 🛠️ CORRECTION : Suppression de la ligne cache: 'npm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install # 🛠️ CORRECTION : Changé 'npm ci' par 'npm install'
-
-      - name: Copy app HTML
-        run: Copy-Item index.html -Destination index.html -Force
-        shell: pwsh
+        run: npm install
 
       - name: Build Windows EXE
         run: npm run build:win
