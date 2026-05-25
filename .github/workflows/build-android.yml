@@ -43,7 +43,7 @@ jobs:
       - name: Prepare Web Directory
         run: |
           mkdir -p www
-          cp wismachv5.html www/index.html
+          cp index.html www/index.html
 
       - name: Sync Capacitor
         run: npx cap sync android

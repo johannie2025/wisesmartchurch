@@ -27,7 +27,7 @@ jobs:
         run: npm install # 🛠️ CORRECTION : Changé 'npm ci' par 'npm install'
 
       - name: Copy app HTML
-        run: Copy-Item index.html -Destination wismachv5.html -Force
+        run: Copy-Item index.html -Destination index.html -Force
         shell: pwsh
 
       - name: Build Windows EXE
