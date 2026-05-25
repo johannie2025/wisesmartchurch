@@ -1,0 +1,67 @@
+{
+  "name": "wise-smart-church",
+  "version": "5.0.0",
+  "description": "Wise Smart Church — Pro Projection System",
+  "main": "electron/main.js",
+  "author": "Wise Smart Church",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start":       "electron .",
+    "dev":         "electron . --dev",
+    "build:win":   "electron-builder --win --x64",
+    "build:mac":   "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all":   "electron-builder -mwl"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "electron":         "^29.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId": "com.wisesmartchurch.app",
+    "productName": "Wise Smart Church",
+    "copyright": "Copyright © 2025 Wise Smart Church",
+    "files": [
+      "electron/**",
+      "wismachv5.html",
+      "!**/node_modules/.cache/**"
+    ],
+    "extraResources": [
+      { "from": "electron/assets", "to": "assets", "filter": ["**/*"] }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis",     "arch": ["x64", "arm64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "electron/assets/icon.ico",
+      "artifactName": "WiseSmartChurch-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "runAfterFinish": true,
+      "installerIcon": "electron/assets/icon.ico",
+      "uninstallerIcon": "electron/assets/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "electron/assets/icon.icns",
+      "category": "public.app-category.entertainment",
+      "hardenedRuntime": true,
+      "entitlements": "electron/assets/entitlements.mac.plist",
+      "entitlementsInherit": "electron/assets/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "electron/assets/icon.png",
+      "category": "AudioVideo"
+    },
+    "publish": null
+  }
+}

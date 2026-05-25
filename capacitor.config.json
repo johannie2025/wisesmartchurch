@@ -1,0 +1,28 @@
+{
+  "appId": "com.wisesmartchurch.app",
+  "appName": "Wise Smart Church",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "http",
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": null,
+      "keystoreAlias": null
+    },
+    "allowMixedContent": true,
+    "captureInput":      true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#080a0f",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
+  }
+}

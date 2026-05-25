@@ -1,0 +1,96 @@
+name: Build Android APK
+
+on:
+  push:
+    tags: ['v*']
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Sign Release APK (if keystore secret available)
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS:       ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD:    ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD:  ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/keystore.jks
+          cd android
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=app/keystore.jks \
+            -Pandroid.injected.signing.store.password=$STORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+
+      - name: Find APK files
+        id: find_apk
+        run: |
+          echo "DEBUG_APK=$(find android/app/build/outputs/apk/debug -name '*.apk' | head -1)" >> $GITHUB_OUTPUT
+          echo "RELEASE_APK=$(find android/app/build/outputs/apk/release -name '*.apk' 2>/dev/null | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          if [ -f "${{ steps.find_apk.outputs.DEBUG_APK }}" ]; then
+            cp "${{ steps.find_apk.outputs.DEBUG_APK }}" "WiseSmartChurch-${{ github.ref_name }}-debug.apk"
+          fi
+          if [ -f "${{ steps.find_apk.outputs.RELEASE_APK }}" ]; then
+            cp "${{ steps.find_apk.outputs.RELEASE_APK }}" "WiseSmartChurch-${{ github.ref_name }}-release.apk"
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiseSmartChurch-Android
+          path: '*.apk'
+          retention-days: 30
+
+      - name: Release APK (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.apk'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

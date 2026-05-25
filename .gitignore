@@ -1,0 +1,7 @@
+node_modules/
+dist_electron/
+www/
+.gradle/
+android/app/build/
+*.log
+.DS_Store
