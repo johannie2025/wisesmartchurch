@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # 🛠️ CORRECTION : Suppression de la ligne cache: 'npm'
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -32,17 +31,19 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # 🛠️ FORCE L'INSTALLATION DIRECTE SUR LE SERVEUR GITHUB
       - name: Install Node dependencies
-        run: npm install # 🛠️ CORRECTION : Changé 'npm ci' par 'npm install'
+        run: |
+          npm install
+          npm install @capacitor/core @capacitor/android
 
       - name: Install Capacitor CLI
         run: npm install -g @capacitor/cli
 
-      # 🛠️ AJOUT UNIQUE POUR CRÉER LE DOSSIER WWW EXIGÉ PAR CAPACITOR
       - name: Prepare Web Directory
         run: |
           mkdir -p www
-          cp index.html www/index.html
+          cp wismachv5.html www/index.html
 
       - name: Sync Capacitor
         run: npx cap sync android
