@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "ws": "^8.16.0"
   },
@@ -26,10 +27,10 @@
   "build": {
     "appId": "com.wisesmartchurch.app",
     "productName": "Wise Smart Church",
-    "copyright": "Copyright © 2025 Wise Smart Church",
+    "copyright": "Copyright © 2026 Wise Smart Church",
     "files": [
       "electron/**",
-      "wismachv5.html",
+      "index.html",
       "!**/node_modules/.cache/**"
     ],
     "extraResources": [
