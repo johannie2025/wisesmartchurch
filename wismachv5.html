@@ -1437,8 +1437,21 @@ function autoDetect(){
   const isDisplay=p.has('display')||p.has('tv')||p.has('screen')||window._wscIsTvMode===true||savedRole==='display';
   const isRemote=p.has('remote');
   // Afficher modal rôle si aucun rôle sauvegardé et aucun param URL
-  if(!savedRole&&!isDisplay&&!isRemote&&!window._wscIsTvMode){
+  // Note: on ne teste PAS _wscIsTvMode ici car il peut arriver après (race condition APK)
+  if(!savedRole&&!p.has('display')&&!p.has('tv')&&!p.has('screen')&&!isRemote){
     const rm=document.getElementById('role-modal');if(rm)rm.style.display='flex';
+    // Sur TV box, pré-sélectionner visuellement ÉCRAN si détecté
+    setTimeout(()=>{
+      if(window._wscIsTvMode){
+        const btns=document.querySelectorAll('#role-modal button');
+        if(btns[0])btns[0].style.boxShadow='0 0 0 3px #3b82f6, 0 0 20px rgba(59,130,246,.5)';
+        const hint=document.createElement('div');
+        hint.style.cssText='font-size:.7rem;color:#3b82f6;margin-top:-10px;';
+        hint.textContent='📺 TV Box détectée — ÉCRAN recommandé';
+        const modal=document.getElementById('role-modal');
+        if(modal)modal.insertBefore(hint,modal.lastElementChild);
+      }
+    },900);
     return;
   }
 
