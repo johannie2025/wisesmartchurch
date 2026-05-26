@@ -1,5 +1,7 @@
 package com.wisesmartchurch.app;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.Context;
 import android.app.ActivityManager;
 import android.app.UiModeManager;
 import android.content.pm.PackageManager;
@@ -123,8 +125,8 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void startKioskMode() {
-        ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        if (am != null && am.isLockTaskPermitted(getPackageName())) {
+        DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+		if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
             startLockTask();
             Log.i(TAG, "🔒 Kiosk Lock Task activé");
         }
@@ -135,7 +137,7 @@ public class MainActivity extends BridgeActivity {
         if (hasFocus && isTvMode) enableImmersiveMode();
     }
 
-    @Override protected void onDestroy() {
+    @Override public void onDestroy() {
         if (wsServer != null) wsServer.stopServer();
         super.onDestroy();
     }
