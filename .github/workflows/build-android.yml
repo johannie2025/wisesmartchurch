@@ -17,10 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js Version 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -30,19 +30,7 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        
-        # 🟢 AJOUTE CES LIGNES ICI POUR FORCER NODE 22
-    - name: Setup Node.js Version 22
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
 
-    # 🛠️ FORCE L'INSTALLATION DIRECTE SUR LE SERVEUR GITHUB
-    - name: Install Node dependencies
-      run: |
-        npm install
-        npm install @capacitor/core @capacitor/android
-        
       - name: Install Node dependencies
         run: |
           npm install
