@@ -2,7 +2,6 @@ package com.wisesmartchurch.app;
 
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
-import android.app.ActivityManager;
 import android.app.UiModeManager;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -18,17 +17,13 @@ import com.getcapacitor.BridgeActivity;
 
 /**
  * Wise Smart Church — MainActivity
- *
- * Rôle choisi par l'utilisateur dans l'UI HTML (localStorage wsc_role)
- * TV detection injectée via window._wscIsTvMode pour aider l'auto-detect
  */
 public class MainActivity extends BridgeActivity {
     private static final String TAG = "WscMain";
     private WscLanServer      wsServer;
-    private WscNsdManager     nsdManager;
     private boolean           isTvMode = false;
 
-    /* Détection TV — multi-méthodes pour les fausses boxes chinoises */
+    /* Détection TV — multi-méthodes pour les fausses boxes */
     private boolean detectTV() {
         // 1. UI Mode officiel
         UiModeManager uim = (UiModeManager) getSystemService(UI_MODE_SERVICE);
@@ -37,10 +32,10 @@ public class MainActivity extends BridgeActivity {
         // 2. Feature LEANBACK (TV officielles)
         if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) return true;
         
-        // 3. Pas d'écran tactile → très probablement une TV Box chinoise
+        // 3. Pas d'écran tactile → TV Box
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
         
-        // 4. Résolution très large sans tactile (4K box)
+        // 4. Résolution large sans tactile
         android.util.DisplayMetrics dm = new android.util.DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         if (dm.widthPixels >= 1920 && !getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
@@ -61,7 +56,7 @@ public class MainActivity extends BridgeActivity {
             startKioskMode();
         }
 
-        // Serveur WS embarqué (LAN, sans internet)
+        // Serveur WS embarqué (LAN)
         final int wsPort = 9000;
         wsServer = new WscLanServer(this, wsPort);
         wsServer.setMessageListener((clientId, msg) -> runOnUiThread(() -> {
