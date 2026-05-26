@@ -239,8 +239,8 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void startKioskMode() {
-        ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        if (am != null && am.isLockTaskPermitted(getPackageName())) {
+        DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+	if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
             startLockTask();
             Log.i(TAG, "🔒 Lock Task activé");
         } else {
@@ -258,7 +258,7 @@ public class MainActivity extends BridgeActivity {
     /*  DESTRUCTION                                 */
     /* ─────────────────────────────────────────── */
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         if (wsServer  != null) wsServer.stopServer();
         if (nsdManager != null) {
             nsdManager.stopDiscovery();
