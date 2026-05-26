@@ -1,5 +1,7 @@
 package com.wisesmartchurch.app;
 
+import android.content.Context;
+import android.app.admin.DevicePolicyManager;
 import android.app.ActivityManager;
 import android.app.UiModeManager;
 import android.content.pm.PackageManager;
@@ -12,8 +14,6 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.app.admin.DevicePolicyManager;
-import android.content.Context;
 
 import com.getcapacitor.BridgeActivity;
 
