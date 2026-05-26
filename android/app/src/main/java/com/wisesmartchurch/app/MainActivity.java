@@ -24,23 +24,27 @@ import com.getcapacitor.BridgeActivity;
  */
 public class MainActivity extends BridgeActivity {
     private static final String TAG = "WscMain";
-    private WscLanServer  wsServer;
-    private WscNsdManager nsdManager;
-    private boolean       isTvMode = false;
+    private WscLanServer      wsServer;
+    private WscNsdManager     nsdManager;
+    private boolean           isTvMode = false;
 
     /* Détection TV — multi-méthodes pour les fausses boxes chinoises */
     private boolean detectTV() {
         // 1. UI Mode officiel
         UiModeManager uim = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         if (uim != null && uim.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) return true;
+        
         // 2. Feature LEANBACK (TV officielles)
         if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) return true;
+        
         // 3. Pas d'écran tactile → très probablement une TV Box chinoise
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
+        
         // 4. Résolution très large sans tactile (4K box)
         android.util.DisplayMetrics dm = new android.util.DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
-        if (dm.widthPixels >= 1920 && android.view.MotionEvent.getMaxNumPointers() == 0) return true;
+        if (dm.widthPixels >= 1920 && !getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
+        
         return false;
     }
 
@@ -126,18 +130,20 @@ public class MainActivity extends BridgeActivity {
 
     private void startKioskMode() {
         DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-		if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
+        if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
             startLockTask();
             Log.i(TAG, "🔒 Kiosk Lock Task activé");
         }
     }
 
-    @Override public void onWindowFocusChanged(boolean hasFocus) {
+    @Override 
+    public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus && isTvMode) enableImmersiveMode();
     }
 
-    @Override public void onDestroy() {
+    @Override 
+    public void onDestroy() {
         if (wsServer != null) wsServer.stopServer();
         super.onDestroy();
     }
