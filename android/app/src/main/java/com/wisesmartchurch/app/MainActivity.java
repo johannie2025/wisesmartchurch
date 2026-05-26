@@ -12,6 +12,7 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.app.admin.DevicePolicyManager;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -239,7 +240,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void startKioskMode() {
-        DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+	   DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 	if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
             startLockTask();
             Log.i(TAG, "🔒 Lock Task activé");
