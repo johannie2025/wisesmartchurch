@@ -18,19 +18,60 @@
   const byVal=sp.get('display')==='true'||sp.get('display')==='True'||sp.get('display')==='1';
   const byRole=localStorage.getItem('wsc_role')==='display';
   if(byUrl||byVal||byRole){
-    // Mémoriser le rôle pour init()
     localStorage.setItem('wsc_role','display');
-    // Injecter CSS immédiatement – avant toute réécriture JS
-    const s=document.createElement('style');
-    s.id='_early-display';
-    s.textContent=
-      '#control-mode{display:none!important;visibility:hidden!important;pointer-events:none!important;}'+
-      '#display-mode{display:flex!important;position:fixed!important;inset:0!important;z-index:9999!important;background:#000!important;}'+
-      '#peer-entry-overlay{display:none!important;}'+
-      '#role-modal{display:none!important;}';
-    document.head.appendChild(s);
+    injectEarlyDisplayStyles();
   }
 })();
+
+// Fonction globale d'injection rapide pour éviter la duplication de code
+function injectEarlyDisplayStyles() {
+  if (document.getElementById('_early-display')) return; // Déjà injecté
+  const s=document.createElement('style');
+  s.id='_early-display';
+  s.textContent=
+    '#control-mode{display:none!important;visibility:hidden!important;pointer-events:none!important;}'+
+    '#display-mode{display:flex!important;position:fixed!important;inset:0!important;z-index:9999!important;background:#000!important;}'+
+    '#peer-entry-overlay{display:none!important;}'+
+    '#role-modal{display:none!important;}';
+  document.head.appendChild(s);
+}
+
+// ─── SYNCHRONISATION DIRECTE AVEC LE JAVA DE L'APK ───
+if (window.Android) {
+    try {
+        // On récupère les valeurs directement depuis les méthodes natives Java
+        window._wscIsTvMode = window.Android.isTvMode();
+        window._wscServerIp = window.Android.getServerIp();
+        window._wscIsAndroid = true;
+        window._wscServerPort = 9000;
+
+        // 🟢 CORRECTIF : Si le Java dit que c'est une TV, on force le rôle et le CSS immédiatement !
+        if (window._wscIsTvMode) {
+            localStorage.setItem('wsc_role', 'display');
+            injectEarlyDisplayStyles();
+        }
+
+        // On reconstruit le bridge pour le reste de ton code existant
+        window.electronBridge = {
+            isTvMode: window._wscIsTvMode,
+            isAndroid: true,
+            broadcast: function(m) { 
+                try { window.Android.broadcast(typeof m === 'object' ? JSON.stringify(m) : m); } catch(e) { console.error(e); } 
+            },
+            getNetworkInfo: function() {
+                return {
+                    ip: window._wscServerIp,
+                    wsPort: window._wscServerPort,
+                    isTvMode: window._wscIsTvMode,
+                    isAndroid: true
+                };
+            }
+        };
+        console.log("Native Android bridge initialized. IsTV:", window._wscIsTvMode);
+    } catch (e) {
+        console.error("Erreur init bridge Android:", e);
+    }
+}
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=Oswald:wght@400;600&family=Lato:wght@300;400;700&family=Noto+Serif:wght@400;700&display=swap');
