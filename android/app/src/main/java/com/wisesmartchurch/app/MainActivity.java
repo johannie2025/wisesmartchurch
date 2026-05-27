@@ -77,15 +77,20 @@ public class MainActivity extends BridgeActivity {
         ws.setUseWideViewPort(true);
 
         // ── ✅ WebChromeClient : accorder caméra + micro automatiquement ──
-        wv.setWebChromeClient(new com.getcapacitor.android.WebChromeClient(this.bridge) {
-            @Override
-            public void onPermissionRequest(final PermissionRequest request) {
-                runOnUiThread(() -> {
-                    Log.i(TAG, "📷 Permission WebView accordée: " + String.join(", ", request.getResources()));
-                    request.grant(request.getResources());
-                });
-            }
-        });
+    // ── ✅ WebChromeClient : accorder caméra + micro automatiquement ──
+		wv.setWebChromeClient(new com.getcapacitor.BridgeWebChromeClient(this.bridge) {
+			@Override
+			public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+				runOnUiThread(() -> {
+					if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+						Log.i(TAG, "📷 Permission WebView accordée: " + String.join(", ", request.getResources()));
+					} else {
+						Log.i(TAG, "📷 Permission WebView accordée");
+					}
+					request.grant(request.getResources());
+				});
+			}
+		});
 
         // ── Injection infos réseau dans l'HTML ──
         String localIp = WscLanServer.getLocalIp(this);
