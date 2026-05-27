@@ -33,7 +33,6 @@ function injectEarlyDisplayStyles() {
     '#display-mode{display:flex!important;position:fixed!important;inset:0!important;z-index:9999!important;background:#000!important;}'+
     '#peer-entry-overlay{display:none!important;}'+
     '#role-modal{display:none!important;}';
-    /* NOTE: display-connect-overlay n'est PAS caché ici — il doit pouvoir s'afficher sur TV Box */
   document.head.appendChild(s);
 }
 
@@ -69,40 +68,6 @@ if (window.Android) {
             }
         };
         console.log("Native Android bridge initialized. IsTV:", window._wscIsTvMode);
-
-        // ── TV BOX : afficher l'overlay IP au démarrage si pas d'IP connue ──
-        // On attend le DOM, puis on force l'overlay (z-index:98000, au-dessus du display-mode:9999)
-        if (window._wscIsTvMode) {
-          document.addEventListener('DOMContentLoaded', function tvIpInit() {
-            var savedIp = localStorage.getItem('wsServerIp') || '';
-            var ov = document.getElementById('display-connect-overlay');
-            var inp = document.getElementById('disp-ip-input');
-            if (!ov) return;
-            if (savedIp) {
-              // IP déjà connue : montrer l'overlay avec compte à rebours, puis connexion auto
-              if (inp) inp.value = savedIp;
-              ov.style.display = 'flex';
-              var st = document.getElementById('disp-conn-status');
-              var remaining = 3;
-              if (st) st.textContent = '⏳ Connexion auto dans ' + remaining + 's… (OK/Entrée pour annuler)';
-              window._tvAutoConnectTimer = setInterval(function() {
-                remaining--;
-                if (remaining <= 0) {
-                  clearInterval(window._tvAutoConnectTimer);
-                  window._tvAutoConnectTimer = null;
-                  ov.style.display = 'none';
-                  if (typeof wsConnect === 'function') wsConnect(savedIp, 9000);
-                } else {
-                  if (st) st.textContent = '⏳ Connexion auto dans ' + remaining + 's… (OK/Entrée pour annuler)';
-                }
-              }, 1000);
-            } else {
-              // Pas d'IP : forcer l'overlay de saisie immédiatement
-              ov.style.display = 'flex';
-              if (inp) setTimeout(function(){ try{inp.focus();}catch(e){} }, 300);
-            }
-          }, { once: true });
-        }
     } catch (e) {
         console.error("Erreur init bridge Android:", e);
     }
@@ -1663,22 +1628,6 @@ function autoDetect(){
       if(room){setTimeout(()=>mqttConnect(room),400);}
       else{_showPeerEntry();}
     } else {
-      // ── Android TV Box : forcer mode WebSocket LAN (le bridge natif a l'IP) ──
-      if(window._wscIsTvMode){
-        connMode='socket';localStorage.setItem('connMode','socket');
-        // Si le bridge natif a une IP, l'utiliser; sinon afficher l'overlay
-        const tvIp=window._wscServerIp||(localStorage.getItem('wsServerIp')||'');
-        if(tvIp){
-          // L'overlay DOMContentLoaded aura déjà géré le compte-à-rebours;
-          // si on arrive ici c'est que l'overlay a été fermé → connexion directe
-          if(document.getElementById('display-connect-overlay')?.style.display!=='flex'){
-            setTimeout(()=>wsConnect(tvIp,9000),400);
-          }
-        } else {
-          _showPeerEntry();
-        }
-        return;
-      }
       // Tenter auto-discover via localStorage (régie sur même réseau / même navigateur)
       try{
         const ann=JSON.parse(localStorage.getItem('wsc_announce')||'{}');
@@ -4131,181 +4080,35 @@ document.addEventListener('keydown',function(e){
 document.addEventListener('touchstart',function(){},{once:true,passive:true});
 new MutationObserver(makeTvFocusable).observe(document.body,{childList:true,subtree:true});
 
-/* ══════════════════════════════════════════════════════
-   TV BOX REMOTE CONTROL — Télécommande Android TV
-   Touches: DPAD_CENTER(23), ENTER(13), OK → ouvre overlay IP
-            BACK(8)/ESC → annule timer auto-connect
-   ════════════════════════════════════════════════════════ */
-document.addEventListener('keydown', function tvRemote(e) {
-  var role = localStorage.getItem('wsc_role');
-  var isDisplayMode = role === 'display' || window._wscIsTvMode;
-  if (!isDisplayMode) return;
-
-  var KEYS_OK   = [13, 23, 32]; // Enter, DPAD_CENTER, Space
-  var KEYS_BACK = [8, 27, 4];   // Backspace, ESC, BACK
-
-  var ov = document.getElementById('display-connect-overlay');
-  var overlayVisible = ov && ov.style.display === 'flex';
-
-  // Annuler le timer de connexion auto si on appuie sur OK/Entrée pendant le compte à rebours
-  if (KEYS_OK.indexOf(e.keyCode) !== -1) {
-    if (overlayVisible) {
-      // Si le timer auto-connect tourne → l'annuler, rester sur l'overlay pour saisie manuelle
-      if (window._tvAutoConnectTimer) {
-        clearInterval(window._tvAutoConnectTimer);
-        window._tvAutoConnectTimer = null;
-        var st = document.getElementById('disp-conn-status');
-        if (st) st.textContent = 'Saisie manuelle — modifiez l'IP puis CONNECTER';
-        var inp = document.getElementById('disp-ip-input');
-        if (inp) { try { inp.focus(); } catch(err) {} }
-        e.preventDefault();
-        return;
-      }
-      // Si overlay ouvert sans timer → valider la connexion
-      if (typeof dispConnectManual === 'function') {
-        dispConnectManual();
-        e.preventDefault();
-      }
-      return;
-    }
-    // Overlay fermé + mode display → ouvrir l'overlay IP (pratique si besoin de re-configurer)
-    if (!overlayVisible && ov) {
-      var savedIp = localStorage.getItem('wsServerIp') || '';
-      var inp = document.getElementById('disp-ip-input');
-      if (inp && savedIp) inp.value = savedIp;
-      ov.style.display = 'flex';
-      if (inp) { try { inp.focus(); } catch(err) {} }
-      e.preventDefault();
-    }
-    return;
-  }
-
-  // Annuler le timer auto-connect avec Retour/ESC
-  if (KEYS_BACK.indexOf(e.keyCode) !== -1) {
-    if (window._tvAutoConnectTimer) {
-      clearInterval(window._tvAutoConnectTimer);
-      window._tvAutoConnectTimer = null;
-      var st2 = document.getElementById('disp-conn-status');
-      if (st2) st2.textContent = 'Connexion auto annulée — saisissez l'IP manuellement';
-      e.preventDefault();
-    }
-  }
-}, true);
-
-/* ══ PATCH autoDetect pour TV Box ══
-   Si wsc_role='display' est déjà sauvegardé (cas TV box après 1er lancement)
-   et qu'on est sur Android TV (_wscIsTvMode), on veut TOUJOURS déclencher
-   le flow display complet même si l'overlay IP a déjà géré la connexion.
-   Ce patch s'assure que _showPeerEntry est bien appelé si pas d'IP.        */
-(function patchAutoDetectForTv() {
-  var _origAutoDetect;
-  // On surcharge après DOMContentLoaded pour ne pas casser l'ordre de déclaration
-  document.addEventListener('DOMContentLoaded', function() {
-    // Si pas TV mode, rien à faire
-    if (!window._wscIsTvMode) return;
-    // Si IP déjà connue via le bridge natif, l'injecter dans localStorage immédiatement
-    if (window._wscServerIp && window._wscServerIp.length > 4) {
-      // Ne pas écraser si l'utilisateur a déjà une IP différente sauvegardée
-      if (!localStorage.getItem('wsServerIp')) {
-        localStorage.setItem('wsServerIp', window._wscServerIp);
-        console.log('[TV] IP régie injectée depuis bridge natif:', window._wscServerIp);
-      }
-    }
-  }, { once: true });
-})();
-
 document.addEventListener('DOMContentLoaded',init);
 </script>
   
 <!-- ══════════ ROLE SELECTION MODAL ══════════ -->
 <div id="role-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
-  <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:clamp(1rem,3vw,1.4rem);letter-spacing:.1em;text-align:center;">WISE SMART CHURCH</div>
-  <div style="color:rgba(255,255,255,.7);font-size:clamp(.8rem,2vw,.95rem);text-align:center;">Sélectionner le rôle de cet appareil</div>
+  <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1.3rem;letter-spacing:.1em;text-align:center;">WISE SMART CHURCH</div>
+  <div style="color:rgba(255,255,255,.7);font-size:.85rem;text-align:center;">Sélectionner le rôle de cet appareil</div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
-    <button id="role-btn-display" tabindex="0" onclick="setRoleDisplay()"
-      style="padding:20px 32px;background:linear-gradient(135deg,#1a3a5c,#2563eb);color:#fff;border:2px solid #3b82f6;border-radius:12px;font-size:clamp(.9rem,2.5vw,1.1rem);cursor:pointer;text-align:center;min-width:140px;transition:box-shadow .2s;"
-      onfocus="this.style.boxShadow='0 0 0 4px #3b82f6,0 0 24px rgba(59,130,246,.5)'" onblur="this.style.boxShadow='none'">
+    <button onclick="setRoleDisplay()" style="padding:20px 32px;background:linear-gradient(135deg,#1a3a5c,#2563eb);color:#fff;border:2px solid #3b82f6;border-radius:12px;font-size:1rem;cursor:pointer;text-align:center;min-width:140px;">
       📺<br><b>ÉCRAN</b><br><span style="font-size:.7rem;opacity:.7;">TV Box / Smart TV</span>
     </button>
-    <button id="role-btn-regie" tabindex="0" onclick="setRoleRegie()"
-      style="padding:20px 32px;background:linear-gradient(135deg,#3a1a1a,#b45309);color:#fff;border:2px solid var(--gold);border-radius:12px;font-size:clamp(.9rem,2.5vw,1.1rem);cursor:pointer;text-align:center;min-width:140px;transition:box-shadow .2s;"
-      onfocus="this.style.boxShadow='0 0 0 4px var(--gold),0 0 24px rgba(240,192,64,.5)'" onblur="this.style.boxShadow='none'">
+    <button onclick="setRoleRegie()" style="padding:20px 32px;background:linear-gradient(135deg,#3a1a1a,#b45309);color:#fff;border:2px solid var(--gold);border-radius:12px;font-size:1rem;cursor:pointer;text-align:center;min-width:140px;">
       🎛️<br><b>RÉGIE</b><br><span style="font-size:.7rem;opacity:.7;">Phone / PC / Tablette</span>
     </button>
   </div>
-  <div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;">
-    Ce choix est mémorisé sur cet appareil — Réinitialiser dans ⚙️ Paramètres<br>
-    <span style="color:rgba(255,255,255,.18);">📡 Télécommande : ◀▶ naviguer · OK sélectionner</span>
-  </div>
+  <div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;">Ce choix est mémorisé sur cet appareil<br>Réinitialiser dans ⚙️ Paramètres</div>
 </div>
 
-<script>
-/* Pré-sélectionner ÉCRAN sur TV box dès que le modal s'ouvre */
-(function(){
-  var _rmObserver = new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      if(m.target.id==='role-modal' && m.target.style.display==='flex'){
-        var btn = document.getElementById('role-btn-display');
-        if(window._wscIsTvMode && btn){
-          // Focus automatique sur ÉCRAN
-          setTimeout(function(){ try{btn.focus();}catch(e){} }, 150);
-        }
-      }
-    });
-  });
-  document.addEventListener('DOMContentLoaded', function(){
-    var rm = document.getElementById('role-modal');
-    if(rm) _rmObserver.observe(rm, {attributes:true, attributeFilter:['style']});
-  },{once:true});
-})();
-</script>
-
 <!-- ══════════ DISPLAY CONNECT OVERLAY ══════════ -->
-<!-- z-index:98000 > display-mode:9999 → s'affiche par-dessus le fond noir -->
-<div id="display-connect-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:98000;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;">
-
-  <!-- Titre -->
-  <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:clamp(1rem,3vw,1.6rem);letter-spacing:.1em;text-align:center;">📺 MODE ÉCRAN — CONNEXION RÉGIE</div>
-  <div style="color:rgba(255,255,255,.6);font-size:clamp(.75rem,2vw,1rem);text-align:center;max-width:420px;">
-    Entrez l'IP de la régie<br>
-    <span style="font-size:.8em;opacity:.7;">(visible dans ⚙️ de la régie — ex: 192.168.1.14)</span>
+<div id="display-connect-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:98000;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">
+  <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1.2rem;letter-spacing:.08em;">MODE ÉCRAN</div>
+  <div style="color:rgba(255,255,255,.6);font-size:.8rem;text-align:center;">IP de la régie (visible dans ⚙️ de la régie)</div>
+  <input id="disp-ip-input" type="text" inputmode="decimal" placeholder="192.168.1.xxx" style="font-size:1.4rem;letter-spacing:.08em;text-align:center;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;width:260px;max-width:90vw;"/>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button onclick="dispConnectManual()" style="padding:12px 28px;background:var(--gold);color:#000;border:none;border-radius:8px;font-size:.95rem;cursor:pointer;font-weight:700;">CONNECTER</button>
+    <button onclick="dispConnectScan()" style="padding:12px 20px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;font-size:.85rem;cursor:pointer;">🔍 SCANNER LE RÉSEAU</button>
   </div>
-
-  <!-- Champ IP — grand pour TV -->
-  <input id="disp-ip-input" type="text" inputmode="decimal" placeholder="192.168.1.xxx"
-    style="font-size:clamp(1.3rem,4vw,2rem);letter-spacing:.12em;text-align:center;padding:14px 20px;
-           background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35);border-radius:10px;
-           color:#fff;width:clamp(240px,60vw,380px);outline:none;transition:border .2s;"
-    onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.35)'"
-    onkeydown="if(event.keyCode===13||event.keyCode===23){dispConnectManual();event.preventDefault();}" />
-
-  <!-- Boutons -->
-  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
-    <button id="disp-connect-btn" onclick="dispConnectManual()"
-      style="padding:14px 36px;background:var(--gold);color:#000;border:none;border-radius:10px;
-             font-size:clamp(.9rem,2.5vw,1.15rem);cursor:pointer;font-weight:900;letter-spacing:.04em;
-             transition:transform .1s,box-shadow .2s;"
-      onmouseover="this.style.boxShadow='0 0 0 3px #fff4'" onmouseout="this.style.boxShadow='none'"
-      onfocus="this.style.boxShadow='0 0 0 3px var(--gold),0 0 20px rgba(240,192,64,.4)'" onblur="this.style.boxShadow='none'">
-      ✅ CONNECTER
-    </button>
-    <button onclick="dispConnectScan()"
-      style="padding:14px 24px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);
-             border-radius:10px;font-size:clamp(.8rem,2vw,1rem);cursor:pointer;transition:background .2s;"
-      onfocus="this.style.background='rgba(255,255,255,.2)'" onblur="this.style.background='rgba(255,255,255,.1)'">
-      🔍 SCANNER LE RÉSEAU
-    </button>
-  </div>
-
-  <!-- Statut + compte-à-rebours -->
-  <div id="disp-conn-status" style="font-size:clamp(.7rem,1.8vw,.95rem);color:var(--muted);min-height:24px;text-align:center;transition:color .3s;"></div>
-
-  <!-- Indicateur télécommande -->
-  <div style="color:rgba(255,255,255,.25);font-size:clamp(.6rem,1.5vw,.78rem);text-align:center;margin-top:-8px;">
-    📡 Télécommande : <kbd style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:.9em;">OK</kbd> / <kbd style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:.9em;">Entrée</kbd> = Connecter &nbsp;|&nbsp; <kbd style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:.9em;">Retour</kbd> = Annuler timer
-  </div>
-
-  <button onclick="setRoleModal()" style="margin-top:4px;font-size:.68rem;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;text-decoration:underline;">← Changer de rôle</button>
+  <div id="disp-conn-status" style="font-size:.72rem;color:var(--muted);min-height:20px;text-align:center;"></div>
+  <button onclick="setRoleModal()" style="margin-top:8px;font-size:.68rem;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;text-decoration:underline;">← Changer de rôle</button>
 </div>
 
 </body>
