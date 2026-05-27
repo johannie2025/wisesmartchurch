@@ -43,6 +43,7 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/index.html
+          cp -r assets www/
 
       - name: Sync Capacitor
         run: npx cap sync android

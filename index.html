@@ -4,10 +4,34 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Wise Smart Church — Pro Projection</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="assets/tailwind.js"></script>
+<script src="assets/dexie.min.js"></script>
+<script src="assets/mqttws31.min.js"></script>
+<script src="assets/peerjs.min.js"></script>
+<script>
+/* ══ EARLY DISPLAY DETECTION — avant DOMContentLoaded ══
+   Règle le problème où ?display (sans =true) ne passe pas en mode display.
+   On injecte le CSS avant que le navigateur rende quoi que ce soit.      */
+(function earlyDisplay(){
+  const sp=new URLSearchParams(window.location.search);
+  const byUrl=sp.has('display')||sp.has('tv')||sp.has('screen');
+  const byVal=sp.get('display')==='true'||sp.get('display')==='True'||sp.get('display')==='1';
+  const byRole=localStorage.getItem('wsc_role')==='display';
+  if(byUrl||byVal||byRole){
+    // Mémoriser le rôle pour init()
+    localStorage.setItem('wsc_role','display');
+    // Injecter CSS immédiatement – avant toute réécriture JS
+    const s=document.createElement('style');
+    s.id='_early-display';
+    s.textContent=
+      '#control-mode{display:none!important;visibility:hidden!important;pointer-events:none!important;}'+
+      '#display-mode{display:flex!important;position:fixed!important;inset:0!important;z-index:9999!important;background:#000!important;}'+
+      '#peer-entry-overlay{display:none!important;}'+
+      '#role-modal{display:none!important;}';
+    document.head.appendChild(s);
+  }
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;700&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=Oswald:wght@400;600&family=Lato:wght@300;400;700&family=Noto+Serif:wght@400;700&display=swap');
 :root{
@@ -29,7 +53,7 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 #disp-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity 1.2s ease;}
 #disp-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
 #disp-content{position:relative;z-index:2;text-align:center;padding:4vw 7vw;max-width:96vw;width:100%;perspective:1200px;}
-#disp-verse{font-family:'Cinzel',serif;font-size:clamp(1.8rem,5.5vw,8rem);font-weight:600;color:#fff;line-height:1.35;text-shadow:0 3px 12px rgba(0,0,0,0.95),0 0 60px rgba(0,0,0,0.8);letter-spacing:.01em;transition:opacity .55s ease,transform .55s ease;}
+#disp-verse{font-family:'Cinzel',serif;font-size:clamp(1.2rem,5.5vw,8rem);font-weight:600;color:#fff;line-height:1.4;text-shadow:0 3px 12px rgba(0,0,0,0.95),0 0 60px rgba(0,0,0,0.8);letter-spacing:.01em;transition:opacity .55s ease,transform .55s ease;word-wrap:break-word;overflow-wrap:break-word;hyphens:auto;max-height:82vh;overflow:hidden;display:block;}
 #disp-ref{font-family:'Cinzel',serif;font-size:clamp(.9rem,2vw,3rem);color:var(--gold);margin-top:2.5vw;font-weight:400;text-shadow:0 2px 8px rgba(0,0,0,0.95);letter-spacing:.06em;transition:opacity .55s ease;}
 #disp-logo-bug{position:fixed;bottom:1.5vh;right:2vw;display:flex;align-items:center;gap:8px;z-index:3;opacity:.22;}
 #disp-logo-bug img{height:clamp(20px,2.5vh,40px);object-fit:contain;}
@@ -293,6 +317,20 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 .size-preset-btns{display:flex;gap:3px;margin-bottom:5px;}
 .size-preset-btn{flex:1;padding:4px 2px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:.65rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}
 .size-preset-btn:hover{border-color:var(--gold);color:var(--gold);}
+/* ── TV BOX D-PAD FIX ── */
+.stab,.ctab,.book-btn,.ch-btn,.verse-row,.bg-option,.song-item,
+.announce-item,.strophe-row,.pl-item,.mode-btn,.icon-btn,
+.btn-primary,.btn-secondary,.btn-danger,.dl-btn,.color-dot,
+.bible-ver-tag,.screen-target-btn,.lt-type-btn{
+  -webkit-tap-highlight-color:rgba(240,192,64,.18);
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.stab:focus-visible,.ctab:focus-visible,.book-btn:focus-visible,
+.ch-btn:focus-visible,.verse-row:focus-visible,.song-item:focus-visible,
+.announce-item:focus-visible,.strophe-row:focus-visible,.pl-item:focus-visible{
+  outline:2px solid var(--gold);outline-offset:2px;
+}
 </style>
 </head>
 <body>
@@ -564,19 +602,34 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 
         <!-- Preview & project -->
         <div class="panel-section">
-          <div class="sec-title" data-i18n="to_project">À PROJETER</div>
-          <div id="current-ref">—</div>
-          <div id="current-preview" data-i18n="no_verse_sel">Aucun verset sélectionné.</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
+            <div class="sec-title" data-i18n="to_project" style="margin-bottom:0;flex:1;">À PROJETER</div>
+            <!-- Sélecteur d'écran pour l'aperçu -->
+            <select id="preview-screen-sel" onchange="setPreviewScreen(this.value)" title="Choisir l'écran à prévisualiser"
+              style="padding:2px 5px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--gold);font-size:.58rem;cursor:pointer;outline:none;max-width:110px;">
+              <option value="all">📡 Tous</option>
+              <option value="podium">🎤 Podium</option>
+              <option value="retour">🔄 Retour</option>
+              <option value="chorale">🎶 Chorale</option>
+              <option value="lateral">↔ Latéraux</option>
+            </select>
+            <button onclick="openScreenConfigModal(currentScreenTarget)" title="Configurer cet écran"
+              style="padding:2px 6px;border-radius:4px;background:var(--bg4);border:1px solid var(--border);color:var(--muted);font-size:.65rem;cursor:pointer;">⚙</button>
+          </div>
+          <div id="current-ref" style="font-size:.7rem;color:var(--gold);margin-bottom:3px;">—</div>
+          <div id="current-preview" data-i18n="no_verse_sel" style="font-size:.72rem;color:var(--muted);margin-bottom:6px;">Aucun verset sélectionné.</div>
           <!-- APERÇU PROJECTION EN DIRECT -->
-          <div id="proj-preview-box" style="position:relative;border-radius:8px;overflow:hidden;margin-bottom:7px;aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);min-height:80px;">
+          <div id="proj-preview-box" style="position:relative;border-radius:8px;overflow:hidden;margin-bottom:7px;aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);min-height:80px;cursor:pointer;" onclick="toggleProjecting()" title="Clic pour activer/désactiver la projection">
             <div id="proj-prev-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;"></div>
             <div id="proj-prev-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,.5);"></div>
             <div style="position:relative;z-index:2;text-align:center;padding:6px 10px;width:100%;">
-              <div id="proj-prev-verse" style="font-family:'Cinzel',serif;font-size:clamp(.5rem,1.8vw,.85rem);color:#fff;line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.9);transition:opacity .3s;"></div>
-              <div id="proj-prev-ref" style="font-family:'Cinzel',serif;font-size:clamp(.4rem,1.2vw,.65rem);color:var(--gold);margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.9);transition:opacity .3s;"></div>
+              <div id="proj-prev-verse" style="font-family:'Cinzel',serif;font-size:clamp(.38rem,1vw,.82rem);color:#fff;line-height:1.35;text-shadow:0 1px 4px rgba(0,0,0,.9);transition:all .3s;"></div>
+              <div id="proj-prev-ref" style="font-family:'Cinzel',serif;font-size:clamp(.32rem,.75vw,.6rem);color:var(--gold);margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.9);transition:opacity .3s;"></div>
             </div>
             <div id="proj-prev-label" style="position:absolute;top:4px;left:6px;font-size:.45rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);z-index:3;">APERÇU</div>
-            <div id="proj-prev-live" style="position:absolute;top:4px;right:6px;font-size:.45rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--danger);z-index:3;display:none;">● LIVE</div>
+            <div id="proj-prev-live" style="position:absolute;top:4px;right:6px;font-size:.45rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--danger);z-index:3;display:none;animation:pulse 1.5s infinite;">● LIVE</div>
+            <!-- Indicateur d'écran actif -->
+            <div id="proj-prev-screen" style="position:absolute;bottom:4px;right:6px;font-size:.42rem;color:rgba(255,255,255,.3);z-index:3;">📡 Tous</div>
           </div>
           <button id="btn-project" onclick="projectCurrent()">▶ <span data-i18n="projeter">PROJETER</span></button>
           <button id="btn-clear" onclick="projectClear()">⬛ <span data-i18n="ecran_noir">Écran noir</span></button>
@@ -1067,6 +1120,13 @@ function mqttPub(sub,payload){
   if(payload&&currentScreenTarget&&currentScreenTarget!=='all'){
     payload=Object.assign({},payload,{target:currentScreenTarget});
   }
+  // Sauvegarder le dernier payload de projection pour replay dans la popup display
+  if(payload&&payload.type==='project'){
+    try{localStorage.setItem('wsc_last_proj',JSON.stringify({...payload,_ts:Date.now()}));}catch(e){}
+  }
+  if(payload&&payload.type==='clear'){
+    try{localStorage.removeItem('wsc_last_proj');}catch(e){}
+  }
   // 1. MQTT réseau
   if(connMode==='mqtt'&&mqttClient&&mqttClient.isConnected()){
     const msg=new Paho.MQTT.Message(JSON.stringify(payload));
@@ -1392,23 +1452,29 @@ function switchToDisplay(){
   S.mode='display';
   const cm=document.getElementById('control-mode');
   const dm=document.getElementById('display-mode');
-  // Masquage total régie (Android TV ne répond pas toujours à display:none seul)
-  cm.style.display='none';
-  cm.style.visibility='hidden';
-  cm.style.pointerEvents='none';
-  cm.style.position='absolute';
-  cm.style.opacity='0';
+  // Masquage total régie
+  if(cm){cm.style.display='none';cm.style.visibility='hidden';cm.style.pointerEvents='none';}
   // Affichage display
-  dm.classList.remove('hidden');
-  dm.style.cssText='position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;background:#000!important;display:flex!important;align-items:center;justify-content:center;overflow:hidden;';
+  if(dm){
+    dm.classList.remove('hidden');
+    dm.style.display='flex';
+    dm.style.position='fixed';
+    dm.style.inset='0';
+    dm.style.zIndex='9999';
+    dm.style.background='#000';
+  }
+  const bcCtrl=document.getElementById('btn-mode-ctrl');
+  const bcDisp=document.getElementById('btn-mode-disp');
+  if(bcCtrl)bcCtrl.classList.remove('active');
+  if(bcDisp)bcDisp.classList.add('active');
   document.body.style.overflow='hidden';
-  document.body.style.background='#000';
-  document.getElementById('btn-mode-ctrl').classList.remove('active');
-  document.getElementById('btn-mode-disp').classList.add('active');
   // Afficher brièvement le screen ID
   const sid=localStorage.getItem('wsc_screen_id')||'all';
   const sidEl=document.getElementById('disp-screen-id');
   if(sidEl){sidEl.textContent='ÉCRAN: '+sid.toUpperCase();setTimeout(()=>{sidEl.style.opacity='0';sidEl.style.transition='opacity 2s';},4000);}
+  // Supprimer le style early-display (il n'est plus nécessaire)
+  const early=document.getElementById('_early-display');
+  if(early)setTimeout(()=>{try{early.remove();}catch(e){}},500);
   _tryFullscreen();
 }
 function switchToControl(){
@@ -1531,8 +1597,18 @@ function autoDetect(){
           return;
         }
       }catch(e){}
-      // Rien trouvé → overlay de saisie
+      // Rien trouvé en peer/mqtt → mode LAN WebSocket (offline)
+      // Afficher l'overlay de connexion IP ET lancer l'auto-découverte en fond
       _showPeerEntry();
+      // Replay le dernier payload si disponible (fix popup race condition)
+      try{
+        const last=JSON.parse(localStorage.getItem('wsc_last_proj')||'{}');
+        if(last.type==='project'&&last.text&&Date.now()-(last._ts||0)<300000){
+          setTimeout(()=>renderDisplayVerse(last),600);
+        }
+      }catch(e){}
+      // Auto-découverte LAN : essai IP connue d'abord, puis scan subnet
+      setTimeout(()=>autoDiscoverLan(),800);
     }
 
   /* ─── MODE REMOTE RÉGIE (phone prédicateur / maestro) ─── */
@@ -1571,14 +1647,45 @@ function _showPeerEntry(){
   const ov=document.getElementById('peer-entry-overlay');
   if(ov)ov.classList.remove('hidden');
 }
+function _showDisplayWaiting(){
+  // Afficher un écran d'attente sur le display (sans bloquer l'interface)
+  const dm=document.getElementById('display-mode');
+  if(!dm)return;
+  // Ne pas écraser un verset déjà affiché
+  const verse=document.getElementById('disp-verse');
+  if(verse&&verse.textContent)return;
+  // Afficher le nom de l'église en attente
+  const churchName=S&&S.settings&&S.settings.churchName||'Wise Smart Church';
+  const waiting=document.getElementById('disp-waiting');
+  if(!waiting){
+    const w=document.createElement('div');
+    w.id='disp-waiting';
+    w.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;';
+    w.innerHTML=`
+      <div style="font-family:'Cinzel',serif;font-size:clamp(1rem,3vw,3.5rem);color:rgba(255,255,255,.12);letter-spacing:.15em;text-align:center;margin-bottom:2vh;">${churchName.toUpperCase()}</div>
+      <div style="font-size:clamp(.6rem,1.2vw,1rem);color:rgba(255,255,255,.08);letter-spacing:.3em;text-transform:uppercase;">En attente de projection…</div>
+      <div id="disp-conn-indicator" style="margin-top:4vh;width:6px;height:6px;border-radius:50%;background:rgba(255,100,100,.4);animation:pulse 2s infinite;"></div>`;
+    dm.appendChild(w);
+  }
+}
 
 function renderDisplayVerse(payload){
   const vEl=document.getElementById('disp-verse');
   const rEl=document.getElementById('disp-ref');
   const tr=payload.transition||S.settings.transition||'fade';
 
+  // Cacher l'écran d'attente
+  const waiting=document.getElementById('disp-waiting');
+  if(waiting)waiting.style.display='none';
+
   // Appliquer le fond immédiatement
   if(payload.bg) applyDisplayBg(payload.bg);
+
+  // Appliquer police et taille (transmises dans le payload)
+  if(payload.fontFamily&&vEl){vEl.style.fontFamily=`'${payload.fontFamily}',serif`;}
+  if(payload.fontFamily&&rEl){rEl.style.fontFamily=`'${payload.fontFamily}',serif`;}
+  if(payload.fontSize&&vEl){vEl.style.fontSize=`clamp(1.2rem,${payload.fontSize},9rem)`;}
+  if(payload.color&&vEl){vEl.style.color=payload.color;}
 
   // Animations pro selon transition choisie
   const outDur=280;
@@ -1627,7 +1734,15 @@ function renderDisplayVerse(payload){
     vEl.textContent=payload.text||'';
     rEl.textContent=payload.ref||'';
     if(payload.color) vEl.style.color=payload.color;
-    if(payload.fontSize) vEl.style.fontSize=`clamp(1.5rem,${payload.fontSize},9rem)`;
+    // ✅ Auto-réduire la police pour les versets longs
+    const baseVw=parseFloat(payload.fontSize)||5.5;
+    const len=(payload.text||'').length;
+    let adjVw=baseVw;
+    if(len>200)adjVw=Math.max(1.8,baseVw*0.55);
+    else if(len>150)adjVw=Math.max(2.0,baseVw*0.65);
+    else if(len>100)adjVw=Math.max(2.4,baseVw*0.75);
+    else if(len>60) adjVw=Math.max(2.8,baseVw*0.88);
+    vEl.style.fontSize=`clamp(1.2rem,${adjVw}vw,8rem)`;
     if(payload.fontFamily){vEl.style.fontFamily=`'${payload.fontFamily}',serif`;rEl.style.fontFamily=`'${payload.fontFamily}',serif`;}
 
     // Reset transform avant entrée
@@ -1858,9 +1973,19 @@ function setFontFamily(ff){
   const rEl=document.getElementById('disp-ref');
   if(vEl)vEl.style.fontFamily=`'${ff}',serif`;
   if(rEl)rEl.style.fontFamily=`'${ff}',serif`;
+  // ✅ Mettre à jour l'aperçu (preview panel)
+  const pvEl=document.getElementById('proj-prev-verse');
+  const prEl=document.getElementById('proj-prev-ref');
+  if(pvEl)pvEl.style.fontFamily=`'${ff}',serif`;
+  if(prEl)prEl.style.fontFamily=`'${ff}',serif`;
   // Sync settings select
   const sel=document.getElementById('s-font-family');
   if(sel)sel.value=ff;
+  // Broadcaster si projection active
+  if(S.projecting&&S.selectedText){
+    const bg=S.selectedItemBg||{mode:S.bgMode,url:S.bgImageUrl};
+    mqttPub('projection',{type:'project',text:S.selectedText,ref:S.selectedRef,color:S.textColor,fontSize:S.fontSize,fontFamily:ff,bg,transition:'cut'});
+  }
   showToast('🔤 Police: '+ff,'info',1400);
 }
 function setFontSizeVal(vw){
@@ -1877,7 +2002,15 @@ function setFontSizeVal(vw){
   if(vl2)vl2.textContent=vw+'vw';
   // Appliquer sur display local
   const vEl=document.getElementById('disp-verse');
-  if(vEl)vEl.style.fontSize=`clamp(1.5rem,${S.fontSize},9rem)`;
+  if(vEl)vEl.style.fontSize=`clamp(1.2rem,${S.fontSize},9rem)`;
+  // ✅ Mettre à jour l'aperçu proportionnellement (le preview fait ~1/5 de la largeur)
+  const pvEl=document.getElementById('proj-prev-verse');
+  if(pvEl)pvEl.style.fontSize=`clamp(.38rem,${(vw*0.21).toFixed(2)}vw,.88rem)`;
+  // Broadcaster si projection active
+  if(S.projecting&&S.selectedText){
+    const bg=S.selectedItemBg||{mode:S.bgMode,url:S.bgImageUrl};
+    mqttPub('projection',{type:'project',text:S.selectedText,ref:S.selectedRef,color:S.textColor,fontSize:S.fontSize,fontFamily:S.fontFamily,bg,transition:'cut'});
+  }
 }
 
 function applyDisplayBg(bg){
@@ -2009,7 +2142,11 @@ function isMobileDevice(){
 async function openDisplayPopup(){
   // Ne pas ouvrir de popup sur mobile — la TV reçoit via réseau
   if(isMobileDevice()) return;
-  if(displayPopup&&!displayPopup.closed){return;}
+  if(displayPopup&&!displayPopup.closed){
+    // Popup déjà ouverte : renvoyer le payload immédiatement
+    if(lastPayload){try{displayPopup.postMessage({wsc:true,...lastPayload},'*');}catch(e){}}
+    return;
+  }
   const url=location.href.split('?')[0]+'?display';
   const feat='toolbar=no,menubar=no,status=no,scrollbars=no,resizable=no';
   // Window Management API (auto 2e écran)
@@ -2019,12 +2156,21 @@ async function openDisplayPopup(){
       const sc=sd.screens.find(s=>!s.isPrimary)||sd.screens[sd.screens.length-1];
       displayPopup=window.open(url,'wsc_display',
         `left=${sc.availLeft},top=${sc.availTop},width=${sc.availWidth},height=${sc.availHeight},${feat}`);
-      return;
-    }catch(e){}
+    }catch(e){
+      displayPopup=window.open(url,'wsc_display',
+        `left=${window.screen.width},top=0,width=${window.screen.availWidth},height=${window.screen.availHeight},${feat}`);
+    }
+  } else {
+    // Fallback : ouvre sur écran secondaire supposé
+    displayPopup=window.open(url,'wsc_display',
+      `left=${window.screen.width},top=0,width=${window.screen.availWidth},height=${window.screen.availHeight},${feat}`);
   }
-  // Fallback : ouvre sur écran secondaire supposé (déport à droite)
-  displayPopup=window.open(url,'wsc_display',
-    `left=${window.screen.width},top=0,width=${window.screen.availWidth},height=${window.screen.availHeight},${feat}`);
+  // Envoyer le payload après chargement de la popup (fix race condition = écran noir)
+  setTimeout(()=>{
+    if(displayPopup&&!displayPopup.closed&&lastPayload){
+      try{displayPopup.postMessage({wsc:true,...lastPayload},'*');}catch(e){}
+    }
+  },1400);
 }
 
 /* ═══════════════════════════════════════════
@@ -2070,28 +2216,158 @@ function updateProjectPreview(text,ref,bg,live){
   const bgEl=document.getElementById('proj-prev-bg');
   const liveEl=document.getElementById('proj-prev-live');
   const ovlEl=document.getElementById('proj-prev-overlay');
-  if(vEl){vEl.style.opacity='0';setTimeout(()=>{vEl.textContent=text||'';vEl.style.opacity='1';},150);}
-  if(rEl){rEl.style.opacity='0';setTimeout(()=>{rEl.textContent=ref||'';rEl.style.opacity='1';},150);}
+  // Police & taille (config de l'écran sélectionné ou global)
+  const cfg=getScreenConfig(currentScreenTarget||'all');
+  const ff=cfg.fontFamily||S.fontFamily||'Cinzel';
+  const fsVw=cfg.fontSize||parseFloat(S.fontSize)||5;
+  if(vEl){
+    vEl.style.opacity='0';
+    vEl.style.fontFamily=`'${ff}',serif`;
+    vEl.style.fontSize=`clamp(.38rem,${(fsVw*0.21).toFixed(2)}vw,.88rem)`;
+    vEl.style.color=cfg.textColor||S.textColor||'#fff';
+    setTimeout(()=>{vEl.textContent=text||'';vEl.style.opacity='1';},150);
+  }
+  if(rEl){
+    rEl.style.opacity='0';
+    rEl.style.fontFamily=`'${ff}',serif`;
+    setTimeout(()=>{rEl.textContent=ref||'';rEl.style.opacity='1';},150);
+  }
   if(bgEl&&ovlEl){
     const pct=S.settings.overlay||50;
     if(!bg||bg.mode==='black'){bgEl.style.backgroundImage='';bgEl.style.background='#000';}
     else if(bg.mode==='gradient'){bgEl.style.backgroundImage='';bgEl.style.background='linear-gradient(135deg,#0a0c1a,#0d1f3c)';}
-    else if(bg.mode==='image'&&bg.url){bgEl.style.backgroundImage=`url('${bg.url}')`;bgEl.style.background='';}
+    else if(bg.mode==='image'&&bg.url){
+      bgEl.style.backgroundImage=`url('${bg.url}')`;
+      bgEl.style.backgroundSize='cover';
+      bgEl.style.backgroundPosition='center';
+      bgEl.style.background='';
+    }
     ovlEl.style.background=`rgba(0,0,0,${pct/100})`;
   }
   if(liveEl)liveEl.style.display=live?'block':'none';
 }
 function setSelectedContent(text,ref,itemBg){
   S.selectedText=text;S.selectedRef=ref;S.selectedItemBg=itemBg||null;
-  document.getElementById('current-preview').textContent=text||t('no_verse_sel');
-  document.getElementById('current-ref').textContent=ref||'—';
+  const cpEl=document.getElementById('current-preview');
+  const crEl=document.getElementById('current-ref');
+  if(cpEl)cpEl.textContent=text||t('no_verse_sel');
+  if(crEl)crEl.textContent=ref||'—';
   const bg=itemBg||{mode:S.bgMode,url:S.bgImageUrl};
-  updateProjectPreview(text,ref,bg,false);
+  // Mettre à jour l'aperçu (toujours)
+  updateProjectPreview(text,ref,bg,S.projecting);
+  // ✅ AUTO-PROJECTION : si projection active, projeter immédiatement sans clic supplémentaire
+  if(S.projecting&&text){
+    const payload={type:'project',text,ref,color:S.textColor,fontSize:S.fontSize,fontFamily:S.fontFamily,bg};
+    mqttPub('projection',payload);
+    if(S.mode==='display') renderDisplayVerse(payload);
+    // Envoyer aussi à la fenêtre display si ouverte
+    if(displayPopup&&!displayPopup.closed){
+      try{displayPopup.postMessage({wsc:true,...payload},'*');}catch(e){}
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════
-   BACKGROUND
+   SCREEN CONFIG & PREVIEW SELECTOR
 ═══════════════════════════════════════════ */
+// Config par écran : {fontFamily, fontSize, textColor, bgMode, bgUrl, overlay}
+function getScreenConfig(screenId){
+  try{return JSON.parse(localStorage.getItem('wsc_screen_cfg_'+screenId)||'{}');}catch(e){return{};}
+}
+function saveScreenConfig(screenId,cfg){
+  localStorage.setItem('wsc_screen_cfg_'+screenId,JSON.stringify(cfg));
+}
+
+function setPreviewScreen(screenId){
+  currentScreenTarget=screenId;
+  // Mettre à jour le sélecteur
+  const sel=document.getElementById('preview-screen-sel');
+  if(sel)sel.value=screenId;
+  // Mettre à jour le label dans l'aperçu
+  const lbl=document.getElementById('proj-prev-screen');
+  if(lbl)lbl.textContent=SCREEN_NAMES[screenId]||screenId;
+  // Charger la config de cet écran dans l'aperçu
+  const cfg=getScreenConfig(screenId);
+  const pvEl=document.getElementById('proj-prev-verse');
+  const prEl=document.getElementById('proj-prev-ref');
+  if(pvEl&&cfg.fontFamily)pvEl.style.fontFamily=`'${cfg.fontFamily}',serif`;
+  if(prEl&&cfg.fontFamily)prEl.style.fontFamily=`'${cfg.fontFamily}',serif`;
+  if(pvEl&&cfg.fontSize)pvEl.style.fontSize=`clamp(.38rem,${(parseFloat(cfg.fontSize)*0.21).toFixed(2)}vw,.88rem)`;
+  // Mettre à jour le target bar
+  document.querySelectorAll('.screen-target-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.t===screenId);
+    b.style.background=b.dataset.t===screenId?'var(--gold)':'var(--bg3)';
+    b.style.color=b.dataset.t===screenId?'#000':'var(--muted)';
+  });
+  showToast('👁 Aperçu: '+SCREEN_NAMES[screenId],'info',1200);
+}
+
+function toggleProjecting(){
+  if(S.projecting) projectClear();
+  else if(S.selectedText) projectCurrent();
+}
+
+function openScreenConfigModal(screenId){
+  const cfg=getScreenConfig(screenId);
+  const name=SCREEN_NAMES[screenId]||screenId;
+  // Créer/réutiliser modal
+  let modal=document.getElementById('screen-cfg-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='screen-cfg-modal';
+    modal.className='modal-overlay';
+    modal.style.zIndex='99999';
+    modal.onclick=function(e){if(e.target===this)this.classList.add('hidden');};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML=`
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-title">⚙ Config écran : ${name}</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;">Paramètres par défaut pour cet écran.</div>
+    <div class="sec-title" style="margin-bottom:5px;">Police</div>
+    <select id="scfg-font" class="modal-input" style="margin-bottom:8px;">
+      ${['Cinzel','Playfair Display','Oswald','Roboto','Open Sans','Lato','Noto Serif','Inter'].map(f=>
+        `<option value="${f}" ${(cfg.fontFamily||S.fontFamily)===f?'selected':''}>${f}</option>`).join('')}
+    </select>
+    <div class="sec-title" style="margin-bottom:5px;">Taille du texte</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <input type="range" id="scfg-size" min="2" max="12" step=".5" value="${cfg.fontSize||parseFloat(S.fontSize)||5}"
+        style="flex:1;" oninput="document.getElementById('scfg-size-val').textContent=this.value+'vw'"/>
+      <span id="scfg-size-val" style="font-size:.72rem;color:var(--gold);min-width:40px;">${cfg.fontSize||parseFloat(S.fontSize)||5}vw</span>
+    </div>
+    <div class="sec-title" style="margin-bottom:5px;">Couleur du texte</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      ${['#ffffff','#fde68a','#fed7aa','#bbf7d0','#bfdbfe','#fca5a5'].map(c=>
+        `<div onclick="document.querySelectorAll('.scfg-cdot').forEach(d=>d.style.outline='none');this.style.outline='2px solid white';_scfgColor='${c}'"
+          class="scfg-cdot" style="width:20px;height:20px;border-radius:50%;background:${c};cursor:pointer;outline:${(cfg.textColor||'#ffffff')===c?'2px solid white':'none'};"></div>`
+      ).join('')}
+    </div>
+    <div class="sec-title" style="margin-bottom:5px;">Arrière-plan</div>
+    <select id="scfg-bg" class="modal-input" style="margin-bottom:8px;">
+      <option value="black" ${(cfg.bgMode||'black')==='black'?'selected':''}>Noir uni</option>
+      <option value="gradient" ${cfg.bgMode==='gradient'?'selected':''}>Dégradé</option>
+    </select>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+      <button class="btn-secondary" onclick="closeModal('screen-cfg-modal')">Annuler</button>
+      <button class="btn-primary" onclick="applyScreenConfig('${screenId}')">💾 Sauvegarder</button>
+    </div>
+  </div>`;
+  window._scfgColor=cfg.textColor||'#ffffff';
+  modal.classList.remove('hidden');
+}
+function applyScreenConfig(screenId){
+  const cfg={
+    fontFamily:document.getElementById('scfg-font')?.value||S.fontFamily,
+    fontSize:document.getElementById('scfg-size')?.value||parseFloat(S.fontSize),
+    textColor:window._scfgColor||'#ffffff',
+    bgMode:document.getElementById('scfg-bg')?.value||'black',
+  };
+  saveScreenConfig(screenId,cfg);
+  closeModal('screen-cfg-modal');
+  showToast('✅ Config écran "'+SCREEN_NAMES[screenId]+'" sauvegardée','success',2500);
+  // Rafraîchir l'aperçu
+  setPreviewScreen(screenId);
+}
 const BG_OPTS=[
   {id:'black',   label:'Noir uni',   style:'background:#000'},
   {id:'gradient',label:'Dégradé',    style:'background:linear-gradient(135deg,#0a0c1a,#0d1f3c)'},
@@ -2117,6 +2393,15 @@ function setTextColor(c,el){
   S.textColor=c;
   document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
   el.classList.add('active');
+  // Appliquer sur display local
+  const vEl=document.getElementById('disp-verse');
+  if(vEl)vEl.style.color=c;
+  // ✅ Broadcaster couleur si projection en cours
+  if(S.projecting&&S.selectedText){
+    const bg=S.selectedItemBg||{mode:S.bgMode,url:S.bgImageUrl};
+    const payload={type:'project',text:S.selectedText,ref:S.selectedRef,color:c,fontSize:S.fontSize,fontFamily:S.fontFamily,bg,transition:'cut'};
+    mqttPub('projection',payload);
+  }
 }
 function setFontSize(sz){S.fontSize=sz;}
 
@@ -3732,6 +4017,27 @@ function toggleMobSidebar(){
     if(bd)bd.remove();
   }
 }
+
+/* ── TV BOX D-PAD + TOUCH FIX ── */
+function makeTvFocusable(){
+  document.querySelectorAll(
+    '.stab,.ctab,.book-btn,.ch-btn,.verse-row,.bg-option,.song-item,'+
+    '.announce-item,.strophe-row,.pl-item,.color-dot,.bible-ver-tag,.screen-target-btn,.lt-type-btn'
+  ).forEach(el=>{
+    if(el.tabIndex<0)el.tabIndex=0;
+  });
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key===' '){
+    const el=document.activeElement;
+    if(el&&el.tagName!=='BUTTON'&&el.tagName!=='INPUT'&&
+       el.tagName!=='SELECT'&&el.tagName!=='TEXTAREA'){
+      e.preventDefault();el.click();
+    }
+  }
+},true);
+document.addEventListener('touchstart',function(){},{once:true,passive:true});
+new MutationObserver(makeTvFocusable).observe(document.body,{childList:true,subtree:true});
 
 document.addEventListener('DOMContentLoaded',init);
 </script>

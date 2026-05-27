@@ -11,35 +11,31 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.webkit.PermissionRequest;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 /**
  * Wise Smart Church — MainActivity
+ * ✅ WebChromeClient : accorde automatiquement caméra + micro au WebView
+ * ✅ WscLanServer embarqué : fonctionne en WiFi / hotspot / sans internet
  */
 public class MainActivity extends BridgeActivity {
     private static final String TAG = "WscMain";
-    private WscLanServer      wsServer;
-    private boolean           isTvMode = false;
+    private WscLanServer wsServer;
+    private boolean      isTvMode = false;
 
-    /* Détection TV — multi-méthodes pour les fausses boxes */
+    /* ── Détection TV Box (fausses boxes chinoises incluses) ── */
     private boolean detectTV() {
-        // 1. UI Mode officiel
         UiModeManager uim = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         if (uim != null && uim.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) return true;
-        
-        // 2. Feature LEANBACK (TV officielles)
         if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)) return true;
-        
-        // 3. Pas d'écran tactile → TV Box
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
-        
-        // 4. Résolution large sans tactile
         android.util.DisplayMetrics dm = new android.util.DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         if (dm.widthPixels >= 1920 && !getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) return true;
-        
         return false;
     }
 
@@ -56,16 +52,18 @@ public class MainActivity extends BridgeActivity {
             startKioskMode();
         }
 
-        // Serveur WS embarqué (LAN)
+        // ── Serveur WebSocket LAN embarqué (WiFi / hotspot / sans internet) ──
         final int wsPort = 9000;
         wsServer = new WscLanServer(this, wsPort);
         wsServer.setMessageListener((clientId, msg) -> runOnUiThread(() -> {
-            String js = "try{handleMqttMsg(JSON.parse('" + msg.replace("\\","\\\\").replace("'","\\'") + "'));}catch(e){}";
+            String safe = msg.replace("\\", "\\\\").replace("'", "\\'");
+            String js = "try{handleMqttMsg(JSON.parse('" + safe + "'));}catch(e){console.error('WS msg err',e);}";
             bridge.getWebView().evaluateJavascript(js, null);
         }));
         wsServer.start();
+        Log.i(TAG, "🌐 WS Server démarré port " + wsPort);
 
-        // WebView config
+        // ── WebView config ──
         WebView wv = bridge.getWebView();
         WebSettings ws = wv.getSettings();
         ws.setMediaPlaybackRequiresUserGesture(false);
@@ -78,7 +76,18 @@ public class MainActivity extends BridgeActivity {
         ws.setLoadWithOverviewMode(true);
         ws.setUseWideViewPort(true);
 
-        // Injection infos réseau dans l'HTML
+        // ── ✅ WebChromeClient : accorder caméra + micro automatiquement ──
+        wv.setWebChromeClient(new com.getcapacitor.android.WebChromeClient(this.bridge) {
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    Log.i(TAG, "📷 Permission WebView accordée: " + String.join(", ", request.getResources()));
+                    request.grant(request.getResources());
+                });
+            }
+        });
+
+        // ── Injection infos réseau dans l'HTML ──
         String localIp = WscLanServer.getLocalIp(this);
         wv.post(() -> {
             String js = String.format(
@@ -91,53 +100,65 @@ public class MainActivity extends BridgeActivity {
                 "  broadcast:function(m){try{Android.broadcast(m);}catch(e){}}," +
                 "  getNetworkInfo:function(){return{ip:'%s',wsPort:%d,isTvMode:%b,isAndroid:true};}" +
                 "};",
-                localIp, wsPort, isTvMode, isTvMode, localIp, wsPort, isTvMode
+                localIp, wsPort, isTvMode,
+                isTvMode, localIp, wsPort, isTvMode
             );
             wv.evaluateJavascript(js, null);
         });
 
-        // Bridge JS → Java
+        // ── Bridge JS → Java ──
         wv.addJavascriptInterface(new Object() {
             @android.webkit.JavascriptInterface
-            public void broadcast(String msg) { if(wsServer!=null) wsServer.broadcast(msg); }
+            public void broadcast(String msg) {
+                if (wsServer != null) wsServer.broadcast(msg);
+            }
             @android.webkit.JavascriptInterface
-            public String getServerIp() { return WscLanServer.getLocalIp(MainActivity.this); }
+            public String getServerIp() {
+                return WscLanServer.getLocalIp(MainActivity.this);
+            }
             @android.webkit.JavascriptInterface
             public boolean isTvMode() { return isTvMode; }
         }, "Android");
     }
 
+    /* ── Plein écran immersif ── */
     private void enableImmersiveMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
             WindowInsetsController c = getWindow().getInsetsController();
             if (c != null) {
-                c.hide(android.view.WindowInsets.Type.statusBars()|android.view.WindowInsets.Type.navigationBars());
-                c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                c.hide(android.view.WindowInsets.Type.statusBars() |
+                       android.view.WindowInsets.Type.navigationBars());
+                c.setSystemBarsBehavior(
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
             }
         } else {
             //noinspection deprecation
             getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN
-                |View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                View.SYSTEM_UI_FLAG_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
     }
 
+    /* ── Kiosk Lock Task ── */
     private void startKioskMode() {
-        DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        DevicePolicyManager dpm =
+            (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
         if (dpm != null && dpm.isLockTaskPermitted(getPackageName())) {
             startLockTask();
             Log.i(TAG, "🔒 Kiosk Lock Task activé");
         }
     }
 
-    @Override 
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus && isTvMode) enableImmersiveMode();
     }
 
-    @Override 
+    @Override
     public void onDestroy() {
         if (wsServer != null) wsServer.stopServer();
         super.onDestroy();
