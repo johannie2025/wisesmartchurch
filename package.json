@@ -31,6 +31,7 @@
     "files": [
       "electron/**",
       "index.html",
+      "assets/**",
       "!**/node_modules/.cache/**"
     ],
     "extraResources": [
