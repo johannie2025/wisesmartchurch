@@ -17,9 +17,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Télécharger les bibliothèques QR (copie locale, mode hors-ligne)
         shell: bash
         run: |
