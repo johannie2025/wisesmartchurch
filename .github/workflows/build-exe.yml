@@ -1,0 +1,27 @@
+name: Build EXE (Windows)
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Télécharger les bibliothèques QR (copie locale, mode hors-ligne)
+        shell: bash
+        run: |
+          mkdir -p web/vendor
+          curl -fsSL -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+          curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+      - run: npm install
+      - run: npx tauri icon web/icon.png
+        
+      - run: npx tauri build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WiseChurch-Setup
+          path: src-tauri/target/release/bundle/nsis/*.exe
