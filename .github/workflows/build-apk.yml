@@ -24,6 +24,9 @@ jobs:
           curl -L -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js || true
           curl -L -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js || true
 
+      - name: Accepter les licences Android SDK
+        run: yes | sdkmanager --licenses || true
+
       - name: Build APK debug
         run: |
           cd android
