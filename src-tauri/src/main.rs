@@ -102,6 +102,17 @@ fn announce_mdns() {
 }
 
 /// Adresse IPv4 locale utilisée pour sortir sur le réseau (aucun paquet envoyé).
+/// Polices installées sur le système (Windows / macOS / Linux).
+#[tauri::command]
+fn list_fonts() -> Vec<String> {
+    let mut db = fontdb::Database::new();
+    db.load_system_fonts();
+    let mut v: Vec<String> = db.faces().filter_map(|f| f.families.first().map(|x| x.0.clone())).collect();
+    v.sort();
+    v.dedup();
+    v
+}
+
 #[tauri::command]
 fn lan_ip() -> String {
     std::net::UdpSocket::bind("0.0.0.0:0")
@@ -320,6 +331,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             lan_ip,
+            list_fonts,
             discover_relay,
             sync_outputs,
             close_outputs,
