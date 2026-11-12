@@ -12,6 +12,7 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -42,6 +43,7 @@ public class MainActivity extends Activity {
     private NsdManager.RegistrationListener regListener;
     private NsdManager.DiscoveryListener discListener;
     private PermissionRequest pendingPerm;
+    private ValueCallback<Uri[]> fileCb;
     private String lastRelay = "";
     private android.net.wifi.WifiManager.MulticastLock mlock;
     private volatile boolean scanning = false;
@@ -67,6 +69,20 @@ public class MainActivity extends Activity {
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
+            /* Sélecteur de fichiers (<input type=file>) : indispensable pour importer photos/vidéos/audio/chants du téléphone */
+            @Override public boolean onShowFileChooser(WebView w, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                if (fileCb != null) fileCb.onReceiveValue(null);
+                fileCb = cb;
+                try {
+                    Intent it = p.createIntent();
+                    it.addCategory(Intent.CATEGORY_OPENABLE);
+                    startActivityForResult(it, 55);
+                } catch (Exception e) {
+                    fileCb = null;
+                    return false;
+                }
+                return true;
+            }
             @Override public void onPermissionRequest(final PermissionRequest r) {
                 runOnUiThread(() -> {
                     ArrayList<String> need = new ArrayList<>();
@@ -92,6 +108,19 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {}
         goImmersive();
         discover();
+    }
+
+    @Override protected void onActivityResult(int req, int res, Intent data) {
+        if (req == 55) {
+            if (fileCb != null) {
+                Uri[] r = null;
+                try { r = WebChromeClient.FileChooserParams.parseResult(res, data); } catch (Exception ignored) {}
+                fileCb.onReceiveValue(r);
+                fileCb = null;
+            }
+            return;
+        }
+        super.onActivityResult(req, res, data);
     }
 
     private void goImmersive() {
@@ -143,6 +172,19 @@ public class MainActivity extends Activity {
     }
 
     /** IPv4 locale (Wi-Fi ou Ethernet — les box TV sont souvent en câble). */
+    /** Toutes les adresses IPv4 privées (Wi‑Fi + Ethernet : les box TV en ont souvent plusieurs). */
+    private ArrayList<String> localIps() {
+        ArrayList<String> l = new ArrayList<>();
+        try {
+            for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                if (!ni.isUp() || ni.isLoopback()) continue;
+                for (java.net.InetAddress a : Collections.list(ni.getInetAddresses()))
+                    if (a instanceof java.net.Inet4Address && a.isSiteLocalAddress()) l.add(a.getHostAddress());
+            }
+        } catch (Exception ignored) {}
+        return l;
+    }
+
     private String localIp() {
         try {
             for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
@@ -161,21 +203,23 @@ public class MainActivity extends Activity {
         scanning = true;
         new Thread(() -> {
             try {
-                String ip = localIp();
-                if (ip.isEmpty()) return;
-                final String base = ip.substring(0, ip.lastIndexOf('.') + 1);
+                ArrayList<String> ips = localIps();
+                if (ips.isEmpty()) return;
                 final String[] found = {null};
-                ExecutorService ex = Executors.newFixedThreadPool(48);
-                for (int i = 1; i < 255; i++) {
-                    final String h = base + i;
-                    if (h.equals(ip)) continue;
-                    ex.submit(() -> {
-                        if (found[0] != null) return;
-                        try (Socket s = new Socket()) {
-                            s.connect(new InetSocketAddress(h, RelayServer.PORT), 400);
-                            found[0] = h;
-                        } catch (Exception ignored) {}
-                    });
+                ExecutorService ex = Executors.newFixedThreadPool(64);
+                for (String ip : ips) {
+                    final String base = ip.substring(0, ip.lastIndexOf('.') + 1);
+                    for (int i = 1; i < 255; i++) {
+                        final String h = base + i;
+                        if (h.equals(ip)) continue;
+                        ex.submit(() -> {
+                            if (found[0] != null) return;
+                            try (Socket s = new Socket()) {
+                                s.connect(new InetSocketAddress(h, RelayServer.PORT), 500);
+                                found[0] = h;
+                            } catch (Exception ignored) {}
+                        });
+                    }
                 }
                 ex.shutdown();
                 ex.awaitTermination(20, TimeUnit.SECONDS);

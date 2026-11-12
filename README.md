@@ -43,3 +43,13 @@ Son des caméras, multi-stream RTMP, enregistrement MP4, signature release APK, 
 - **Enregistrement Program** : MP4 (FFmpeg) dans l'EXE ; MP4 ou WebM dans le navigateur.
 - **macOS** : workflow `build-mac.yml` (dmg). **iPhone/iPad** : ouvrir la version web en HTTPS puis « Ajouter à l'écran d'accueil » (PWA : Remote, Caméra, Écran).
 - **Panel PHP/MySQL** : dossier `server/` (voir `server/README.md`).
+
+## Affichage & remote (v3.1)
+- Texte auto-ajusté à l'écran (preview/program = rendu réel, même proportion), option **MAJ** (majuscules, remplit l'écran, 1 px de bordure), choix de la **police** (polices installées sur le système dans l'EXE/macOS via la commande Rust `list_fonts`).
+- Remote : Précédent/Suivant agissent sur le menu ouvert ; menus plein écran (glisser vers le bas pour fermer) ; 1 appui = preview, 2 = direct, 3 = retirer ; numéros de versets visibles ; import photo/vidéo/audio/chants depuis le téléphone.
+- Scanner QR : BarcodeDetector natif sinon jsQR (chargé à la demande) ; caméra : nouvelles tentatives automatiques (NotReadableError).
+
+> IA : aucune clé dans la régie. Les clés sont saisies uniquement dans le panel (Admin → IA) ; la régie appelle `/api/ai.php` avec sa licence active.
+
+## Android TV / anciens WebView
+`tools/make-android-html.js` génère `android/app/src/main/assets/index.html` en JS ES2017 (sans `?.`, `catch{}`…) et CSS sans `inset:`, pour les boîtiers TV à WebView ancienne ; le workflow APK l'exécute automatiquement. Le sélecteur de fichiers Android est implémenté (import médias/chants depuis le téléphone). Le scan réseau teste toutes les interfaces (Wi‑Fi + Ethernet).
