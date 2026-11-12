@@ -11,12 +11,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - uses: dtolnay/rust-toolchain@stable
+      
       - name: Télécharger les bibliothèques QR (copie locale, mode hors-ligne)
         shell: bash
         run: |
           mkdir -p web/vendor
-          curl -fsSL -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
-          curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+          curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
+          curl -fsSL -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
       - name: FFmpeg (diffusion RTMP + MP4)
         shell: bash
         run: |
