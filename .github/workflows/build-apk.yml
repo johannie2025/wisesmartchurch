@@ -28,6 +28,9 @@ jobs:
           curl -fsSL --retry 3 -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
           curl -fsSL --retry 3 -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
 
+      - name: Accepter les licences Android SDK
+        run: yes | sdkmanager --licenses || true
+
       - name: Synchroniser l'interface web vers les assets Android
         run: |
           mkdir -p android/app/src/main/assets/vendor
