@@ -1,0 +1,29 @@
+name: Build macOS (Tauri)
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: 'aarch64-apple-darwin,x86_64-apple-darwin' }
+      - name: Bibliothèques QR + FFmpeg
+        run: |
+          mkdir -p web/vendor src-tauri/bin
+          curl -fsSL -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+          curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+          brew install ffmpeg
+          cp "$(which ffmpeg)" src-tauri/bin/ffmpeg || true
+          touch src-tauri/bin/.keep
+      - run: npm install
+      - run: npx tauri icon web/icon.png
+      - run: npx tauri build --target universal-apple-darwin --bundles dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WiseDesign-SmartChurchSystem-mac
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
