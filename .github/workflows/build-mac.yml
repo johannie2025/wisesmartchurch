@@ -12,7 +12,7 @@ jobs:
         with: { node-version: 20 }
       - uses: dtolnay/rust-toolchain@stable
         with: { targets: 'aarch64-apple-darwin,x86_64-apple-darwin' }
-      - name: Bibliothèques QR + FFmpeg
+      - name: Bibliothèques QR + FFmpeg 
         run: |
           mkdir -p web/vendor src-tauri/bin
           curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
