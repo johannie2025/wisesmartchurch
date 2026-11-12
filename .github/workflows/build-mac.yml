@@ -15,8 +15,8 @@ jobs:
       - name: Bibliothèques QR + FFmpeg
         run: |
           mkdir -p web/vendor src-tauri/bin
-          curl -fsSL -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
-          curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+          curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
+          curl -fsSL -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
           brew install ffmpeg
           cp "$(which ffmpeg)" src-tauri/bin/ffmpeg || true
           touch src-tauri/bin/.keep
