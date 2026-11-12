@@ -22,12 +22,11 @@ jobs:
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Télécharger les bibliothèques QR (copie locale, mode hors-ligne)
-        shell: bash
+      - name: Bibliothèques QR (copie locale pour le mode hors-ligne)
         run: |
           mkdir -p web/vendor
-          curl -L -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js || true
-          curl -L -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js || true
+          curl -fsSL --retry 3 -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+          curl -fsSL --retry 3 -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
 
       - name: Synchroniser l'interface web vers les assets Android
         run: |
