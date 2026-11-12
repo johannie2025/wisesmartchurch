@@ -53,3 +53,13 @@ Son des caméras, multi-stream RTMP, enregistrement MP4, signature release APK, 
 
 ## Android TV / anciens WebView
 `tools/make-android-html.js` génère `android/app/src/main/assets/index.html` en JS ES2017 (sans `?.`, `catch{}`…) et CSS sans `inset:`, pour les boîtiers TV à WebView ancienne ; le workflow APK l'exécute automatiquement. Le sélecteur de fichiers Android est implémenté (import médias/chants depuis le téléphone). Le scan réseau teste toutes les interfaces (Wi‑Fi + Ethernet).
+
+## Windows : conflit avec Wamp/XAMPP (port 80)
+L'EXE charge maintenant l'interface en `https://tauri.localhost` (`useHttpsScheme`) : plus de collision avec un serveur local sur le port 80. Les données locales (localStorage) repartent de zéro au premier lancement après cette mise à jour ; faites une sauvegarde complète avant si besoin.
+
+## Responsive
+Régie : sous 900 px (petites fenêtres, téléphone) la barre du bas bascule entre Contenu / Régie / Contrôle ; la barre du haut passe à la ligne ; fenêtre EXE redimensionnable jusqu'à 640×420.
+
+## Port dynamique du relais
+Le relais (WebSocket) essaie dans l'ordre : 8787, 8788, 8789, 8790, 8791, 8800, 8880, 9787, 18787, 28787, puis un port libre choisi par l'OS.
+Le port retenu est transmis par le QR code, le mDNS, et la connexion manuelle (sans port saisi, l'app teste toute la liste).

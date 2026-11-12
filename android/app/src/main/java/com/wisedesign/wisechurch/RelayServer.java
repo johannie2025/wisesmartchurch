@@ -13,11 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Relais LAN : {"type":"join","room":"X"} abonne le client à la salle X ; tout autre message est
  *  transmis aux autres abonnés de la salle indiquée par son champ "code". */
 public class RelayServer extends WebSocketServer {
-    public static final int PORT = 8787;
+    /** Ports essayés dans l'ordre ; le premier libre est utilisé. */
+    public static final int[] PORTS = {8787, 8788, 8789, 8790, 8791, 8800, 8880, 9787, 18787, 28787};
     private final Map<WebSocket, Set<String>> rooms = new ConcurrentHashMap<>();
 
-    public RelayServer() {
-        super(new InetSocketAddress(PORT));
+    public RelayServer(int port) {
+        super(new InetSocketAddress(port));
         setReuseAddr(true);
     }
 

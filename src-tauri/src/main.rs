@@ -8,7 +8,7 @@ use serde::Deserialize;
 use std::{
     collections::{HashMap, HashSet},
     sync::{
-        atomic::{AtomicU32, Ordering},
+        atomic::{AtomicU16, AtomicU32, Ordering},
         Arc,
     },
     time::Duration,
@@ -26,7 +26,24 @@ use tokio::{
 };
 use tokio_tungstenite::tungstenite::Message;
 
-const PORT: u16 = 8787;
+/// Ports essayés dans l'ordre : le premier libre est utilisé (sinon le système en attribue un).
+const PORTS: [u16; 10] = [8787, 8788, 8789, 8790, 8791, 8800, 8880, 9787, 18787, 28787];
+static RELAY_PORT: AtomicU16 = AtomicU16::new(8787);
+
+fn bind_relay() -> std::net::TcpListener {
+    for p in PORTS {
+        if let Ok(l) = std::net::TcpListener::bind(("0.0.0.0", p)) {
+            return l;
+        }
+    }
+    std::net::TcpListener::bind(("0.0.0.0", 0)).expect("aucun port libre pour le relais")
+}
+
+/// Port réellement utilisé par le relais (lu par l'interface).
+#[tauri::command]
+fn relay_port() -> u16 {
+    RELAY_PORT.load(Ordering::SeqCst)
+}
 static FF: StdMutex<Option<Child>> = StdMutex::new(None);
 static WIN_N: AtomicU32 = AtomicU32::new(1);
 type Tx = mpsc::UnboundedSender<Message>;
@@ -40,8 +57,8 @@ struct Head {
     code: Option<String>,
 }
 
-async fn relay(peers: Peers) {
-    let listener = TcpListener::bind(("0.0.0.0", PORT)).await.expect("bind relay");
+async fn relay(peers: Peers, std_listener: std::net::TcpListener) {
+    let listener = TcpListener::from_std(std_listener).expect("relay");
     let mut next_id: u64 = 0;
     while let Ok((stream, _)) = listener.accept().await {
         next_id += 1;
@@ -92,7 +109,7 @@ fn announce_mdns() {
             "WiseChurch",
             "wisechurch.local.",
             "",
-            PORT,
+            RELAY_PORT.load(Ordering::SeqCst),
             None::<HashMap<String, String>>,
         ) {
             let _ = d.register(info.enable_addr_auto());
@@ -154,7 +171,7 @@ async fn discover_relay() -> Option<String> {
 fn init_script(vid: &str, role: &str) -> String {
     format!(
         "window.__WC={{mode:'viewer',vid:'{}',role:'{}',relay:'ws://127.0.0.1:{}',auto:'1'}};",
-        vid, role, PORT
+        vid, role, RELAY_PORT.load(Ordering::SeqCst)
     )
 }
 
@@ -202,6 +219,7 @@ async fn sync_outputs(app: AppHandle) -> Result<usize, String> {
         let role = ["program", "stage", "confidence", "side"][i.min(3)];
         let script = init_script(&format!("OUT{}", i + 1), role);
         let win = WebviewWindowBuilder::new(&app, &label, WebviewUrl::App("index.html".into()))
+            .use_https_scheme(true)
             .title(format!("Wise Design Smart Church System — Sortie {}", i + 1))
             .decorations(false)
             .skip_taskbar(true)
@@ -234,6 +252,7 @@ async fn close_outputs(app: AppHandle) -> Result<(), String> {
 async fn open_viewer_window(app: AppHandle) -> Result<(), String> {
     let n = WIN_N.fetch_add(1, Ordering::SeqCst);
     WebviewWindowBuilder::new(&app, format!("win{}", n), WebviewUrl::App("index.html".into()))
+        .use_https_scheme(true)
         .title(format!("Wise Design Smart Church System — Écran {}", n))
         .inner_size(1280.0, 720.0)
         .initialization_script(&init_script(&format!("WIN{}", n), "program"))
@@ -313,7 +332,10 @@ fn stream_stop() {
 fn main() {
     let rt = tokio::runtime::Runtime::new().expect("tokio");
     let peers: Peers = Arc::new(Mutex::new(HashMap::new()));
-    rt.spawn(relay(peers));
+    let std_l = bind_relay();
+    let _ = std_l.set_nonblocking(true);
+    RELAY_PORT.store(std_l.local_addr().map(|a| a.port()).unwrap_or(8787), Ordering::SeqCst);
+    rt.spawn(relay(peers, std_l));
     announce_mdns();
     std::mem::forget(rt);
     tauri::Builder::default()
@@ -332,6 +354,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             lan_ip,
             list_fonts,
+            relay_port,
             discover_relay,
             sync_outputs,
             close_outputs,

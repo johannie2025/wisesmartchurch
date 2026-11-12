@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
     private WebView web;
     private NsdManager nsd;
     private RelayServer relay;
+    private int relayPort = RelayServer.PORTS[0];
     private NsdManager.RegistrationListener regListener;
     private NsdManager.DiscoveryListener discListener;
     private PermissionRequest pendingPerm;
@@ -133,12 +134,23 @@ public class MainActivity extends Activity {
     private void startHost() {
         if (relay != null) return;
         try {
-            relay = new RelayServer();
+            RelayServer rs = null;
+            for (int p : RelayServer.PORTS) {
+                try (java.net.ServerSocket probe = new java.net.ServerSocket()) {
+                    probe.setReuseAddress(true);
+                    probe.bind(new InetSocketAddress(p));
+                } catch (Exception busy) { continue; }
+                rs = new RelayServer(p);
+                relayPort = p;
+                break;
+            }
+            if (rs == null) return;
+            relay = rs;
             relay.start();
             NsdServiceInfo info = new NsdServiceInfo();
             info.setServiceName("WiseChurch");
             info.setServiceType(SERVICE_TYPE);
-            info.setPort(RelayServer.PORT);
+            info.setPort(relayPort);
             regListener = new NsdManager.RegistrationListener() {
                 public void onRegistrationFailed(NsdServiceInfo i, int e) {}
                 public void onUnregistrationFailed(NsdServiceInfo i, int e) {}
@@ -207,24 +219,30 @@ public class MainActivity extends Activity {
                 if (ips.isEmpty()) return;
                 final String[] found = {null};
                 ExecutorService ex = Executors.newFixedThreadPool(64);
-                for (String ip : ips) {
-                    final String base = ip.substring(0, ip.lastIndexOf('.') + 1);
-                    for (int i = 1; i < 255; i++) {
-                        final String h = base + i;
-                        if (h.equals(ip)) continue;
-                        ex.submit(() -> {
-                            if (found[0] != null) return;
-                            try (Socket s = new Socket()) {
-                                s.connect(new InetSocketAddress(h, RelayServer.PORT), 500);
-                                found[0] = h;
-                            } catch (Exception ignored) {}
-                        });
+                for (int port : RelayServer.PORTS) {
+                    if (found[0] != null) break;
+                    final int fp = port;
+                    ArrayList<java.util.concurrent.Future<?>> fs = new ArrayList<>();
+                    for (String ip : ips) {
+                        final String base = ip.substring(0, ip.lastIndexOf('.') + 1);
+                        for (int i = 1; i < 255; i++) {
+                            final String h = base + i;
+                            if (h.equals(ip)) continue;
+                            fs.add(ex.submit(() -> {
+                                if (found[0] != null) return;
+                                try (Socket s = new Socket()) {
+                                    s.connect(new InetSocketAddress(h, fp), 400);
+                                    found[0] = h + ":" + fp;
+                                } catch (Exception ignored) {}
+                            }));
+                        }
                     }
+                    for (java.util.concurrent.Future<?> f : fs) { try { f.get(); } catch (Exception ignored) {} }
                 }
                 ex.shutdown();
                 ex.awaitTermination(20, TimeUnit.SECONDS);
                 if (found[0] != null) {
-                    final String url = "ws://" + found[0] + ":" + RelayServer.PORT;
+                    final String url = "ws://" + found[0];
                     lastRelay = url;
                     runOnUiThread(() -> web.evaluateJavascript("if(window.useRelay)useRelay('" + url + "')", null));
                 }
@@ -235,6 +253,7 @@ public class MainActivity extends Activity {
 
     public class Bridge {
         @JavascriptInterface public String getRelay() { return lastRelay; }
+        @JavascriptInterface public int getRelayPort() { return relayPort; }
         @JavascriptInterface public void scanLan() { MainActivity.this.scanLan(); }
 
         /** Enregistrement caméra → mémoire du téléphone (Films/WiseDesign). */

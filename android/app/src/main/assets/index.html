@@ -34,8 +34,8 @@ label.inl{display:inline-flex;align-items:center;gap:6px;margin:0;text-transform
 .card{width:230px;background:var(--s1);border:1px solid var(--line);border-radius:18px;padding:24px;cursor:pointer;transition:.2s}
 .card:hover{border-color:var(--ac);transform:translateY(-4px)}
 .card .ic{font-size:32px;margin-bottom:10px}.card h3{font-size:16px;margin-bottom:6px}.card p{font-size:12px;color:var(--tx2);line-height:1.5}
-#host{height:100%;display:grid;grid-template-rows:52px 1fr}
-.top{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--s1)}
+#host{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:52px;padding:4px 16px;border-bottom:1px solid var(--line);background:var(--s1)}
 .logo{font-weight:800;letter-spacing:-.02em}.logo b{color:var(--ac)}
 .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--s3);color:var(--tx2)}
 .pill.on{background:#ff4d5e22;color:var(--live)}.pill.ok{background:#34d39922;color:var(--ok)}
@@ -210,7 +210,21 @@ body.tv #vWait button,body.tv #vWait input{font-size:2.2vw;padding:1vw 2vw}body.
 #rDlg{position:fixed;top:0;right:0;bottom:0;left:0;z-index:60;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px}#rDlg>div{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:16px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:8px;max-height:92vh;overflow:auto}
 #scanBox{position:fixed;top:0;right:0;bottom:0;left:0;background:#000d;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #scanBox video{max-width:90vw;max-height:70vh;border-radius:14px}
-@media(max-width:900px){.body{grid-template-columns:1fr}.side{display:none}}
+#mnav{display:none}
+.pill,.top button,.top .logo{white-space:nowrap}
+@media(max-width:1180px){.body{grid-template-columns:270px minmax(0,1fr) 240px}}
+@media(max-width:900px){
+  #host{grid-template-rows:auto minmax(0,1fr) 54px}
+  .top{padding:4px 10px;gap:6px 8px}.top .logo{font-size:13px}
+  .body{grid-template-columns:minmax(0,1fr)}
+  .body>.side,.body>.center{display:none;border:0}
+  .body.v-l>.side:not(.r){display:flex}.body.v-c>.center{display:flex}.body.v-r>.side.r{display:flex}
+  #mnav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--s1);border-top:1px solid var(--line)}
+  #mnav button{border:0;border-radius:0;background:transparent;color:var(--tx3);font-size:12px;font-weight:700;padding:6px 0}
+  #mnav button.on{color:var(--ac);box-shadow:inset 0 2px 0 var(--ac)}
+  #langSel{bottom:60px!important}
+}
+@media(max-width:560px){.mon{grid-template-columns:1fr}.center{padding:10px}.top .logo b{display:none}.tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.ltgrid{grid-template-columns:1fr}}
 
 #splash{position:fixed;top:0;right:0;bottom:0;left:0;z-index:100000;background:radial-gradient(circle at 50% 42%,#10244d 0%,#070b16 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .7s ease,visibility .7s;overflow:hidden}
 #splash.out{opacity:0;visibility:hidden}
@@ -268,7 +282,7 @@ body.tv #vWait button,body.tv #vWait input{font-size:2.2vw;padding:1vw 2vw}body.
     <button class="ghost" id="recBtn" onclick="toggleRec()">⏺ Enregistrer</button>
     <button class="ghost" onclick="resetMode()" title="Changer de mode">⇄</button>
   </div>
-  <div class="body">
+  <div class="body v-c" id="hbody">
     <div class="side">
       <div class="tabs">
         <div class="tab on" data-t="songs">Chants</div><div class="tab" data-t="bible">Bible</div><div class="tab" data-t="media">Médias</div><div class="tab" data-t="pl">Programme</div><div class="tab" data-t="lt">Lower 3rd</div><div class="tab" data-t="air">Diffusion</div><div class="tab" data-t="ai">IA</div><div class="tab" data-t="tools">Outils</div>
@@ -426,7 +440,7 @@ body.tv #vWait button,body.tv #vWait input{font-size:2.2vw;padding:1vw 2vw}body.
         <div style="font-size:11px;color:var(--tx2);text-align:center;margin:6px 0" id="relayTxt"></div>
         <div class="bar" style="justify-content:center;margin:6px 0"><label class="inl"><input type="checkbox" id="pairAuto" checked onchange="LS.set('wcPairAuto',this.checked)"> Appairage automatique</label><button class="sm" onclick="newCode()">Nouveau code</button></div>
         <label>Relais réseau (manuel, optionnel)</label>
-        <div class="bar"><input id="relay" placeholder="ws://192.168.1.10:8787" style="flex:1"><button onclick="useRelay($('relay').value.trim(),true)">Lier</button></div>
+        <div class="bar"><input id="relay" placeholder="ws://192.168.1.10:8787" style="flex:1"><button onclick="manualRelay('relay')">Lier</button></div>
         <label style="margin-top:16px">Écrans connectés</label>
         <div id="scrList"></div>
         <label style="margin-top:16px">Compte à rebours (min)</label>
@@ -435,6 +449,7 @@ body.tv #vWait button,body.tv #vWait input{font-size:2.2vw;padding:1vw 2vw}body.
       </div>
     </div>
   </div>
+  <div id="mnav"><button data-v="l" onclick="mview('l')">📚 Contenu</button><button data-v="c" class="on" onclick="mview('c')">🎛 Régie</button><button data-v="r" onclick="mview('r')">⚙ Contrôle</button></div>
 </div>
 
 <!-- VIEWER -->
@@ -861,10 +876,10 @@ async function initHost() {
             NATIVE.startHost();
         }
         catch (_a) { }
-        setTimeout(() => useRelay('ws://127.0.0.1:8787'), 700);
+        setTimeout(async () => useRelay('ws://127.0.0.1:' + await relayPort()), 900);
     }
     else if (TAURI) {
-        setTimeout(() => useRelay('ws://127.0.0.1:8787'), 700);
+        setTimeout(async () => useRelay('ws://127.0.0.1:' + await relayPort()), 500);
     }
     else {
         const r = LS.get('wcRelay', '');
@@ -944,10 +959,45 @@ async function initHost() {
             plStep(-1);
     });
 }
+/* Port du relais : dynamique (premier port libre d'une liste), annoncé par mDNS et inclus dans le QR */
+const RPORTS = [8787, 8788, 8789, 8790, 8791, 8800, 8880, 9787, 18787, 28787];
+async function relayPort() {
+    try {
+        if (NATIVE && NATIVE.getRelayPort)
+            return NATIVE.getRelayPort() || 8787;
+        if (TAURI)
+            return await TAURI.invoke('relay_port');
+    }
+    catch (_a) { }
+    return 8787;
+}
+function probeRelay(host) {
+    const tryPort = p => new Promise(res => {
+        let w;
+        try {
+            w = new WebSocket('ws://' + host + ':' + p);
+        }
+        catch (_a) {
+            return res(false);
+        }
+        const t = setTimeout(() => { try {
+            w.close();
+        }
+        catch (_a) { } res(false); }, 1200);
+        w.onopen = () => { clearTimeout(t); try {
+            w.close();
+        }
+        catch (_a) { } res(true); };
+        w.onerror = () => { clearTimeout(t); res(false); };
+    });
+    return (async () => { for (const p of RPORTS)
+        if (await tryPort(p))
+            return 'ws://' + host + ':' + p; return null; })();
+}
 let HOSTIP = '';
 async function drawQR() {
     HOSTIP = await lanIp();
-    const relay = HOSTIP ? `ws://${HOSTIP}:8787` : '';
+    const relay = HOSTIP ? `ws://${HOSTIP}:${await relayPort()}` : '';
     const q = `code=${CODE}` + (relay ? `&relay=${encodeURIComponent(relay)}` : '');
     const text = (NATIVE || TAURI || !/^https?:/.test(location.protocol)) ? `wisechurch://join?${q}` : `${location.origin}${location.pathname}?mode=viewer&${q}`;
     const box = $('qr');
@@ -1392,6 +1442,14 @@ function ltTileClick(id) {
 }
 function layerOn(id, n) { return !!(S.pvLayers[n] && S.pvLayers[n].id === id); }
 function layerLive(id, n) { return !!(S.layers[n] && S.layers[n].id === id); }
+function mview(v) {
+    const b = $('hbody');
+    if (!b)
+        return;
+    b.classList.remove('v-l', 'v-c', 'v-r');
+    b.classList.add('v-' + v);
+    document.querySelectorAll('#mnav button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+}
 function renderWS(force) {
     const el = $('ws');
     if (!el || MODE !== 'host')
@@ -2374,6 +2432,10 @@ function t(s) {
 }
 Object.assign(I18N.es, I18N_ADD.es);
 Object.assign(I18N.en, I18N_ADD.en);
+Object.assign(I18N.es, { "Recherche du port du relais…": "Buscando el puerto del relé…", "Saisissez l’adresse IP de la régie (le port est trouvé automatiquement)": "Escriba la dirección IP de la regiduría (el puerto se encuentra automáticamente)" });
+Object.assign(I18N.en, { "Recherche du port du relais…": "Looking for the relay port…", "Saisissez l’adresse IP de la régie (le port est trouvé automatiquement)": "Type the control desk IP address (the port is found automatically)" });
+Object.assign(I18N.es, { "📚 Contenu": "📚 Contenido", "🎛 Régie": "🎛 Regiduría", "⚙ Contrôle": "⚙ Control" });
+Object.assign(I18N.en, { "📚 Contenu": "📚 Content", "🎛 Régie": "🎛 Control desk", "⚙ Contrôle": "⚙ Controls" });
 Object.assign(I18N.es, { "Touchez : aperçu · 2ᵉ : direct · 3ᵉ : retire du direct · 4ᵉ : retire de l’aperçu": "Toque: vista previa · 2.º: en vivo · 3.º: quita del vivo · 4.º: quita de la vista previa", "Cadrage / zoom": "Encuadre / zoom", "Cadrage / zoom (L2)": "Encuadre / zoom (L2)", "Plein écran (remplir)": "Pantalla completa (llenar)", "Adapter (entier)": "Ajustar (entero)", "Zoom / taille": "Zoom / tamaño", "Zoom": "Zoom", "Centre gauche": "Centro izquierda", "Centre droite": "Centro derecha", "Lower third": "Rótulo (lower third)" });
 Object.assign(I18N.en, { "Touchez : aperçu · 2ᵉ : direct · 3ᵉ : retire du direct · 4ᵉ : retire de l’aperçu": "Tap: preview · 2nd: live · 3rd: remove from live · 4th: remove from preview", "Cadrage / zoom": "Framing / zoom", "Cadrage / zoom (L2)": "Framing / zoom (L2)", "Plein écran (remplir)": "Full screen (fill)", "Adapter (entier)": "Fit (whole image)", "Zoom / taille": "Zoom / size", "Zoom": "Zoom", "Centre gauche": "Middle left", "Centre droite": "Middle right", "Lower third": "Lower third" });
 Object.assign(I18N.es, { "Activez votre abonnement pour utiliser l’IA du panel": "Active su suscripción para usar la IA del panel", "IA gérée par le panel : activez votre abonnement pour l’utiliser": "IA gestionada por el panel: active su suscripción para usarla", "Les clés IA sont configurées dans le panel PHP/MySQL : la régie utilise les modèles du panel grâce à votre licence.": "Las claves de IA se configuran en el panel PHP/MySQL: la regiduría usa los modelos del panel gracias a su licencia." });
@@ -3760,7 +3822,7 @@ function scanLan() { if (NATIVE && NATIVE.scanLan) {
     toast('Recherche de la régie sur le réseau…');
 }
 else
-    toast('Saisissez l’adresse du relais (ws://IP:8787)'); }
+    toast('Saisissez l’adresse IP de la régie (le port est trouvé automatiquement)'); }
 function nativeRelayLoop() {
     if (!NATIVE)
         return;
@@ -3783,10 +3845,20 @@ function nativeRelayLoop() {
             catch (_b) { }
     }, 2500);
 }
-function manualRelay() { const v = ($('vRelayIn') || {}).value; if (!v)
-    return; let u = v.trim(); if (!/^wss?:\/\//.test(u))
-    u = 'ws://' + u; if (!/:\d+$/.test(u))
-    u += ':8787'; useRelay(u, true); toast(u); }
+async function manualRelay(id) {
+    const v = ($(id || 'vRelayIn') || {}).value;
+    if (!v)
+        return;
+    let u = v.trim();
+    if (!/^wss?:\/\//.test(u))
+        u = 'ws://' + u;
+    if (!/:\d+$/.test(u)) {
+        toast('Recherche du port du relais…');
+        u = (await probeRelay(u.replace(/^wss?:\/\//, ''))) || u + ':8787';
+    }
+    useRelay(u, true);
+    toast(u);
+}
 /* ============ DÉMARRAGE ============ */
 window.handleDeepLink = handleDeepLink;
 window.useRelay = useRelay;
@@ -3827,7 +3899,8 @@ function needPro(n) { toast('Fonction Pro : activez votre abonnement (onglet Out
 }
 catch (_a) { } }
 function openTab(t) { const el = document.querySelector('.tab[data-t=' + t + ']'); if (el)
-    el.click(); }
+    el.click(); if (innerWidth <= 900 && typeof mview === 'function')
+    mview('l'); }
 function platName() { return TAURI ? 'desktop' : NATIVE ? 'android' : 'web'; }
 async function licCall(ep, body) {
     const api = ((LIC && LIC.api) || ($('licApi') && $('licApi').value) || LIC_SERVER_DEFAULT).replace(/\/$/, '');
