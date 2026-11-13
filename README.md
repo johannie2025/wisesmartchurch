@@ -63,3 +63,10 @@ Régie : sous 900 px (petites fenêtres, téléphone) la barre du bas bascule en
 ## Port dynamique du relais
 Le relais (WebSocket) essaie dans l'ordre : 8787, 8788, 8789, 8790, 8791, 8800, 8880, 9787, 18787, 28787, puis un port libre choisi par l'OS.
 Le port retenu est transmis par le QR code, le mDNS, et la connexion manuelle (sans port saisi, l'app teste toute la liste).
+
+## Studio virtuel (table de mixage vidéo)
+Onglet **🎬 Studio** de la régie : dispositions 1 caméra, 2 côte à côte, 2 en incrustation, 4 caméras, Prédicateur + verset, Émission, Table ronde, Concert ; modèles Culte/Émission/Table ronde/Conférence/Concert.
+Chaque emplacement prend une caméra (téléphones jumelés) ou le verset en cours ; légende par caméra (nom du prédicateur…).
+Fond du studio : dégradés intégrés, image/vidéo de la bibliothèque ou couleur. Suppression du fond : incrustation chroma (fond vert/bleu), couleur et tolérance réglables.
+Aperçu (PV) → TAKE STUDIO → Program ; « Modifier en direct » fait suivre Program. Pilotable depuis le Remote (disposition, caméra par emplacement, TAKE/Quitter).
+Limite : le retrait de fond sans fond vert (IA de segmentation) n'est pas inclus.
