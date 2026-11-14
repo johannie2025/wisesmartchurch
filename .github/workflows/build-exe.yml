@@ -19,7 +19,9 @@ jobs:
           curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
       - name: three.js (GitHub master.zip)
         shell: bash
-        run: bash tools/fetch-three.sh
+        run: |
+          sed -i 's/\r$//' tools/fetch-three.sh
+          bash tools/fetch-three.sh
       - name: FFmpeg (diffusion RTMP + MP4)
         shell: bash
         run: |
