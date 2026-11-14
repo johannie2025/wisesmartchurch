@@ -45,6 +45,7 @@ fn relay_port() -> u16 {
     RELAY_PORT.load(Ordering::SeqCst)
 }
 static FF: StdMutex<Option<Child>> = StdMutex::new(None);
+static FF_ERR: StdMutex<String> = StdMutex::new(String::new());
 static WIN_N: AtomicU32 = AtomicU32::new(1);
 type Tx = mpsc::UnboundedSender<Message>;
 type Peers = Arc<Mutex<HashMap<u64, (HashSet<String>, Tx)>>>;
@@ -65,6 +66,28 @@ async fn relay(peers: Peers, std_listener: std::net::TcpListener) {
         let id = next_id;
         let peers = peers.clone();
         tokio::spawn(async move {
+            // Cast / TV : un navigateur qui ouvre http://IP:port/ reçoit la page "écran" (viewer)
+            {
+                let mut buf = [0u8; 2048];
+                if let Ok(n) = stream.peek(&mut buf).await {
+                    let head = String::from_utf8_lossy(&buf[..n]).to_lowercase();
+                    if head.starts_with("get ") && !head.contains("upgrade: websocket") {
+                        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+                        let mut stream = stream;
+                        let mut tmp = [0u8; 2048];
+                        let _ = stream.read(&mut tmp).await;
+                        let body = include_str!("../../web/index.html");
+                        let resp = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n",
+                            body.len()
+                        );
+                        let _ = stream.write_all(resp.as_bytes()).await;
+                        let _ = stream.write_all(body.as_bytes()).await;
+                        let _ = stream.shutdown().await;
+                        return;
+                    }
+                }
+            }
             let Ok(ws) = tokio_tungstenite::accept_async(stream).await else { return };
             let (mut sink, mut src) = ws.split();
             let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
@@ -276,8 +299,9 @@ fn ffmpeg_path(app: &AppHandle) -> String {
 
 /// Diffusion multi-flux RTMP + enregistrement MP4 via FFmpeg (entrée WebM sur stdin).
 #[tauri::command]
-fn stream_start(app: AppHandle, urls: Vec<String>, record: Option<String>) -> Result<(), String> {
+fn stream_start(app: AppHandle, urls: Vec<String>, record: Option<String>, width: Option<u32>, height: Option<u32>, vbitrate: Option<u32>, fps: Option<u32>, vertical: Option<bool>) -> Result<(), String> {
     stream_stop();
+    FF_ERR.lock().unwrap().clear();
     let mut outs: Vec<String> = urls
         .iter()
         .filter(|u| !u.trim().is_empty())
@@ -296,15 +320,44 @@ fn stream_start(app: AppHandle, urls: Vec<String>, record: Option<String>) -> Re
     if outs.is_empty() {
         return Err("aucune destination".into());
     }
-    let child = Command::new(ffmpeg_path(&app))
-        .args(["-loglevel", "error", "-i", "pipe:0", "-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency",
-               "-pix_fmt", "yuv420p", "-g", "60", "-b:v", "4000k", "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
+    let w = width.unwrap_or(1280);
+    let h = height.unwrap_or(720);
+    let br = vbitrate.unwrap_or(3000);
+    let fr = fps.unwrap_or(30);
+    let vf = if vertical.unwrap_or(false) {
+        format!("scale={}:{}:force_original_aspect_ratio=increase,crop={}:{}", w, h, w, h)
+    } else {
+        format!("scale={}:{}:force_original_aspect_ratio=decrease,pad={}:{}:(ow-iw)/2:(oh-ih)/2", w, h, w, h)
+    };
+    let mut cmd = Command::new(ffmpeg_path(&app));
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000);
+    }
+    let mut child = cmd
+        .args(["-loglevel", "warning", "-i", "pipe:0", "-vf", &vf, "-r", &fr.to_string(),
+               "-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency",
+               "-pix_fmt", "yuv420p", "-g", &(fr * 2).to_string(),
+               "-b:v", &format!("{}k", br), "-maxrate", &format!("{}k", br), "-bufsize", &format!("{}k", br * 2),
+               "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
                "-map", "0:v", "-map", "0:a?", "-f", "tee", &outs.join("|")])
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| format!("FFmpeg introuvable : {}", e))?;
+    if let Some(err) = child.stderr.take() {
+        std::thread::spawn(move || {
+            use std::io::BufRead;
+            for line in std::io::BufReader::new(err).lines().map_while(Result::ok) {
+                let mut g = FF_ERR.lock().unwrap();
+                // ne jamais exposer la clé de stream dans les messages
+                let clean: String = line.split_whitespace().map(|w| if w.contains("://") { "<url>" } else { w }).collect::<Vec<_>>().join(" ");
+                *g = clean;
+            }
+        });
+    }
     *FF.lock().unwrap() = Some(child);
     Ok(())
 }
@@ -319,6 +372,26 @@ fn stream_write(request: tauri::ipc::Request) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+#[tauri::command]
+fn stream_status() -> serde_json::Value {
+    let running = FF.lock().unwrap().as_mut().map(|c| matches!(c.try_wait(), Ok(None))).unwrap_or(false);
+    serde_json::json!({ "running": running, "error": FF_ERR.lock().unwrap().clone() })
+}
+
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") {
+        return Err("URL refusée".into());
+    }
+    #[cfg(target_os = "windows")]
+    let r = Command::new("rundll32").args(["url.dll,FileProtocolHandler", &url]).spawn();
+    #[cfg(target_os = "macos")]
+    let r = Command::new("open").arg(&url).spawn();
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+    let r = Command::new("xdg-open").arg(&url).spawn();
+    r.map(|_| ()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -361,6 +434,8 @@ fn main() {
             open_viewer_window,
             stream_start,
             stream_write,
+            stream_status,
+            open_url,
             stream_stop
         ])
         .run(tauri::generate_context!())

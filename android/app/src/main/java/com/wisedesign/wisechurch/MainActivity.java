@@ -281,6 +281,33 @@ public class MainActivity extends Activity {
                 return recOut != null;
             } catch (Exception e) { return false; }
         }
+        /** Photo caméra → galerie du téléphone (Pictures/WiseDesign). */
+        @JavascriptInterface public String savePhoto(String name, String b64) {
+            try {
+                byte[] data = Base64.decode(b64, Base64.DEFAULT);
+                OutputStream os;
+                String path;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues cv = new ContentValues();
+                    cv.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+                    cv.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    cv.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/WiseDesign");
+                    Uri u = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                    if (u == null) return "";
+                    os = getContentResolver().openOutputStream(u);
+                    path = "Pictures/WiseDesign/" + name;
+                } else {
+                    File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    if (dir == null) return "";
+                    File f = new File(dir, name);
+                    os = new FileOutputStream(f);
+                    path = f.getAbsolutePath();
+                }
+                if (os == null) return "";
+                os.write(data); os.flush(); os.close();
+                return path;
+            } catch (Exception e) { return ""; }
+        }
         @JavascriptInterface public void recWrite(String b64) {
             try { if (recOut != null) recOut.write(Base64.decode(b64, Base64.DEFAULT)); } catch (Exception ignored) {}
         }

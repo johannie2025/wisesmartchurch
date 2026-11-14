@@ -70,3 +70,16 @@ Chaque emplacement prend une caméra (téléphones jumelés) ou le verset en cou
 Fond du studio : dégradés intégrés, image/vidéo de la bibliothèque ou couleur. Suppression du fond : incrustation chroma (fond vert/bleu), couleur et tolérance réglables.
 Aperçu (PV) → TAKE STUDIO → Program ; « Modifier en direct » fait suivre Program. Pilotable depuis le Remote (disposition, caméra par emplacement, TAKE/Quitter).
 Limite : le retrait de fond sans fond vert (IA de segmentation) n'est pas inclus.
+
+## Diffusion en direct (EXE / Mac)
+Onglet **Diffusion** : cartes YouTube, Facebook, TikTok, Twitch, Instagram, Kick et RTMP personnalisé. Activez une plateforme, collez l'URL du serveur (préremplie pour YouTube/Facebook/Twitch/Instagram) et la clé de stream ; plusieurs plateformes en même temps (multi-flux) + MP4 local.
+Qualité : 480p / 720p / 1080p / vertical 9:16 (TikTok, Reels). Un compteur EN DIRECT et les erreurs de connexion FFmpeg s'affichent. Les clés restent sur l'ordinateur (jamais envoyées au serveur ni affichées dans les logs).
+Prérequis : FFmpeg est embarqué par les workflows EXE/Mac. TikTok/Instagram/Kick fournissent URL + clé depuis leur page « Live » (accès LIVE requis).
+Au démarrage Windows demande la fenêtre/écran à capturer : choisir la sortie Program (avec le son).
+
+## Bible, logo, sources du studio, Cast, three.js
+- **Bible** : deux onglets — *Affichage* (livres AT/NT et chapitres dans le menu latéral ; un clic affiche toujours les versets dans la même zone) et *Téléchargement*.
+- **Logo de l'église** : carte « Logo de l'église » (téléverser / choisir dans la bibliothèque / afficher pendant la diffusion).
+- **Studio virtuel (façon vMix)** : chaque cadre choisit sa source — caméra, verset, lower third, horloge, logo, média image/vidéo, fond, couleur — et sa transition (Cut, Fondu, Glisser, Zoom, Volet, Flip + durée) ; transition par défaut réglable.
+- **Cast** : bouton « Caster » (Presentation API, Chrome/Edge) ou « Copier le lien écran » : l'EXE sert la page écran en HTTP sur le port du relais (`http://IP:port/?mode=viewer&code=…`) ; ouvrez-la sur n'importe quel navigateur/TV du réseau, ou utilisez Chrome ⋮ → Caster (onglet) vers un Chromecast. Un Chromecast classique ne lance pas l'app elle-même : il affiche cette page.
+- **three.js** : `tools/fetch-three.sh` (appelé par les 3 workflows GitHub Actions) télécharge `https://github.com/mrdoob/three.js/archive/refs/heads/master.zip` et copie les fichiers de build dans `web/vendor/three/`. L'app l'utilise pour le mode « 3D réel » s'il est présent ; sinon (ou en cas d'erreur) elle retombe sur son moteur WebGL intégré.

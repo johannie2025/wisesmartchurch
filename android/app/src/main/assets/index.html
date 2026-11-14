@@ -270,6 +270,76 @@ body.tv #vWait button,body.tv #vWait input{font-size:2.2vw;padding:1vw 2vw}body.
 #remote .rsl{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px}#remote .rsl button{white-space:nowrap;padding:7px 10px;font-size:12px;flex:none}
 #remote .rsc{display:flex;gap:4px;align-items:center;overflow-x:auto}#remote .rsc b{width:20px;text-align:center;flex:none}#remote .rsc button{white-space:nowrap;padding:7px 10px;font-size:12px;flex:none}
 #remote .rsl button.on,#remote .rsc button.on{background:#2f7bff;color:#fff}
+
+.strm{background:#151a26;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;overflow:hidden}.strm.on{border-color:#2f7bff66}
+.sth{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer}.sth b{flex:1;font-size:13px}.sic{font-size:18px}
+.stb{display:grid;gap:5px;padding:0 10px 10px}.stb small{color:var(--tx3);font-size:11px;line-height:1.35}.stb a{color:#7fb0ff;font-size:12px}
+
+.camrole{position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);right:10px;z-index:6;background:#000a;border:1px solid #ffffff40;backdrop-filter:blur(6px);padding:8px 12px;border-radius:10px;font-weight:700}
+.camrole span{font-size:12px;margin-left:2px}
+.camtop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:10px;right:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.camtop .pill{max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.camtop input{width:80px}
+.camact{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);left:0;right:0;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 8px}
+.camact button{background:#000a;backdrop-filter:blur(6px);border:1px solid #ffffff40;padding:11px 14px}.camact button span{font-size:12px}
+.camact .shutter{width:68px;height:68px;border-radius:50%;font-size:28px;padding:0;background:#fff;border:4px solid #ffffff90;box-shadow:0 0 0 3px #0008}
+.camact .shutter:active{transform:scale(.92)}
+#camFlash{position:absolute;top:0;right:0;bottom:0;left:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .15s}#camFlash.on{opacity:.8;transition:none}
+
+.stscene{position:absolute;top:0;right:0;bottom:0;left:0;transform-style:preserve-3d}
+.stfloor{display:none}
+.studio[data-d3=studio],.studio[data-d3=wall]{perspective:1500px;perspective-origin:50% 38%}
+.studio[data-d3=studio] .stscene{transform:translateY(-5%) scale(.86) rotateX(3deg);animation:sway 9s ease-in-out infinite alternate}
+.studio[data-d3=studio] .stile{transform:rotateY(var(--ry,0deg)) translateZ(2cqw);-webkit-box-reflect:below .6cqw linear-gradient(transparent 72%,#0006);box-shadow:0 1.5cqw 4cqw #000c,0 0 2cqw color-mix(in srgb,var(--ac) 45%,transparent)}
+.studio[data-d3=studio] .stbg{transform:scale(1.12);animation:bgsway 9s ease-in-out infinite alternate}
+.studio[data-d3=studio] .stfloor{display:block;position:absolute;left:-20%;right:-20%;bottom:-2%;height:40%;background:linear-gradient(180deg,transparent,#00000099 55%),repeating-linear-gradient(90deg,#ffffff18 0 1px,transparent 1px 6cqw),repeating-linear-gradient(0deg,#ffffff14 0 1px,transparent 1px 4cqw);transform:rotateX(68deg);transform-origin:50% 0;opacity:.8}
+.studio[data-d3=wall] .stscene{transform:scale(.8) rotateY(-14deg) rotateX(3deg);animation:swayw 10s ease-in-out infinite alternate}
+.studio[data-d3=wall] .stile{border-width:.9cqw!important;border-color:#0b0d12!important;outline:.25cqw solid color-mix(in srgb,var(--ac) 60%,#fff);box-shadow:1.4cqw 1.6cqw 3cqw #000c,inset 0 0 1.4cqw #000;transform:translateZ(3cqw)}
+@keyframes sway{from{transform:translateY(-5%) scale(.86) rotateX(3deg) rotateY(-2.2deg)}to{transform:translateY(-5%) scale(.86) rotateX(3deg) rotateY(2.2deg)}}
+@keyframes bgsway{from{transform:scale(1.12) translateX(-1.2%)}to{transform:scale(1.12) translateX(1.2%)}}
+@keyframes swayw{from{transform:scale(.8) rotateY(-17deg) rotateX(3deg)}to{transform:scale(.8) rotateY(-10deg) rotateX(3deg)}}
+
+/* Textes complets : aucun « … », tout se déploie dans la tuile */
+.tile{overflow:visible;min-height:84px;height:auto}
+.tile .tx{display:block;-webkit-line-clamp:unset;overflow:visible;white-space:pre-line;overflow-wrap:anywhere;word-break:normal;padding-right:20px}
+.tiles{align-items:start;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.row>.grow{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;min-width:0}
+.mtile .nm,.bgt span,.cmon span{white-space:normal;overflow:visible;text-overflow:clip}
+#rSheet .item,#rSheet .item *{white-space:normal;overflow:visible;text-overflow:clip;-webkit-line-clamp:unset}
+#rSheet .item{overflow-wrap:anywhere}
+.item{overflow:visible}
+
+.g3{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;display:block}
+.studio[data-d3=real] .stscene,.studio[data-d3=real] .stbg{opacity:0;pointer-events:none}
+
+.subtabs{display:flex;gap:4px;margin:-4px 0 8px;background:#0f131b;border:1px solid var(--line);border-radius:10px;padding:3px}
+.stab{flex:1;text-align:center;padding:8px 6px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;color:var(--tx3)}.stab.on{background:#1f6fd1;color:#fff}
+.bnav{margin-top:10px}.bnav button.on{background:#1f6fd1;color:#fff}
+.bkgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:8px 0;max-height:240px;overflow:auto}
+.bk{padding:7px 4px;font-size:11.5px;text-align:center;background:#151a26;border:1px solid var(--line);border-radius:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bk.on{background:#2f7bff;border-color:#2f7bff;color:#fff}
+.chgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px}.chh{grid-column:1/-1;font-size:12px;font-weight:800;color:#9db4ff;margin-top:2px}
+.ch{padding:8px 0;font-size:12px;background:#151a26;border:1px solid var(--line);border-radius:7px}.ch.on{background:#1fbf75;border-color:#1fbf75;color:#fff}
+
+.logocard{display:flex;gap:10px;align-items:center;padding:8px;background:#151a26;border:1px solid var(--line);border-radius:10px;margin-bottom:6px}
+.lgprev{width:64px;height:64px;flex:none;border-radius:8px;background:#05070d;border:1px dashed #33406a;display:flex;align-items:center;justify-content:center;overflow:hidden}.lgprev img{max-width:100%;max-height:100%;object-fit:contain}
+.lgbtn{display:grid;gap:6px;flex:1;min-width:0}.lgbtn select{width:100%}
+
+.stile>.sc{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden}
+.sc video,.sc img,.sc canvas{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover}.sc img.lg{object-fit:contain;background:#0b0d12;padding:6%}
+.sc .fill{position:absolute;top:0;right:0;bottom:0;left:0}.sc.empty::after{content:'📷';position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;font-size:6cqw;opacity:.35}
+.sc.empty[data-k=logo]::after{content:'🖼'}
+.sc canvas{display:none}
+.stile .cap{z-index:5}
+.sc.tin[data-tr=fade]{animation:tiFade var(--d) ease both}.sc.old[data-tr=fade]{animation:toFade var(--d) ease both}
+.sc.tin[data-tr=slide]{animation:tiSlide var(--d) cubic-bezier(.2,.8,.2,1) both}.sc.old[data-tr=slide]{animation:toSlide var(--d) cubic-bezier(.2,.8,.2,1) both}
+.sc.tin[data-tr=zoom]{animation:tiZoom var(--d) cubic-bezier(.2,.8,.2,1) both}.sc.old[data-tr=zoom]{animation:toZoom var(--d) ease both}
+.sc.tin[data-tr=wipe]{animation:tiWipe var(--d) cubic-bezier(.5,0,.2,1) both}
+.sc.tin[data-tr=flip]{animation:tiFlip var(--d) ease both;backface-visibility:hidden}.sc.old[data-tr=flip]{animation:toFlip var(--d) ease both}
+@keyframes tiFade{from{opacity:0}to{opacity:1}}@keyframes toFade{from{opacity:1}to{opacity:0}}
+@keyframes tiSlide{from{transform:translateX(105%)}to{transform:none}}@keyframes toSlide{from{transform:none}to{transform:translateX(-105%)}}
+@keyframes tiZoom{from{transform:scale(.55);opacity:0}to{transform:none;opacity:1}}@keyframes toZoom{from{transform:none;opacity:1}to{transform:scale(1.35);opacity:0}}
+@keyframes tiWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes tiFlip{from{transform:perspective(900px) rotateY(-90deg);opacity:0}to{transform:none;opacity:1}}@keyframes toFlip{from{transform:none}to{transform:perspective(900px) rotateY(90deg);opacity:0}}
+.stsl .sel2{display:grid;grid-template-columns:1fr 92px;gap:4px}
 /* ===== Redesign console moderne ===== */
 .bgstrip{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
 .bgt{position:relative;aspect-ratio:16/9;border-radius:7px;overflow:hidden;border:2px solid #263050;cursor:pointer}.bgt:hover{border-color:#2f7bff}
@@ -378,13 +448,19 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
       </div>
       <div class="pane" id="p-songs"></div>
       <div class="pane hidden" id="p-bible">
+        <div class="subtabs"><div class="stab on" data-b="show" onclick="bibTab('show')">📖 Affichage</div><div class="stab" data-b="dl" onclick="bibTab('dl')">⬇ Téléchargement</div></div>
+        <div id="bShow">
         <label>Version</label>
-        <div class="bar"><select id="bvSel" style="flex:1" onchange="BV.cur=this.value;LS.set('wcBV',BV.cur)"></select></div>
+        <div class="bar"><select id="bvSel" style="flex:1" onchange="BV.cur=this.value;LS.set('wcBV',BV.cur);BKB=-1;bibleBrowse()"></select></div>
         <div class="bar" style="margin-top:6px"><select id="bv2Sel" style="flex:1" onchange="BV.cur2=this.value;LS.set('wcBV2',BV.cur2)"></select></div>
         <label>Référence</label><div class="bar"><input id="bref" placeholder="Jean 3:16 · Salmos 23 · 1 Cor 13:4-7" style="flex:1" onkeydown="if(event.key==='Enter')bibleGo()"><button class="pri" onclick="bibleGo()">OK</button></div>
+        <div class="bnav"><div class="bar" style="gap:4px"><button class="sm on" id="bkAT" onclick="bkTest(0)">Ancien Testament</button><button class="sm" id="bkNT" onclick="bkTest(1)">Nouveau Testament</button></div>
+          <div id="bkList" class="bkgrid"></div><div id="chList" class="chgrid"></div></div>
         <div id="bres"></div>
-        <details style="margin-top:14px" open>
-          <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--ac)">Télécharger des Bibles (au choix)</summary>
+        </div>
+        <div id="bDl" class="hidden">
+        <div style="margin-top:6px">
+          <div class="pnl-h in" style="margin-top:0">Télécharger des Bibles (au choix)</div>
           <div id="bCat"></div>
           <button class="pri" style="width:100%;margin-top:10px" onclick="bibleDownload()">Télécharger la sélection</button>
           <label>Bibles installées</label><div id="bInst"></div>
@@ -401,7 +477,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
           <div class="bar" id="ghChips" style="flex-wrap:wrap;margin-top:6px"></div>
           <div id="ghList"></div>
           <div class="ai" id="bStatus" style="margin-top:8px">Internet n'est nécessaire que pour le téléchargement. Ensuite tout fonctionne hors-ligne.</div>
-        </details>
+        </div></div>
       </div>
       <div class="pane hidden" id="p-media">
         <label style="margin-top:0">🎨 Fonds par défaut (clic = couche 1)</label><div id="bgStrip" class="bgstrip"></div>
@@ -431,12 +507,15 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
       </div>
       <div class="pane hidden" id="p-lt"></div>
       <div class="pane hidden" id="p-air">
-        <div id="liveBox" class="hidden">
-        <label>Diffusion en direct (multi-flux RTMP) — EXE</label>
-        <textarea id="rtmpUrls" rows="3" style="width:100%" placeholder="rtmp://a.rtmp.youtube.com/live2/CLÉ&#10;rtmps://live-api-s.facebook.com:443/rtmp/CLÉ" onchange="LS.set('wcRtmp',this.value)"></textarea>
+        <div id="liveBox">
+        <label style="margin-top:0">📡 Diffusion en direct — YouTube, Facebook, TikTok…</label>
+        <div id="strmNote" class="ai hidden">La diffusion en direct (FFmpeg) est disponible dans l’application <b>EXE (Windows)</b> et <b>Mac</b>. Depuis le téléphone ou le navigateur, utilisez la régie EXE.</div>
+        <div id="strmList"></div>
+        <div class="cfgRow"><span>Qualité</span><select id="strmQ" onchange="LS.set('wcStrmQ',this.value)"><option value="480">480p · 1,2 Mb/s</option><option value="720">720p · 3 Mb/s</option><option value="1080">1080p · 5 Mb/s</option><option value="v720">Vertical 9:16 · 720×1280 (TikTok / Reels)</option></select></div>
         <div class="cfgRow"><span>Enregistrer aussi en MP4</span><input type="checkbox" id="rtmpRec" checked></div>
-        <div class="bar" style="margin-top:6px"><button class="live" id="rtmpBtn" onclick="liveToggle()">▶ Démarrer la diffusion</button></div>
-        <div class="ai" id="rtmpSt">Choisissez la fenêtre/écran Program à diffuser quand le système le demande.</div>
+        <div class="bar" style="margin-top:8px"><button class="live" id="rtmpBtn" onclick="liveToggle()" style="flex:1">▶ Démarrer la diffusion</button></div>
+        <div class="ai" id="rtmpSt">Au démarrage, choisissez la fenêtre « Wise Design – Program » (ou l’écran de sortie) à diffuser, avec le son.</div>
+        <div class="ai" style="margin-top:6px">Vos clés de stream restent sur cet ordinateur. Ne les partagez jamais.</div>
       </div>
       <label style="margin-top:0">Logo TV (incrustation permanente)</label>
         <div class="cfgRow"><span>Afficher le logo</span><input type="checkbox" id="bugOn" onchange="bugSet('on',this.checked)"></div>
@@ -525,6 +604,11 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
 
     <div class="side r">
       <div class="pane">
+        <div class="pnl-h in" style="margin-top:-12px">Logo de l’église</div>
+        <div class="logocard"><div class="lgprev" id="lgPrev"><span>🖼</span></div>
+          <div class="lgbtn"><button class="pri" onclick="$('lgFile').click()">⬆ Téléverser le logo</button><select id="lgSel" onchange="bugSet('id',this.value);bugSet('on',!!this.value)"></select>
+          <label class="inl"><input type="checkbox" id="lgOn" onchange="bugSet('on',this.checked)"> Afficher pendant la diffusion / le culte</label></div>
+          <input type="file" id="lgFile" hidden accept="image/*" onchange="logoUpload(this.files);this.value=''"></div>
         <div class="pnl-h in">Superpositions <span class="pill on" id="pgLive" style="margin-left:auto">● LIVE</span></div>
         <div id="ovList" class="ovl">
           <div class="ovr" onclick="ovTog('logo')"><span>Logo TV</span><i class="sw" data-k="logo"></i></div>
@@ -552,6 +636,8 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
         <div id="qr"></div>
         <div style="font-size:11px;color:var(--tx3);text-align:center">Scanner le QR, ou rien à faire : les écrans du même réseau se connectent seuls.</div>
         <div style="font-size:11px;color:var(--tx2);text-align:center;margin:6px 0" id="relayTxt"></div>
+        <div class="bar" style="justify-content:center;margin:6px 0"><button class="sm" onclick="castStart()">📡 Caster (Chromecast / TV)</button><button class="sm" onclick="castCopy()">🔗 Copier le lien écran</button></div>
+        <div style="font-size:11px;color:var(--tx3);text-align:center" id="castTxt"></div>
         <div class="bar" style="justify-content:center;margin:6px 0"><label class="inl"><input type="checkbox" id="pairAuto" checked onchange="LS.set('wcPairAuto',this.checked)"> Appairage automatique</label><button class="sm" onclick="newCode()">Nouveau code</button></div>
         <label>Relais réseau (manuel, optionnel)</label>
         <div class="bar"><input id="relay" placeholder="ws://192.168.1.10:8787" style="flex:1"><button onclick="manualRelay('relay')">Lier</button></div>
@@ -618,8 +704,10 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
 <!-- CAMERA (téléphone) -->
 <div id="camera" class="hidden">
   <video id="camVid" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video>
-  <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;align-items:center"><span class="pill" id="camLink" onclick="CAMRETRY=0;startCam()">recherche de la régie…</span><div class="sp"></div><input id="camCode" placeholder="Code" style="width:90px;text-transform:uppercase"><button onclick="manualCode($('camCode').value)">OK</button><button onclick="startScan()">📷 QR</button><button onclick="resetMode()">⇄</button></div>
-  <div style="position:absolute;bottom:18px;left:0;right:0;display:flex;gap:10px;justify-content:center"><button class="pri" onclick="flipCam()">🔄 Avant / Arrière</button><button onclick="qualCam()">HD / SD</button><button id="camRecBtn" onclick="camRecToggle()">⏺ Enregistrer</button></div>
+  <button class="camrole" onclick="resetMode()" title="Changer de rôle (Régie / Remote / Écran…)">⇄ <span>Rôle</span></button>
+  <div class="camtop"><span class="pill" id="camLink" onclick="CAMRETRY=0;startCam()">recherche de la régie…</span><div class="sp"></div><input id="camCode" placeholder="Code" style="width:90px;text-transform:uppercase"><button onclick="manualCode($('camCode').value)">OK</button><button onclick="startScan()">📷 QR</button></div>
+  <div id="camFlash"></div>
+  <div class="camact"><button class="pri" onclick="flipCam()">🔄</button><button onclick="qualCam()">HD/SD</button><button class="shutter" id="camPhotoBtn" onclick="camPhoto()" title="Photo">📸</button><button id="camRecBtn" onclick="camRecToggle()">⏺</button></div>
 </div>
 
 <div id="cfgBox" class="hidden"><div class="dlg" id="cfgDlg"></div></div>
@@ -1159,6 +1247,51 @@ function outputsLoop() {
     } setTimeout(run, 3000); };
     setTimeout(run, 1500);
 }
+/* ----- Cast : Chromecast / TV / navigateur ----- */
+async function castUrl() { const ip = await lanIp(); if (!ip)
+    return ''; const port = await relayPort(); return `http://${ip}:${port}/?mode=viewer&code=${CODE}&relay=${encodeURIComponent('ws://' + ip + ':' + port)}`; }
+async function castCopy() { const u = await castUrl(); if (!u) {
+    toast('Réseau local non détecté');
+    return;
+} $('castTxt').textContent = u; try {
+    await navigator.clipboard.writeText(u);
+    toast('Lien copié — ouvrez-le sur la TV / un navigateur du même réseau');
+}
+catch (_a) {
+    toast(u);
+} }
+async function castStart() {
+    const u = await castUrl();
+    if (!u) {
+        toast('Réseau local non détecté');
+        return;
+    }
+    $('castTxt').textContent = u;
+    if (!TAURI && !NATIVE && window.PresentationRequest) {
+        try {
+            const rq = new PresentationRequest([u]);
+            window._castRq = rq;
+            const c = await rq.start();
+            window._castConn = c;
+            toast('Diffusion sur l’appareil Cast');
+            c.onterminate = c.onclose = () => toast('Cast terminé');
+            return;
+        }
+        catch (e) {
+            if (e && e.name === 'NotFoundError') {
+                toast('Aucun appareil Cast trouvé sur le réseau');
+            }
+            else if (e && e.name === 'AbortError') {
+                return;
+            }
+        }
+    }
+    try {
+        await navigator.clipboard.writeText(u);
+    }
+    catch (_a) { }
+    toast('Lien copié. Chrome : menu ⋮ → Caster… (onglet) ou ouvrez ce lien sur la TV (Android TV / Google TV / navigateur).');
+}
 function openViewer() {
     if (TAURI) {
         TAURI.invoke('open_viewer_window').catch(() => toast('Impossible d’ouvrir la fenêtre'));
@@ -1528,8 +1661,8 @@ function render() {
     renderBug($('pvBox'), S.bug, u);
     renderBug($('pgBox'), S.blank ? null : S.bug, u);
     renderPre($('pgBox'), S.blank ? null : S.pre, true, u);
-    renderStudio($('pvBox'), S.pvStudio, { main: S.pvMain, sub: S.pvSub });
-    renderStudio($('pgBox'), S.blank ? null : S.studio, { main: S.main, sub: S.sub });
+    renderStudio($('pvBox'), S.pvStudio, { main: S.pvMain, sub: S.pvSub, lt: S.pvLt && S.pvLt.on ? S.pvLt : null });
+    renderStudio($('pgBox'), S.blank ? null : S.studio, { main: S.main, sub: S.sub, lt: S.lt && S.lt.on ? S.lt : null });
     renderAlert($('pgBox'), S.blank ? null : S.alert);
     renderAlert($('pvBox'), null);
     renderOv();
@@ -1735,6 +1868,26 @@ function renderMedia() {
     const l = Object.values(HF).sort((a, b) => (b.builtin ? 1 : 0) - (a.builtin ? 1 : 0));
     $('mList').innerHTML = l.map(m => `<div class="item"><div class="row"><div class="grow">${m.kind === 'video' ? '🎬' : m.kind === 'audio' ? '🔊' : '🖼'} ${esc(m.name)}${m.pct != null && m.pct < 100 ? `<div class="prog" style="width:${m.pct}%"></div>` : ''}</div><button class="sm" onclick="addMediaToPL('${m.id}')">+ Prog.</button><button class="sm" onclick="delMedia('${m.id}')">✕</button></div></div>`).join('') || '<div style="font-size:12px;color:var(--tx3)">Aucun média.</div>';
     renderWS(true);
+}
+async function logoUpload(files) { if (!files || !files[0])
+    return; const ids = await addMedia([files[0]]); if (ids[0]) {
+    S.bug.id = ids[0];
+    S.bug.on = true;
+    LS.set('wcBug', S.bug);
+    render();
+    sync();
+    airMediaOpts();
+    toast('✓ ' + t('Logo de l’église enregistré'));
+} }
+function logoUI() {
+    const sel = $('lgSel');
+    if (!sel)
+        return;
+    sel.innerHTML = '<option value="">— ' + esc(t('Choisir dans la bibliothèque')) + ' —</option>' + Object.values(HF).filter(m => m.kind === 'image' && !m.builtin).map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
+    sel.value = S.bug.id && HF[S.bug.id] && !HF[S.bug.id].builtin ? S.bug.id : '';
+    const pv = $('lgPrev'), m = HF[S.bug.id];
+    pv.innerHTML = m && m.url ? `<img src="${m.url}">` : '<span>🖼</span>';
+    $('lgOn').checked = !!S.bug.on;
 }
 async function delMedia(id) { try {
     await idb.del(id);
@@ -2281,8 +2434,37 @@ async function bibleLoadInstalled() {
         BV.cur = BV.list[0] ? BV.list[0].id : '';
     renderBibleUI();
 }
+let BKT = 0, BKB = -1;
+function bibTab(k) { document.querySelectorAll('#p-bible .stab').forEach(e => e.classList.toggle('on', e.dataset.b === k)); $('bShow').classList.toggle('hidden', k !== 'show'); $('bDl').classList.toggle('hidden', k !== 'dl'); LS.set('wcBibTab', k); }
+function bkTest(n) { BKT = n; BKB = -1; bibleBrowse(); }
+function bibleBrowse() {
+    const el = $('bkList');
+    if (!el)
+        return;
+    const rec = BCACHE[BV.cur];
+    $('bkAT').classList.toggle('on', !BKT);
+    $('bkNT').classList.toggle('on', !!BKT);
+    const a = BKT ? 39 : 0, b = BKT ? 66 : 39;
+    let h = '';
+    for (let i = a; i < b; i++) {
+        const nm = bookName(rec, i) || ('#' + (i + 1));
+        h += `<button class="bk ${i === BKB ? 'on' : ''}" onclick="bkPick(${i})" title="${esc(nm)}">${esc(nm)}</button>`;
+    }
+    el.innerHTML = h;
+    const cl = $('chList');
+    if (BKB < 0 || !rec || !rec.books[BKB]) {
+        cl.innerHTML = rec ? '' : '<div class="ai">' + esc(t('Aucune Bible installée : onglet Téléchargement.')) + '</div>';
+        return;
+    }
+    const n = rec.books[BKB].length;
+    cl.innerHTML = `<div class="chh">${esc(bookName(rec, BKB))}</div>` + Array.from({ length: n }, (_, i) => `<button class="ch" onclick="chPick(${i + 1})">${i + 1}</button>`).join('');
+}
+function bkPick(i) { BKB = i; bibleBrowse(); const c = $('chList'); c && c.scrollIntoView({ block: 'nearest' }); }
+function chPick(c) { const rec = BCACHE[BV.cur]; if (!rec || BKB < 0)
+    return; $('bref').value = bookName(rec, BKB) + ' ' + c; bibleGo(); document.querySelectorAll('#chList .ch').forEach((e, i) => e.classList.toggle('on', i + 1 === c)); }
 function renderBibleUI() {
     ghChips();
+    bibleBrowse();
     if (MODE !== 'host')
         return;
     const opt = (sel, none) => (none ? `<option value="">${none}</option>` : '') + BV.list.map(r => `<option value="${esc(r.id)}" ${r.id === sel ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
@@ -2593,7 +2775,7 @@ async function importSongsURL() {
 }
 /* ============ I18N (noyau ; dictionnaire ajouté plus bas) ============ */
 let LANG = LS.get('wcLang', null) || (/^es/i.test(navigator.language) ? 'es' : /^en/i.test(navigator.language) ? 'en' : 'fr');
-const I18N_ADD = { es: { "1 caméra": "1 cámara", "2 côte à côte": "2 lado a lado", "2 · incrustation": "2 · recuadro", "4 caméras": "4 cámaras", "Prédicateur + verset": "Predicador + versículo", "Émission": "Programa de TV", "Table ronde": "Mesa redonda", "Concert": "Concierto", "Verset / texte": "Versículo / texto", "Légende": "Leyenda", "Caméra": "Cámara", "Nom / légende (ex. Pasteur Josias)": "Nombre / leyenda (p. ej. Pastor Josías)", "Couleur unie": "Color liso", "TAKE STUDIO": "TAKE ESTUDIO", "Quitter le studio": "Salir del estudio", "Modifier en direct (Program suit)": "Editar en vivo (Program sigue)", "Fermer l’aperçu": "Cerrar vista previa", "Modèles": "Plantillas", "Culte": "Culto", "Conférence": "Conferencia", "Disposition": "Disposición", "Sources": "Fuentes", "Fond du studio": "Fondo del estudio", "Suppression du fond (fond vert / incrustation)": "Eliminación del fondo (croma verde)", "Activer": "Activar", "Couleur à retirer": "Color a quitar", "Tolérance": "Tolerancia", "Filmez devant un drap/mur vert (ou bleu), choisissez sa couleur : le fond est retiré et remplacé par le fond du studio.": "Filme frente a una tela/pared verde (o azul), elija su color: el fondo se quita y se reemplaza por el del estudio.", "Style": "Estilo", "Coins arrondis": "Esquinas redondeadas", "Bordure": "Borde", "Couleur d’accent": "Color de acento", "Fonds par défaut (clic = couche 1)": "Fondos predeterminados (clic = capa 1)", "Conducteur du culte": "Orden del culto", "Ressources": "Recursos", "Superpositions": "Superposiciones", "Logo TV": "Logo TV", "Badge EN DIRECT": "Insignia EN VIVO", "Horloge": "Reloj", "Lower third": "Tercio inferior", "Compte à rebours": "Cuenta regresiva", "Alerte": "Alerta", "Alerte garderie / avis": "Alerta guardería / avisos", "Durée (s, 0 = manuel)": "Duración (s, 0 = manual)", "Masquer l’alerte": "Ocultar la alerta", "🔔 Afficher l’alerte": "🔔 Mostrar la alerta", "ALERTE GARDERIE": "ALERTA GUARDERÍA", "ALERTE PARKING": "ALERTA ESTACIONAMIENTO", "ALERTE": "ALERTA", "INFORMATION": "INFORMACIÓN", "Intégrations": "Integraciones", "Écrans distants": "Pantallas remotas", "Prédication → message & images": "Predicación → mensaje e imágenes", "via le panel de votre licence": "vía el panel de su licencia", "Sauvegarde (licence active)": "Copia (licencia activa)", "Aucune caméra : jumelez un téléphone en mode Caméra": "Sin cámara: vincule un teléfono en modo Cámara", "Envoyer en couche 1 (aperçu)": "Enviar a la capa 1 (vista previa)", "🎧 Écouter sur ce téléphone": "🎧 Escuchar en este teléfono", "🔇 Couper le son du téléphone": "🔇 Silenciar el teléfono", "Fournie par votre abonnement (ou vos propres clés dans l’onglet IA).": "Incluida en su suscripción (o use sus propias claves en la pestaña IA).", "Diffusion en direct (multi-flux RTMP) — EXE": "Emisión en vivo (multi-RTMP) — EXE", "Enregistrer aussi en MP4": "Grabar también en MP4", "▶ Démarrer la diffusion": "▶ Iniciar la emisión", "⏹ Arrêter la diffusion": "⏹ Detener la emisión", "Choisissez la fenêtre/écran Program à diffuser quand le système le demande.": "Elija la ventana/pantalla Program a emitir cuando el sistema lo pida.", "Ajoutez une adresse RTMP ou cochez MP4": "Añada una dirección RTMP o marque MP4", "Diffusion impossible : ": "Emisión imposible: ", "Diffusion arrêtée": "Emisión detenida", "📁 Fichier ▾": "📁 Archivo ▾", "🆕 Nouvel événement (programme vide)": "🆕 Nuevo evento (programa vacío)", "💾 Enregistrer l’événement (tout)": "💾 Guardar el evento (todo)", "📂 Ouvrir un événement": "📂 Abrir un evento", "inclure les médias": "incluir los medios", "inclure les Bibles installées": "incluir las Biblias instaladas", "⬇ Sauvegarde complète (toutes données)": "⬇ Copia completa (todos los datos)", "⬆ Restaurer une sauvegarde": "⬆ Restaurar una copia", "Outils": "Herramientas", "⬆ Importer chants": "⬆ Importar cantos", "URL : JSON, ChordPro, OpenSong…": "URL: JSON, ChordPro, OpenSong…", "Ajouter au programme": "Añadir al programa", "— 2e version (bilingue) —": "— 2.ª versión (bilingüe) —", "Domaine public": "Dominio público", "Auto-TAKE": "Auto-TAKE", "Tous": "Todos", "Titre": "Título", "Partenaire": "Socio", "Information": "Información", "En direct": "En vivo", "Licence / Abonnement": "Licencia / Suscripción", "Clé d’activation": "Clave de activación", "Activer": "Activar", "Serveur de licence (URL de l’API)": "Servidor de licencias (URL de la API)", "Revérifier": "Verificar de nuevo", "Désactiver": "Desactivar", "Pilote IA (l’IA manipule l’app)": "Piloto IA (la IA maneja la app)", "▶ Exécuter": "▶ Ejecutar", "Clé Gemini ou OpenRouter requise (onglet IA).": "Se requiere clave Gemini u OpenRouter (pestaña IA).", "Prépare un culte de 2 h : louange, 3 chants, prédication Jean 3:16, offrande… / Affiche Psaume 23 en direct / Lance un compte à rebours de 5 min": "Prepara un culto de 2 h: alabanza, 3 cantos, predicación Juan 3:16, ofrenda… / Muestra el Salmo 23 en vivo / Inicia una cuenta regresiva de 5 min", "Recherche rapide (voix / texte)": "Búsqueda rápida (voz / texto)", "Dites ou tapez quelques mots d’un verset ou d’un chant": "Diga o escriba algunas palabras de un versículo o canto", "Paroles (ajout instantané)": "Letras (añadir al instante)", "Auteur": "Autor", "Collez, tapez ou dictez les paroles. Ligne vide = nouveau couplet.": "Pegue, escriba o dicte la letra. Línea vacía = nueva estrofa.", "🎤 Dicter": "🎤 Dictar", "✨ Structurer (IA)": "✨ Estructurar (IA)", "+ Ajouter le chant": "+ Añadir el canto", "Prédication : transcription, WhatsApp, images": "Predicación: transcripción, WhatsApp, imágenes", "🎤 Démarrer la transcription": "🎤 Iniciar la transcripción", "⬆ Audio": "⬆ Audio", "Transcription de la prédication (modifiable)…": "Transcripción de la predicación (editable)…", "✨ Générer résumé, points forts, déclarations, prières": "✨ Generar resumen, puntos clave, declaraciones, oraciones", "Message WhatsApp": "Mensaje de WhatsApp", "Copier": "Copiar", "Ouvrir WhatsApp": "Abrir WhatsApp", "Partager les images": "Compartir las imágenes", "⬇ Tout télécharger": "⬇ Descargar todo", "Sauvegarde / restauration": "Copia / restauración", "Inclure les médias (fichier plus gros)": "Incluir los medios (archivo más grande)", "⬇ Exporter (fichier)": "⬇ Exportar (archivo)", "⬆ Restaurer (fichier)": "⬆ Restaurar (archivo)", "Google Drive — Client ID OAuth": "Google Drive — Client ID OAuth", "☁ Sauvegarder sur Drive": "☁ Guardar en Drive", "Liste": "Lista", "Restaurer": "Restaurar", "Résumé": "Resumen", "Points forts": "Puntos clave", "Point fort": "Punto clave", "Déclarations": "Declaraciones", "Prières": "Oraciones", "Cette semaine": "Esta semana", "aussi sur Program": "también en Program", "🔍 Scanner le réseau": "🔍 Buscar en la red", "Adresse de la régie : 192.168.1.10": "Dirección de la regiduría: 192.168.1.10", "Tapez une référence : le chapitre entier s’affiche ici.": "Escriba una referencia: el capítulo completo se muestra aquí.", "Choisissez un chant : ses couplets s’affichent ici.": "Elija un canto: sus estrofas se muestran aquí.", "Double-clic : afficher en direct": "Doble clic: mostrar en vivo", "Couche": "Capa", "Aucun média.": "Ningún medio.", "Suivant : ": "Siguiente: ", "Caméra indisponible": "Cámara no disponible", "⏺ Enregistrer": "⏺ Grabar", "Enregistré : ": "Guardado: ", "Événement enregistré": "Evento guardado", "Événement chargé — rechargement…": "Evento cargado — recargando…", "Restauré — rechargement…": "Restaurado — recargando…", "Fichier invalide : ": "Archivo no válido: ", "Recherche de la régie sur le réseau…": "Buscando la regiduría en la red…", "Saisissez l’adresse du relais (ws://IP:8787)": "Introduzca la dirección del relé (ws://IP:8787)", "Fonction Pro : activez votre abonnement (onglet Outils → Licence)": "Función Pro: active su suscripción (pestaña Herramientas → Licencia)", "Mode BASIC : chants, Bible, médias, Preview/Program. Activez un abonnement pour tout débloquer.": "Modo BASIC: cantos, Biblia, medios, Preview/Program. Active una suscripción para desbloquearlo todo.", "⚠ Abonnement expiré ou à revérifier (connexion internet requise)": "⚠ Suscripción caducada o por verificar (requiere internet)", "Vider couches": "Vaciar capas", "IA du panel indisponible": "IA del panel no disponible", "IA du panel": "IA del panel", "modèles disponibles (rotation automatique)": "modelos disponibles (rotación automática)", "IA : clés locales (Gemini / OpenRouter) ou activez votre abonnement pour utiliser l’IA du panel": "IA: claves locales (Gemini / OpenRouter) o active su suscripción para usar la IA del panel" }, en: { "1 caméra": "1 camera", "2 côte à côte": "2 side by side", "2 · incrustation": "2 · inset", "4 caméras": "4 cameras", "Prédicateur + verset": "Preacher + verse", "Émission": "TV show", "Table ronde": "Round table", "Concert": "Concert", "Verset / texte": "Verse / text", "Légende": "Caption", "Caméra": "Camera", "Nom / légende (ex. Pasteur Josias)": "Name / caption (e.g. Pastor Josias)", "Couleur unie": "Solid colour", "TAKE STUDIO": "TAKE STUDIO", "Quitter le studio": "Leave studio", "Modifier en direct (Program suit)": "Edit live (Program follows)", "Fermer l’aperçu": "Close preview", "Modèles": "Templates", "Culte": "Service", "Conférence": "Conference", "Disposition": "Layout", "Sources": "Sources", "Fond du studio": "Studio background", "Suppression du fond (fond vert / incrustation)": "Background removal (green screen)", "Activer": "Enable", "Couleur à retirer": "Colour to remove", "Tolérance": "Tolerance", "Filmez devant un drap/mur vert (ou bleu), choisissez sa couleur : le fond est retiré et remplacé par le fond du studio.": "Film in front of a green (or blue) cloth/wall, pick its colour: the background is removed and replaced by the studio background.", "Style": "Style", "Coins arrondis": "Rounded corners", "Bordure": "Border", "Couleur d’accent": "Accent colour", "Conducteur du culte": "Service order", "Ressources": "Resources", "Superpositions": "Overlays", "Logo TV": "TV logo", "Badge EN DIRECT": "LIVE badge", "Horloge": "Clock", "Lower third": "Lower third", "Compte à rebours": "Countdown", "Alerte": "Alert", "Alerte garderie / avis": "Nursery alert / notices", "Durée (s, 0 = manuel)": "Duration (s, 0 = manual)", "Masquer l’alerte": "Hide alert", "🔔 Afficher l’alerte": "🔔 Show alert", "ALERTE GARDERIE": "NURSERY ALERT", "ALERTE PARKING": "PARKING ALERT", "ALERTE": "ALERT", "INFORMATION": "INFORMATION", "Intégrations": "Integrations", "Écrans distants": "Remote screens", "Prédication → message & images": "Sermon → message & images", "via le panel de votre licence": "via your licence panel", "Sauvegarde (licence active)": "Backup (active licence)", "Aucune caméra : jumelez un téléphone en mode Caméra": "No camera: pair a phone in Camera mode", "Envoyer en couche 1 (aperçu)": "Send to layer 1 (preview)", "🎧 Écouter sur ce téléphone": "🎧 Listen on this phone", "🔇 Couper le son du téléphone": "🔇 Mute this phone", "Fournie par votre abonnement (ou vos propres clés dans l’onglet IA).": "Included in your subscription (or use your own keys in the AI tab).", "Diffusion en direct (multi-flux RTMP) — EXE": "Live streaming (multi-RTMP) — EXE", "Enregistrer aussi en MP4": "Also record to MP4", "▶ Démarrer la diffusion": "▶ Start streaming", "⏹ Arrêter la diffusion": "⏹ Stop streaming", "Choisissez la fenêtre/écran Program à diffuser quand le système le demande.": "Pick the Program window/screen to stream when the system asks.", "Ajoutez une adresse RTMP ou cochez MP4": "Add an RTMP address or tick MP4", "Diffusion impossible : ": "Streaming failed: ", "Diffusion arrêtée": "Streaming stopped", "📁 Fichier ▾": "📁 File ▾", "🆕 Nouvel événement (programme vide)": "🆕 New event (empty programme)", "💾 Enregistrer l’événement (tout)": "💾 Save the event (everything)", "📂 Ouvrir un événement": "📂 Open an event", "inclure les médias": "include media", "inclure les Bibles installées": "include installed Bibles", "⬇ Sauvegarde complète (toutes données)": "⬇ Full backup (all data)", "⬆ Restaurer une sauvegarde": "⬆ Restore a backup", "Outils": "Tools", "⬆ Importer chants": "⬆ Import songs", "URL : JSON, ChordPro, OpenSong…": "URL: JSON, ChordPro, OpenSong…", "Ajouter au programme": "Add to programme", "— 2e version (bilingue) —": "— 2nd version (bilingual) —", "Domaine public": "Public domain", "Auto-TAKE": "Auto-TAKE", "Tous": "All", "Titre": "Title", "Partenaire": "Partner", "Information": "Information", "En direct": "Live", "Licence / Abonnement": "Licence / Subscription", "Clé d’activation": "Activation key", "Activer": "Activate", "Serveur de licence (URL de l’API)": "Licence server (API URL)", "Revérifier": "Re-check", "Désactiver": "Deactivate", "Pilote IA (l’IA manipule l’app)": "AI pilot (the AI operates the app)", "▶ Exécuter": "▶ Run", "Clé Gemini ou OpenRouter requise (onglet IA).": "Gemini or OpenRouter key required (AI tab).", "Prépare un culte de 2 h : louange, 3 chants, prédication Jean 3:16, offrande… / Affiche Psaume 23 en direct / Lance un compte à rebours de 5 min": "Prepare a 2-hour service: praise, 3 songs, sermon John 3:16, offering… / Show Psalm 23 live / Start a 5-minute countdown", "Recherche rapide (voix / texte)": "Quick search (voice / text)", "Dites ou tapez quelques mots d’un verset ou d’un chant": "Say or type a few words of a verse or song", "Paroles (ajout instantané)": "Lyrics (instant add)", "Auteur": "Author", "Collez, tapez ou dictez les paroles. Ligne vide = nouveau couplet.": "Paste, type or dictate the lyrics. Blank line = new verse.", "🎤 Dicter": "🎤 Dictate", "✨ Structurer (IA)": "✨ Structure (AI)", "+ Ajouter le chant": "+ Add the song", "Prédication : transcription, WhatsApp, images": "Sermon: transcription, WhatsApp, images", "🎤 Démarrer la transcription": "🎤 Start transcription", "⬆ Audio": "⬆ Audio", "Transcription de la prédication (modifiable)…": "Sermon transcript (editable)…", "✨ Générer résumé, points forts, déclarations, prières": "✨ Generate summary, key points, declarations, prayers", "Message WhatsApp": "WhatsApp message", "Copier": "Copy", "Ouvrir WhatsApp": "Open WhatsApp", "Partager les images": "Share the images", "⬇ Tout télécharger": "⬇ Download all", "Sauvegarde / restauration": "Backup / restore", "Inclure les médias (fichier plus gros)": "Include media (larger file)", "⬇ Exporter (fichier)": "⬇ Export (file)", "⬆ Restaurer (fichier)": "⬆ Restore (file)", "Google Drive — Client ID OAuth": "Google Drive — OAuth Client ID", "☁ Sauvegarder sur Drive": "☁ Save to Drive", "Liste": "List", "Restaurer": "Restore", "Résumé": "Summary", "Points forts": "Key points", "Point fort": "Key point", "Déclarations": "Declarations", "Prières": "Prayers", "Cette semaine": "This week", "aussi sur Program": "also on Program", "🔍 Scanner le réseau": "🔍 Scan the network", "Adresse de la régie : 192.168.1.10": "Control desk address: 192.168.1.10", "Tapez une référence : le chapitre entier s’affiche ici.": "Type a reference: the whole chapter appears here.", "Choisissez un chant : ses couplets s’affichent ici.": "Pick a song: its verses appear here.", "Double-clic : afficher en direct": "Double-click: show live", "Couche": "Layer", "Aucun média.": "No media.", "Suivant : ": "Next: ", "Caméra indisponible": "Camera unavailable", "⏺ Enregistrer": "⏺ Record", "Enregistré : ": "Saved: ", "Événement enregistré": "Event saved", "Événement chargé — rechargement…": "Event loaded — reloading…", "Restauré — rechargement…": "Restored — reloading…", "Fichier invalide : ": "Invalid file: ", "Recherche de la régie sur le réseau…": "Looking for the control desk on the network…", "Saisissez l’adresse du relais (ws://IP:8787)": "Enter the relay address (ws://IP:8787)", "Fonction Pro : activez votre abonnement (onglet Outils → Licence)": "Pro feature: activate your subscription (Tools tab → Licence)", "Mode BASIC : chants, Bible, médias, Preview/Program. Activez un abonnement pour tout débloquer.": "BASIC mode: songs, Bible, media, Preview/Program. Activate a subscription to unlock everything.", "⚠ Abonnement expiré ou à revérifier (connexion internet requise)": "⚠ Subscription expired or needs re-checking (internet required)", "Vider couches": "Clear layers", "IA du panel indisponible": "Panel AI unavailable", "IA du panel": "Panel AI", "modèles disponibles (rotation automatique)": "models available (automatic rotation)", "IA : clés locales (Gemini / OpenRouter) ou activez votre abonnement pour utiliser l’IA du panel": "AI: local keys (Gemini / OpenRouter) or activate your subscription to use the panel AI" } };
+const I18N_ADD = { es: { "Caster (Chromecast / TV)": "Transmitir (Chromecast / TV)", "Copier le lien écran": "Copiar enlace de pantalla", "Aucun appareil Cast trouvé sur le réseau": "Ningún dispositivo Cast en la red", "Cast terminé": "Cast terminado", "Diffusion sur l’appareil Cast": "Emitiendo en el dispositivo Cast", "Lien copié — ouvrez-le sur la TV / un navigateur du même réseau": "Enlace copiado: ábralo en la TV / un navegador de la misma red", "Lien copié. Chrome : menu ⋮ → Caster… (onglet) ou ouvrez ce lien sur la TV (Android TV / Google TV / navigateur).": "Enlace copiado. Chrome: menú ⋮ → Transmitir… (pestaña) o abra este enlace en la TV (Android TV / Google TV / navegador).", "Vide": "Vacío", "Texte": "Texto", "Médias": "Medios", "Fonds": "Fondos", "Verset / texte projeté": "Versículo / texto proyectado", "Logo église": "Logo iglesia", "Cadre": "Marco", "Transition": "Transición", "Transition par défaut": "Transición por defecto", "Sources (par cadre)": "Fuentes (por marco)", "Fondu": "Fundido", "Glisser": "Deslizar", "Volet": "Cortina", "Couleur unie": "Color liso", "Logo de l’église": "Logo de la iglesia", "⬆ Téléverser le logo": "⬆ Subir el logo", "Afficher pendant la diffusion / le culte": "Mostrar durante la transmisión / el culto", "Choisir dans la bibliothèque": "Elegir de la biblioteca", "Logo de l’église enregistré": "Logo de la iglesia guardado", "Affichage": "Visualización", "Téléchargement": "Descarga", "Ancien Testament": "Antiguo Testamento", "Nouveau Testament": "Nuevo Testamento", "Aucune Bible installée : onglet Téléchargement.": "Ninguna Biblia instalada: pestaña Descarga.", "Rendu": "Renderizado", "3D réel (WebGL)": "3D real (WebGL)", "Plateau TV": "Plató de TV", "Sanctuaire": "Santuario", "Salon / table ronde": "Salón / mesa redonda", "Scène de concert": "Escenario de concierto", "Mouvement de caméra": "Movimiento de cámara", "Décor 3D": "Decorado 3D", "Plat (2D)": "Plano (2D)", "Plateau 3D (sol + reflets)": "Plató 3D (suelo + reflejos)", "Mur d’écrans 3D": "Muro de pantallas 3D", "Caméra indisponible": "Cámara no disponible", "Photo impossible": "Foto imposible", "Photo enregistrée": "Foto guardada", "envoyée à la régie": "enviada a la regiduría", "Rôle": "Rol", "URL du serveur": "URL del servidor", "Clé de stream": "Clave de transmisión", "Ouvrir la page de diffusion": "Abrir la página de transmisión", "EN DIRECT": "EN VIVO", "La diffusion s’est arrêtée": "La transmisión se detuvo", "Diffusion : disponible dans l’EXE / Mac": "Transmisión: disponible en la app EXE / Mac", "Activez une plateforme et saisissez sa clé, ou cochez MP4": "Active una plataforma e introduzca su clave, o marque MP4", "Démarrer la diffusion": "Iniciar la transmisión", "Arrêter la diffusion": "Detener la transmisión", "Diffusion arrêtée": "Transmisión detenida", "dans Vidéos/": "en Vídeos/", "Diffusion impossible": "Transmisión imposible", "Enregistrer": "Grabar", "Arrêter (MP4)": "Detener (MP4)", "YouTube Studio → Créer → Passer en direct → copier la « Clé de stream ».": "YouTube Studio → Crear → Transmitir en vivo → copie la «Clave de transmisión».", "Facebook → Vidéo en direct → « Logiciel de streaming » → copier la clé de stream (valable une seule diffusion).": "Facebook → Video en vivo → «Software de transmisión» → copie la clave (válida para una sola transmisión).", "TikTok LIVE Center / LIVE Studio → « Stream » : copier l’URL du serveur ET la clé. Nécessite l’accès LIVE (compte éligible).": "TikTok LIVE Center / LIVE Studio → «Stream»: copie la URL del servidor Y la clave. Requiere acceso a LIVE (cuenta elegible).", "Tableau de bord → Paramètres → Stream → clé de stream principale.": "Panel → Configuración → Stream → clave principal.", "Instagram Live via logiciel : l’URL et la clé sont générées pour chaque direct (accès requis). Collez l’URL serveur et la clé.": "Instagram Live con software: la URL y la clave se generan en cada directo (acceso requerido). Pegue la URL del servidor y la clave.", "Kick → Paramètres → Stream : copier l’URL du serveur et la clé.": "Kick → Configuración → Stream: copie la URL del servidor y la clave.", "Tout serveur RTMP/RTMPS (nginx-rtmp, Restream, Castr, etc.) : URL complète (avec ou sans clé).": "Cualquier servidor RTMP/RTMPS (nginx-rtmp, Restream, Castr, etc.): URL completa (con o sin clave).", "1 caméra": "1 cámara", "2 côte à côte": "2 lado a lado", "2 · incrustation": "2 · recuadro", "4 caméras": "4 cámaras", "Prédicateur + verset": "Predicador + versículo", "Émission": "Programa de TV", "Table ronde": "Mesa redonda", "Concert": "Concierto", "Verset / texte": "Versículo / texto", "Légende": "Leyenda", "Caméra": "Cámara", "Nom / légende (ex. Pasteur Josias)": "Nombre / leyenda (p. ej. Pastor Josías)", "Couleur unie": "Color liso", "TAKE STUDIO": "TAKE ESTUDIO", "Quitter le studio": "Salir del estudio", "Modifier en direct (Program suit)": "Editar en vivo (Program sigue)", "Fermer l’aperçu": "Cerrar vista previa", "Modèles": "Plantillas", "Culte": "Culto", "Conférence": "Conferencia", "Disposition": "Disposición", "Sources": "Fuentes", "Fond du studio": "Fondo del estudio", "Suppression du fond (fond vert / incrustation)": "Eliminación del fondo (croma verde)", "Activer": "Activar", "Couleur à retirer": "Color a quitar", "Tolérance": "Tolerancia", "Filmez devant un drap/mur vert (ou bleu), choisissez sa couleur : le fond est retiré et remplacé par le fond du studio.": "Filme frente a una tela/pared verde (o azul), elija su color: el fondo se quita y se reemplaza por el del estudio.", "Style": "Estilo", "Coins arrondis": "Esquinas redondeadas", "Bordure": "Borde", "Couleur d’accent": "Color de acento", "Fonds par défaut (clic = couche 1)": "Fondos predeterminados (clic = capa 1)", "Conducteur du culte": "Orden del culto", "Ressources": "Recursos", "Superpositions": "Superposiciones", "Logo TV": "Logo TV", "Badge EN DIRECT": "Insignia EN VIVO", "Horloge": "Reloj", "Lower third": "Tercio inferior", "Compte à rebours": "Cuenta regresiva", "Alerte": "Alerta", "Alerte garderie / avis": "Alerta guardería / avisos", "Durée (s, 0 = manuel)": "Duración (s, 0 = manual)", "Masquer l’alerte": "Ocultar la alerta", "🔔 Afficher l’alerte": "🔔 Mostrar la alerta", "ALERTE GARDERIE": "ALERTA GUARDERÍA", "ALERTE PARKING": "ALERTA ESTACIONAMIENTO", "ALERTE": "ALERTA", "INFORMATION": "INFORMACIÓN", "Intégrations": "Integraciones", "Écrans distants": "Pantallas remotas", "Prédication → message & images": "Predicación → mensaje e imágenes", "via le panel de votre licence": "vía el panel de su licencia", "Sauvegarde (licence active)": "Copia (licencia activa)", "Aucune caméra : jumelez un téléphone en mode Caméra": "Sin cámara: vincule un teléfono en modo Cámara", "Envoyer en couche 1 (aperçu)": "Enviar a la capa 1 (vista previa)", "🎧 Écouter sur ce téléphone": "🎧 Escuchar en este teléfono", "🔇 Couper le son du téléphone": "🔇 Silenciar el teléfono", "Fournie par votre abonnement (ou vos propres clés dans l’onglet IA).": "Incluida en su suscripción (o use sus propias claves en la pestaña IA).", "Diffusion en direct (multi-flux RTMP) — EXE": "Emisión en vivo (multi-RTMP) — EXE", "Enregistrer aussi en MP4": "Grabar también en MP4", "▶ Démarrer la diffusion": "▶ Iniciar la emisión", "⏹ Arrêter la diffusion": "⏹ Detener la emisión", "Choisissez la fenêtre/écran Program à diffuser quand le système le demande.": "Elija la ventana/pantalla Program a emitir cuando el sistema lo pida.", "Ajoutez une adresse RTMP ou cochez MP4": "Añada una dirección RTMP o marque MP4", "Diffusion impossible : ": "Emisión imposible: ", "Diffusion arrêtée": "Emisión detenida", "📁 Fichier ▾": "📁 Archivo ▾", "🆕 Nouvel événement (programme vide)": "🆕 Nuevo evento (programa vacío)", "💾 Enregistrer l’événement (tout)": "💾 Guardar el evento (todo)", "📂 Ouvrir un événement": "📂 Abrir un evento", "inclure les médias": "incluir los medios", "inclure les Bibles installées": "incluir las Biblias instaladas", "⬇ Sauvegarde complète (toutes données)": "⬇ Copia completa (todos los datos)", "⬆ Restaurer une sauvegarde": "⬆ Restaurar una copia", "Outils": "Herramientas", "⬆ Importer chants": "⬆ Importar cantos", "URL : JSON, ChordPro, OpenSong…": "URL: JSON, ChordPro, OpenSong…", "Ajouter au programme": "Añadir al programa", "— 2e version (bilingue) —": "— 2.ª versión (bilingüe) —", "Domaine public": "Dominio público", "Auto-TAKE": "Auto-TAKE", "Tous": "Todos", "Titre": "Título", "Partenaire": "Socio", "Information": "Información", "En direct": "En vivo", "Licence / Abonnement": "Licencia / Suscripción", "Clé d’activation": "Clave de activación", "Activer": "Activar", "Serveur de licence (URL de l’API)": "Servidor de licencias (URL de la API)", "Revérifier": "Verificar de nuevo", "Désactiver": "Desactivar", "Pilote IA (l’IA manipule l’app)": "Piloto IA (la IA maneja la app)", "▶ Exécuter": "▶ Ejecutar", "Clé Gemini ou OpenRouter requise (onglet IA).": "Se requiere clave Gemini u OpenRouter (pestaña IA).", "Prépare un culte de 2 h : louange, 3 chants, prédication Jean 3:16, offrande… / Affiche Psaume 23 en direct / Lance un compte à rebours de 5 min": "Prepara un culto de 2 h: alabanza, 3 cantos, predicación Juan 3:16, ofrenda… / Muestra el Salmo 23 en vivo / Inicia una cuenta regresiva de 5 min", "Recherche rapide (voix / texte)": "Búsqueda rápida (voz / texto)", "Dites ou tapez quelques mots d’un verset ou d’un chant": "Diga o escriba algunas palabras de un versículo o canto", "Paroles (ajout instantané)": "Letras (añadir al instante)", "Auteur": "Autor", "Collez, tapez ou dictez les paroles. Ligne vide = nouveau couplet.": "Pegue, escriba o dicte la letra. Línea vacía = nueva estrofa.", "🎤 Dicter": "🎤 Dictar", "✨ Structurer (IA)": "✨ Estructurar (IA)", "+ Ajouter le chant": "+ Añadir el canto", "Prédication : transcription, WhatsApp, images": "Predicación: transcripción, WhatsApp, imágenes", "🎤 Démarrer la transcription": "🎤 Iniciar la transcripción", "⬆ Audio": "⬆ Audio", "Transcription de la prédication (modifiable)…": "Transcripción de la predicación (editable)…", "✨ Générer résumé, points forts, déclarations, prières": "✨ Generar resumen, puntos clave, declaraciones, oraciones", "Message WhatsApp": "Mensaje de WhatsApp", "Copier": "Copiar", "Ouvrir WhatsApp": "Abrir WhatsApp", "Partager les images": "Compartir las imágenes", "⬇ Tout télécharger": "⬇ Descargar todo", "Sauvegarde / restauration": "Copia / restauración", "Inclure les médias (fichier plus gros)": "Incluir los medios (archivo más grande)", "⬇ Exporter (fichier)": "⬇ Exportar (archivo)", "⬆ Restaurer (fichier)": "⬆ Restaurar (archivo)", "Google Drive — Client ID OAuth": "Google Drive — Client ID OAuth", "☁ Sauvegarder sur Drive": "☁ Guardar en Drive", "Liste": "Lista", "Restaurer": "Restaurar", "Résumé": "Resumen", "Points forts": "Puntos clave", "Point fort": "Punto clave", "Déclarations": "Declaraciones", "Prières": "Oraciones", "Cette semaine": "Esta semana", "aussi sur Program": "también en Program", "🔍 Scanner le réseau": "🔍 Buscar en la red", "Adresse de la régie : 192.168.1.10": "Dirección de la regiduría: 192.168.1.10", "Tapez une référence : le chapitre entier s’affiche ici.": "Escriba una referencia: el capítulo completo se muestra aquí.", "Choisissez un chant : ses couplets s’affichent ici.": "Elija un canto: sus estrofas se muestran aquí.", "Double-clic : afficher en direct": "Doble clic: mostrar en vivo", "Couche": "Capa", "Aucun média.": "Ningún medio.", "Suivant : ": "Siguiente: ", "Caméra indisponible": "Cámara no disponible", "⏺ Enregistrer": "⏺ Grabar", "Enregistré : ": "Guardado: ", "Événement enregistré": "Evento guardado", "Événement chargé — rechargement…": "Evento cargado — recargando…", "Restauré — rechargement…": "Restaurado — recargando…", "Fichier invalide : ": "Archivo no válido: ", "Recherche de la régie sur le réseau…": "Buscando la regiduría en la red…", "Saisissez l’adresse du relais (ws://IP:8787)": "Introduzca la dirección del relé (ws://IP:8787)", "Fonction Pro : activez votre abonnement (onglet Outils → Licence)": "Función Pro: active su suscripción (pestaña Herramientas → Licencia)", "Mode BASIC : chants, Bible, médias, Preview/Program. Activez un abonnement pour tout débloquer.": "Modo BASIC: cantos, Biblia, medios, Preview/Program. Active una suscripción para desbloquearlo todo.", "⚠ Abonnement expiré ou à revérifier (connexion internet requise)": "⚠ Suscripción caducada o por verificar (requiere internet)", "Vider couches": "Vaciar capas", "IA du panel indisponible": "IA del panel no disponible", "IA du panel": "IA del panel", "modèles disponibles (rotation automatique)": "modelos disponibles (rotación automática)", "IA : clés locales (Gemini / OpenRouter) ou activez votre abonnement pour utiliser l’IA du panel": "IA: claves locales (Gemini / OpenRouter) o active su suscripción para usar la IA del panel" }, en: { "Caster (Chromecast / TV)": "Cast (Chromecast / TV)", "Copier le lien écran": "Copy screen link", "Aucun appareil Cast trouvé sur le réseau": "No Cast device found on the network", "Cast terminé": "Cast ended", "Diffusion sur l’appareil Cast": "Casting to the Cast device", "Lien copié — ouvrez-le sur la TV / un navigateur du même réseau": "Link copied — open it on the TV / a browser on the same network", "Lien copié. Chrome : menu ⋮ → Caster… (onglet) ou ouvrez ce lien sur la TV (Android TV / Google TV / navigateur).": "Link copied. Chrome: ⋮ menu → Cast… (tab) or open this link on the TV (Android TV / Google TV / browser).", "Vide": "Empty", "Texte": "Text", "Médias": "Media", "Fonds": "Backgrounds", "Verset / texte projeté": "Projected verse / text", "Logo église": "Church logo", "Cadre": "Frame", "Transition": "Transition", "Transition par défaut": "Default transition", "Sources (par cadre)": "Sources (per frame)", "Fondu": "Fade", "Glisser": "Slide", "Volet": "Wipe", "Couleur unie": "Solid color", "Logo de l’église": "Church logo", "⬆ Téléverser le logo": "⬆ Upload logo", "Afficher pendant la diffusion / le culte": "Show during broadcast / service", "Choisir dans la bibliothèque": "Pick from library", "Logo de l’église enregistré": "Church logo saved", "Affichage": "Display", "Téléchargement": "Download", "Ancien Testament": "Old Testament", "Nouveau Testament": "New Testament", "Aucune Bible installée : onglet Téléchargement.": "No Bible installed: Download tab.", "Rendu": "Rendering", "3D réel (WebGL)": "Real 3D (WebGL)", "Plateau TV": "TV set", "Sanctuaire": "Sanctuary", "Salon / table ronde": "Lounge / round table", "Scène de concert": "Concert stage", "Mouvement de caméra": "Camera movement", "Décor 3D": "3D set", "Plat (2D)": "Flat (2D)", "Plateau 3D (sol + reflets)": "3D stage (floor + reflections)", "Mur d’écrans 3D": "3D video wall", "Caméra indisponible": "Camera unavailable", "Photo impossible": "Photo failed", "Photo enregistrée": "Photo saved", "envoyée à la régie": "sent to the control room", "Rôle": "Role", "URL du serveur": "Server URL", "Clé de stream": "Stream key", "Ouvrir la page de diffusion": "Open the streaming page", "EN DIRECT": "LIVE", "La diffusion s’est arrêtée": "The stream stopped", "Diffusion : disponible dans l’EXE / Mac": "Streaming: available in the EXE / Mac app", "Activez une plateforme et saisissez sa clé, ou cochez MP4": "Enable a platform and enter its key, or tick MP4", "Démarrer la diffusion": "Start streaming", "Arrêter la diffusion": "Stop streaming", "Diffusion arrêtée": "Stream stopped", "dans Vidéos/": "in Videos/", "Diffusion impossible": "Streaming failed", "Enregistrer": "Record", "Arrêter (MP4)": "Stop (MP4)", "YouTube Studio → Créer → Passer en direct → copier la « Clé de stream ».": "YouTube Studio → Create → Go live → copy the “Stream key”.", "Facebook → Vidéo en direct → « Logiciel de streaming » → copier la clé de stream (valable une seule diffusion).": "Facebook → Live video → “Streaming software” → copy the stream key (valid for one broadcast).", "TikTok LIVE Center / LIVE Studio → « Stream » : copier l’URL du serveur ET la clé. Nécessite l’accès LIVE (compte éligible).": "TikTok LIVE Center / LIVE Studio → “Stream”: copy the server URL AND the key. Requires LIVE access (eligible account).", "Tableau de bord → Paramètres → Stream → clé de stream principale.": "Dashboard → Settings → Stream → primary stream key.", "Instagram Live via logiciel : l’URL et la clé sont générées pour chaque direct (accès requis). Collez l’URL serveur et la clé.": "Instagram Live via software: the URL and key are generated for each broadcast (access required). Paste the server URL and key.", "Kick → Paramètres → Stream : copier l’URL du serveur et la clé.": "Kick → Settings → Stream: copy the server URL and key.", "Tout serveur RTMP/RTMPS (nginx-rtmp, Restream, Castr, etc.) : URL complète (avec ou sans clé).": "Any RTMP/RTMPS server (nginx-rtmp, Restream, Castr, etc.): full URL (with or without key).", "1 caméra": "1 camera", "2 côte à côte": "2 side by side", "2 · incrustation": "2 · inset", "4 caméras": "4 cameras", "Prédicateur + verset": "Preacher + verse", "Émission": "TV show", "Table ronde": "Round table", "Concert": "Concert", "Verset / texte": "Verse / text", "Légende": "Caption", "Caméra": "Camera", "Nom / légende (ex. Pasteur Josias)": "Name / caption (e.g. Pastor Josias)", "Couleur unie": "Solid colour", "TAKE STUDIO": "TAKE STUDIO", "Quitter le studio": "Leave studio", "Modifier en direct (Program suit)": "Edit live (Program follows)", "Fermer l’aperçu": "Close preview", "Modèles": "Templates", "Culte": "Service", "Conférence": "Conference", "Disposition": "Layout", "Sources": "Sources", "Fond du studio": "Studio background", "Suppression du fond (fond vert / incrustation)": "Background removal (green screen)", "Activer": "Enable", "Couleur à retirer": "Colour to remove", "Tolérance": "Tolerance", "Filmez devant un drap/mur vert (ou bleu), choisissez sa couleur : le fond est retiré et remplacé par le fond du studio.": "Film in front of a green (or blue) cloth/wall, pick its colour: the background is removed and replaced by the studio background.", "Style": "Style", "Coins arrondis": "Rounded corners", "Bordure": "Border", "Couleur d’accent": "Accent colour", "Conducteur du culte": "Service order", "Ressources": "Resources", "Superpositions": "Overlays", "Logo TV": "TV logo", "Badge EN DIRECT": "LIVE badge", "Horloge": "Clock", "Lower third": "Lower third", "Compte à rebours": "Countdown", "Alerte": "Alert", "Alerte garderie / avis": "Nursery alert / notices", "Durée (s, 0 = manuel)": "Duration (s, 0 = manual)", "Masquer l’alerte": "Hide alert", "🔔 Afficher l’alerte": "🔔 Show alert", "ALERTE GARDERIE": "NURSERY ALERT", "ALERTE PARKING": "PARKING ALERT", "ALERTE": "ALERT", "INFORMATION": "INFORMATION", "Intégrations": "Integrations", "Écrans distants": "Remote screens", "Prédication → message & images": "Sermon → message & images", "via le panel de votre licence": "via your licence panel", "Sauvegarde (licence active)": "Backup (active licence)", "Aucune caméra : jumelez un téléphone en mode Caméra": "No camera: pair a phone in Camera mode", "Envoyer en couche 1 (aperçu)": "Send to layer 1 (preview)", "🎧 Écouter sur ce téléphone": "🎧 Listen on this phone", "🔇 Couper le son du téléphone": "🔇 Mute this phone", "Fournie par votre abonnement (ou vos propres clés dans l’onglet IA).": "Included in your subscription (or use your own keys in the AI tab).", "Diffusion en direct (multi-flux RTMP) — EXE": "Live streaming (multi-RTMP) — EXE", "Enregistrer aussi en MP4": "Also record to MP4", "▶ Démarrer la diffusion": "▶ Start streaming", "⏹ Arrêter la diffusion": "⏹ Stop streaming", "Choisissez la fenêtre/écran Program à diffuser quand le système le demande.": "Pick the Program window/screen to stream when the system asks.", "Ajoutez une adresse RTMP ou cochez MP4": "Add an RTMP address or tick MP4", "Diffusion impossible : ": "Streaming failed: ", "Diffusion arrêtée": "Streaming stopped", "📁 Fichier ▾": "📁 File ▾", "🆕 Nouvel événement (programme vide)": "🆕 New event (empty programme)", "💾 Enregistrer l’événement (tout)": "💾 Save the event (everything)", "📂 Ouvrir un événement": "📂 Open an event", "inclure les médias": "include media", "inclure les Bibles installées": "include installed Bibles", "⬇ Sauvegarde complète (toutes données)": "⬇ Full backup (all data)", "⬆ Restaurer une sauvegarde": "⬆ Restore a backup", "Outils": "Tools", "⬆ Importer chants": "⬆ Import songs", "URL : JSON, ChordPro, OpenSong…": "URL: JSON, ChordPro, OpenSong…", "Ajouter au programme": "Add to programme", "— 2e version (bilingue) —": "— 2nd version (bilingual) —", "Domaine public": "Public domain", "Auto-TAKE": "Auto-TAKE", "Tous": "All", "Titre": "Title", "Partenaire": "Partner", "Information": "Information", "En direct": "Live", "Licence / Abonnement": "Licence / Subscription", "Clé d’activation": "Activation key", "Activer": "Activate", "Serveur de licence (URL de l’API)": "Licence server (API URL)", "Revérifier": "Re-check", "Désactiver": "Deactivate", "Pilote IA (l’IA manipule l’app)": "AI pilot (the AI operates the app)", "▶ Exécuter": "▶ Run", "Clé Gemini ou OpenRouter requise (onglet IA).": "Gemini or OpenRouter key required (AI tab).", "Prépare un culte de 2 h : louange, 3 chants, prédication Jean 3:16, offrande… / Affiche Psaume 23 en direct / Lance un compte à rebours de 5 min": "Prepare a 2-hour service: praise, 3 songs, sermon John 3:16, offering… / Show Psalm 23 live / Start a 5-minute countdown", "Recherche rapide (voix / texte)": "Quick search (voice / text)", "Dites ou tapez quelques mots d’un verset ou d’un chant": "Say or type a few words of a verse or song", "Paroles (ajout instantané)": "Lyrics (instant add)", "Auteur": "Author", "Collez, tapez ou dictez les paroles. Ligne vide = nouveau couplet.": "Paste, type or dictate the lyrics. Blank line = new verse.", "🎤 Dicter": "🎤 Dictate", "✨ Structurer (IA)": "✨ Structure (AI)", "+ Ajouter le chant": "+ Add the song", "Prédication : transcription, WhatsApp, images": "Sermon: transcription, WhatsApp, images", "🎤 Démarrer la transcription": "🎤 Start transcription", "⬆ Audio": "⬆ Audio", "Transcription de la prédication (modifiable)…": "Sermon transcript (editable)…", "✨ Générer résumé, points forts, déclarations, prières": "✨ Generate summary, key points, declarations, prayers", "Message WhatsApp": "WhatsApp message", "Copier": "Copy", "Ouvrir WhatsApp": "Open WhatsApp", "Partager les images": "Share the images", "⬇ Tout télécharger": "⬇ Download all", "Sauvegarde / restauration": "Backup / restore", "Inclure les médias (fichier plus gros)": "Include media (larger file)", "⬇ Exporter (fichier)": "⬇ Export (file)", "⬆ Restaurer (fichier)": "⬆ Restore (file)", "Google Drive — Client ID OAuth": "Google Drive — OAuth Client ID", "☁ Sauvegarder sur Drive": "☁ Save to Drive", "Liste": "List", "Restaurer": "Restore", "Résumé": "Summary", "Points forts": "Key points", "Point fort": "Key point", "Déclarations": "Declarations", "Prières": "Prayers", "Cette semaine": "This week", "aussi sur Program": "also on Program", "🔍 Scanner le réseau": "🔍 Scan the network", "Adresse de la régie : 192.168.1.10": "Control desk address: 192.168.1.10", "Tapez une référence : le chapitre entier s’affiche ici.": "Type a reference: the whole chapter appears here.", "Choisissez un chant : ses couplets s’affichent ici.": "Pick a song: its verses appear here.", "Double-clic : afficher en direct": "Double-click: show live", "Couche": "Layer", "Aucun média.": "No media.", "Suivant : ": "Next: ", "Caméra indisponible": "Camera unavailable", "⏺ Enregistrer": "⏺ Record", "Enregistré : ": "Saved: ", "Événement enregistré": "Event saved", "Événement chargé — rechargement…": "Event loaded — reloading…", "Restauré — rechargement…": "Restored — reloading…", "Fichier invalide : ": "Invalid file: ", "Recherche de la régie sur le réseau…": "Looking for the control desk on the network…", "Saisissez l’adresse du relais (ws://IP:8787)": "Enter the relay address (ws://IP:8787)", "Fonction Pro : activez votre abonnement (onglet Outils → Licence)": "Pro feature: activate your subscription (Tools tab → Licence)", "Mode BASIC : chants, Bible, médias, Preview/Program. Activez un abonnement pour tout débloquer.": "BASIC mode: songs, Bible, media, Preview/Program. Activate a subscription to unlock everything.", "⚠ Abonnement expiré ou à revérifier (connexion internet requise)": "⚠ Subscription expired or needs re-checking (internet required)", "Vider couches": "Clear layers", "IA du panel indisponible": "Panel AI unavailable", "IA du panel": "Panel AI", "modèles disponibles (rotation automatique)": "models available (automatic rotation)", "IA : clés locales (Gemini / OpenRouter) ou activez votre abonnement pour utiliser l’IA du panel": "AI: local keys (Gemini / OpenRouter) or activate your subscription to use the panel AI" } };
 const I18N = { es: { "Régie (Host)": "Regiduría (Host)", "Preview/Program, chants, médias, playlist, écrans, IA.": "Preview/Program, cantos, medios, lista, pantallas, IA.", "Remote": "Remoto", "Télécommande à gros boutons. Se connecte seule à la régie.": "Control remoto con botones grandes. Se conecta solo a la regiduría.", "Caméra": "Cámara", "Utilisez ce téléphone comme caméra : l’image est diffusée sur les écrans.": "Use este teléfono como cámara: la imagen se muestra en las pantallas.", "Écran (Viewer)": "Pantalla (Viewer)", "Plein écran, appairage automatique, rôle réglé depuis la régie.": "Pantalla completa, emparejamiento automático, rol definido desde la regiduría.", "HORS LIGNE": "SIN CONEXIÓN", "relais : —": "relé: —", "sorties auto": "salidas auto", "⬛ Noir": "⬛ Negro", "🖥 Ouvrir un écran": "🖥 Abrir una pantalla", "⏺ Enregistrer": "⏺ Grabar", "Chants": "Cantos", "Bible": "Biblia", "Médias": "Medios", "Programme": "Programa", "Lower 3rd": "Lower 3rd", "Diffusion": "Emisión", "IA": "IA", "Version": "Versión", "Référence": "Referencia", "Télécharger des Bibles (au choix)": "Descargar Biblias (a elección)", "Télécharger la sélection": "Descargar la selección", "Bibles installées": "Biblias instaladas", "Autre source (URL ou fichier JSON / USFX / OSIS)": "Otra fuente (URL o archivo JSON / USFX / OSIS)", "⬆ Importer un fichier": "⬆ Importar un archivo", "Coller du JSON / texte Bible": "Pegar JSON / texto de la Biblia", "Installer le texte collé": "Instalar el texto pegado", "Glissez-déposez ici vos fichiers Bible (JSON / XML)": "Arrastre aquí sus archivos de Biblia (JSON / XML)", "Explorer un dépôt GitHub": "Explorar un repositorio de GitHub", "Explorer": "Explorar", "utilisateur/dépôt ou URL GitHub": "usuario/repositorio o URL de GitHub", "Internet n'est nécessaire que pour le téléchargement. Ensuite tout fonctionne hors-ligne.": "Internet solo es necesario para descargar. Después todo funciona sin conexión.", "Caméras (téléphones)": "Cámaras (teléfonos)", "Fichiers": "Archivos", "+ Importer médias": "+ Importar medios", "Direct": "En vivo", "⏯ Vidéo": "⏯ Video", "🔊 Audio": "🔊 Audio", "Vider couches": "Vaciar capas", "L1 = fond plein écran · L2 = plein cadre · L3 = logo coin. Les médias sont envoyés automatiquement aux écrans et conservés sur cet appareil.": "L1 = fondo a pantalla completa · L2 = marco completo · L3 = logo en esquina. Los medios se envían automáticamente a las pantallas y se guardan en este dispositivo.", "💾 Enregistrer le service": "💾 Guardar el servicio", "📂 Ouvrir un service": "📂 Abrir un servicio", "avec médias": "con medios", "Culte du dimanche": "Culto dominical", "Événement": "Evento", "Concert": "Concierto", "Conférence": "Conferencia", "Veillée": "Vigilia", "Mariage": "Boda", "+ Créer": "+ Crear", "Renommer": "Renombrar", "Dupliquer": "Duplicar", "Supprimer": "Eliminar", "⬇ Export": "⬇ Exportar", "⬆ Import": "⬆ Importar", "◀ Élément": "◀ Elemento", "Élément ▶": "Elemento ▶", "Défilement auto (durées)": "Avance automático (duraciones)", "+ Vide": "+ Vacío", "+ Lower 3rd": "+ Lower 3rd", "+ Texte du Preview": "+ Texto del Preview", "Logo TV (incrustation permanente)": "Logo de TV (inserción permanente)", "Afficher le logo": "Mostrar el logo", "Image du logo": "Imagen del logo", "Position": "Posición", "Haut gauche": "Arriba izquierda", "Haut droite": "Arriba derecha", "Bas gauche": "Abajo izquierda", "Bas droite": "Abajo derecha", "Bas centre": "Abajo centro", "Haut centre": "Arriba centro", "Centre": "Centro", "Taille (%)": "Tamaño (%)", "Opacité (%)": "Opacidad (%)", "Animation du logo": "Animación del logo", "Aucune": "Ninguna", "Pulsation": "Pulso", "Lueur": "Resplandor", "Flottement": "Flotación", "Respiration": "Respiración", "Éclat": "Destello", "Badge EN DIRECT": "Insignia EN VIVO", "EN DIRECT": "EN VIVO", "Horloge": "Reloj", "Compte à rebours avant l’événement": "Cuenta regresiva antes del evento", "Type": "Tipo", "Culte": "Culto", "Heure de début": "Hora de inicio", "ou dans (minutes)": "o en (minutos)", "Titre (facultatif)": "Título (opcional)", "Message (facultatif)": "Mensaje (opcional)", "Fond (image ou vidéo)": "Fondo (imagen o video)", "Masquer automatiquement à zéro": "Ocultar automáticamente al llegar a cero", "▶ Lancer": "▶ Iniciar", "+1 min": "+1 min", "−1 min": "−1 min", "⏹ Arrêter": "⏹ Detener", "Clé Gemini (free tier)": "Clave de Gemini (gratuita)", "Clé OpenRouter (fallback)": "Clave de OpenRouter (respaldo)", "Demande": "Petición", "Envoyer": "Enviar", "Les clés IA sont configurées dans le panel PHP/MySQL : la régie utilise les modèles du panel grâce à votre licence.": "Rotación automática de modelos gratuitos con pausa si se supera la cuota.", "Fondu": "Fundido", "Glissé ←": "Deslizar ←", "Glissé →": "Deslizar →", "Glissé ↑": "Deslizar ↑", "Volet": "Cortinilla", "Flou": "Desenfoque", "Bascule": "Giro", "▶ TAKE": "▶ TAKE", "Police": "Fuente", "Notes pasteur (écran Stage uniquement)": "Notas del pastor (solo pantalla Stage)", "Appairage": "Emparejamiento", "Scanner le QR, ou rien à faire : les écrans du même réseau se connectent seuls.": "Escanee el QR, o no haga nada: las pantallas de la misma red se conectan solas.", "Appairage automatique": "Emparejamiento automático", "Nouveau code": "Nuevo código", "Relais réseau (manuel, optionnel)": "Relé de red (manual, opcional)", "Lier": "Vincular", "Écrans connectés": "Pantallas conectadas", "Compte à rebours (min)": "Cuenta regresiva (min)", "Recherche de la régie…": "Buscando la regiduría…", "recherche de la régie…": "buscando la regiduría…", "📷 Scanner QR": "📷 Escanear QR", "📷 QR": "📷 QR", "⇄ Mode": "⇄ Modo", "recherche…": "buscando…", "◀ Précédent": "◀ Anterior", "Suivant ▶": "Siguiente ▶", "Couplets": "Estrofas", "🔄 Avant / Arrière": "🔄 Frontal / Trasera", "Fermer": "Cerrar", "Projection automatique sur HDMI / VGA / DVI": "Proyección automática en HDMI / VGA / DVI", "Changer de mode": "Cambiar de modo", "Nom": "Nombre", "Nom (Culte, Concert…)": "Nombre (Culto, Concierto…)", "+ Verset : Jean 3:16-18": "+ Versículo: Juan 3:16-18", "+ Section : Louange, Prédication…": "+ Sección: Alabanza, Predicación…", "Le culte commence dans": "El culto comienza en", "Le concert commence dans": "El concierto comienza en", "L’événement commence dans": "El evento comienza en", "Merci de prendre place": "Gracias por tomar asiento", "Chants sur la grâce / verset sur l'espoir / traduis en ES…": "Cantos sobre la gracia / versículo sobre la esperanza / traduce al FR…", "Transition": "Transición", "Durée de la transition": "Duración de la transición", "Notes, minutage, rappel…": "Notas, tiempos, recordatorios…", "Code (facultatif)": "Código (opcional)", "Code": "Código", "{ ... } ou USFX / OSIS": "{ ... } o USFX / OSIS", "Style": "Estilo", "Animation": "Animación", "Couleur": "Color", "Aperçu": "Vista previa", "▶ Afficher": "▶ Mostrar", "⏹ Masquer": "⏹ Ocultar", "+ Programme": "+ Programa", "Nom / texte principal": "Nombre / texto principal", "Titre / sous-texte": "Título / subtexto", "Durée d’affichage (s, 0 = manuel)": "Duración de visualización (s, 0 = manual)", "Barre": "Barra", "Verre": "Cristal", "Ruban": "Cinta", "Info TV": "Noticiero TV", "Minimal": "Minimalista", "Cadre": "Marco", "Bandeau large": "Banda ancha", "Néon": "Neón", "Rebond": "Rebote", "Haut": "Arriba", "Prédicateur": "Predicador", "Prédication": "Predicación", "Conférencier": "Conferencista", "Chant spécial": "Canto especial", "Actions de grâces": "Acción de gracias", "Témoignage": "Testimonio", "Baptême": "Bautismo", "Sainte-Cène": "Santa Cena", "Verset du jour": "Versículo del día", "Invité": "Invitado", "Louange": "Alabanza", "Adoration": "Adoración", "Intercession": "Intercesión", "Exhortation": "Exhortación", "Offrande": "Ofrenda", "Annonces": "Anuncios", "Bienvenue": "Bienvenida", "Prière": "Oración", "Dîme": "Diezmo", "Enseignement": "Enseñanza", "Message": "Mensaje", "Artiste": "Artista", "Groupe": "Grupo", "Chanteur": "Cantante", "Présentateur": "Presentador", "Animateur": "Animador", "Sponsor": "Patrocinador", "Titre du morceau": "Título de la canción", "Présentation": "Presentación", "Intervenant": "Ponente", "Programme du jour": "Programa del día", "Couche 3 — logo / caméra incrustée": "Capa 3 — logo / cámara insertada", "Position de la couche 3": "Posición de la capa 3", "Taille de la couche 3 (%)": "Tamaño de la capa 3 (%)", "Taille du texte (%)": "Tamaño del texto (%)", "Taille du sous-titre (%)": "Tamaño del subtítulo (%)", "Couleur du texte": "Color del texto", "Afficher le compte à rebours": "Mostrar la cuenta regresiva", "Afficher référence / sous-titre": "Mostrar referencia / subtítulo", "Compte à rebours": "Cuenta regresiva", "Compte à rebours d’avant-programme": "Cuenta regresiva previa al programa", "Rôle de l’écran": "Rol de la pantalla", "Réinitialiser": "Restablecer", "Appliquer à tous les écrans": "Aplicar a todas las pantallas", "Les changements s’appliquent en direct sur l’écran concerné et sont mémorisés pour la prochaine fois.": "Los cambios se aplican en vivo en la pantalla afectada y se recuerdan para la próxima vez.", "Aucun média.": "Ningún medio.", "Aucun écran pour l'instant. Ils se connecteront seuls.": "Ninguna pantalla por ahora. Se conectarán solas.", "Programme vide. Ajoutez chants, versets, médias, lower thirds avec les boutons « + Prog. », ou saisissez un verset ci-dessus.": "Programa vacío. Añada cantos, versículos, medios y lower thirds con los botones « + Prog. », o escriba un versículo arriba.", "Aucune caméra. Sur un téléphone, ouvrez l’app puis le mode Caméra.": "Ninguna cámara. En un teléfono, abra la app y el modo Cámara.", "🟢 image reçue": "🟢 imagen recibida", "⏳ connexion…": "⏳ conectando…", "L1 fond": "L1 fondo", "L2 plein": "L2 completa", "L3 incrustée": "L3 insertada", "installée": "instalada", "Démo (3 versets)": "Demo (3 versículos)", "Aucune Bible installée. Ouvrez « Télécharger des Bibles » ci-dessous.": "Ninguna Biblia instalada. Abra « Descargar Biblias » abajo.", "Format : utilisateur/dépôt": "Formato: usuario/repositorio", "Référence non reconnue. Exemples : Jean 3:16 · 1 Cor 13:4-7 · Salmos 23 · Ps 91.": "Referencia no reconocida. Ejemplos: Juan 3:16 · 1 Cor 13:4-7 · Salmos 23 · Sal 91.", "Chapitre introuvable dans cette version.": "Capítulo no encontrado en esta versión.", "Installer la sélection": "Instalar la selección", "Cochez au moins un fichier.": "Marque al menos un archivo.", "Cochez au moins une version.": "Marque al menos una versión.", "Aucun modèle disponible (pause ou clé manquante). Réessayez dans un instant.": "Ningún modelo disponible (pausa o falta la clave). Inténtelo de nuevo en un momento.", "Aucun écran externe": "Ninguna pantalla externa", "Audio envoyé aux écrans Program": "Audio enviado a las pantallas Program", "Bible collée": "Biblia pegada", "Texte collé": "Texto pegado", "Personnalisée": "Personalizada", "Caméra indisponible": "Cámara no disponible", "Caméra indisponible : ": "Cámara no disponible: ", "Enregistrement annulé": "Grabación cancelada", "Enregistrement sauvegardé": "Grabación guardada", "Échec de l’enregistrement : ": "Error de grabación: ", "Impossible d’ouvrir la fenêtre": "No se puede abrir la ventana", "Média absent de la bibliothèque": "Medio ausente de la biblioteca", "Notes du pasteur (écran non public)": "Notas del pastor (pantalla no pública)", "Nouveau code — les écrans se rattachent seuls": "Nuevo código — las pantallas se reconectan solas", "Plusieurs régies trouvées : choisissez-en une": "Varias regidurías encontradas: elija una", "Programme importé": "Programa importado", "Réseau local non détecté": "Red local no detectada", "réseau indisponible": "red no disponible", "Scanner indisponible (bibliothèque non chargée)": "Escáner no disponible (biblioteca no cargada)", "Service enregistré": "Servicio guardado", "Sorties auto : désactivées": "Salidas auto: desactivadas", "Sorties automatiques activées": "Salidas automáticas activadas", "Sorties automatiques désactivées": "Salidas automáticas desactivadas", "Touchez l’écran pour activer le son": "Toque la pantalla para activar el sonido", "connecté": "conectado", "● en direct vers la régie": "● en vivo hacia la regiduría", "⬛ Écran vide": "⬛ Pantalla vacía", "Appliqué à tous les écrans": "Aplicado a todas las pantallas", "Régie": "Regiduría", "Écran ": "Pantalla ", "Caméra ": "Cámara ", "Média : ": "Medio: ", "Ajouté au programme « ": "Añadido al programa « ", "Service chargé : « ": "Servicio cargado: « ", " (vérifiez la connexion, ou importez le fichier)": " (compruebe la conexión o importe el archivo)", " — vérifiez le nom du dépôt ou la connexion.": " — compruebe el nombre del repositorio o la conexión.", "Référence non reconnue": "Referencia no reconocida", "Avant / Arrière": "Frontal / Trasera" }, en: { "Régie (Host)": "Control (Host)", "Preview/Program, chants, médias, playlist, écrans, IA.": "Preview/Program, songs, media, playlist, screens, AI.", "Remote": "Remote", "Télécommande à gros boutons. Se connecte seule à la régie.": "Big-button remote. Connects to the control desk by itself.", "Caméra": "Camera", "Utilisez ce téléphone comme caméra : l’image est diffusée sur les écrans.": "Use this phone as a camera: the image is shown on the screens.", "Écran (Viewer)": "Screen (Viewer)", "Plein écran, appairage automatique, rôle réglé depuis la régie.": "Full screen, automatic pairing, role set from the control desk.", "HORS LIGNE": "OFFLINE", "relais : —": "relay: —", "sorties auto": "auto outputs", "⬛ Noir": "⬛ Black", "🖥 Ouvrir un écran": "🖥 Open a screen", "⏺ Enregistrer": "⏺ Record", "Chants": "Songs", "Bible": "Bible", "Médias": "Media", "Programme": "Programme", "Lower 3rd": "Lower 3rd", "Diffusion": "Broadcast", "IA": "AI", "Version": "Version", "Référence": "Reference", "Télécharger des Bibles (au choix)": "Download Bibles (your choice)", "Télécharger la sélection": "Download selection", "Bibles installées": "Installed Bibles", "Autre source (URL ou fichier JSON / USFX / OSIS)": "Other source (URL or JSON / USFX / OSIS file)", "⬆ Importer un fichier": "⬆ Import a file", "Coller du JSON / texte Bible": "Paste Bible JSON / text", "Installer le texte collé": "Install pasted text", "Glissez-déposez ici vos fichiers Bible (JSON / XML)": "Drag and drop your Bible files here (JSON / XML)", "Explorer un dépôt GitHub": "Browse a GitHub repository", "Explorer": "Browse", "utilisateur/dépôt ou URL GitHub": "user/repo or GitHub URL", "Internet n'est nécessaire que pour le téléchargement. Ensuite tout fonctionne hors-ligne.": "Internet is only needed for downloading. Afterwards everything works offline.", "Caméras (téléphones)": "Cameras (phones)", "Fichiers": "Files", "+ Importer médias": "+ Import media", "Direct": "Live", "⏯ Vidéo": "⏯ Video", "🔊 Audio": "🔊 Audio", "Vider couches": "Clear layers", "L1 = fond plein écran · L2 = plein cadre · L3 = logo coin. Les médias sont envoyés automatiquement aux écrans et conservés sur cet appareil.": "L1 = full-screen background · L2 = full frame · L3 = corner logo. Media is sent to the screens automatically and kept on this device.", "💾 Enregistrer le service": "💾 Save the service", "📂 Ouvrir un service": "📂 Open a service", "avec médias": "with media", "Culte du dimanche": "Sunday service", "Événement": "Event", "Concert": "Concert", "Conférence": "Conference", "Veillée": "Vigil", "Mariage": "Wedding", "+ Créer": "+ Create", "Renommer": "Rename", "Dupliquer": "Duplicate", "Supprimer": "Delete", "⬇ Export": "⬇ Export", "⬆ Import": "⬆ Import", "◀ Élément": "◀ Item", "Élément ▶": "Item ▶", "Défilement auto (durées)": "Auto-advance (durations)", "+ Vide": "+ Blank", "+ Lower 3rd": "+ Lower 3rd", "+ Texte du Preview": "+ Preview text", "Logo TV (incrustation permanente)": "TV logo (permanent bug)", "Afficher le logo": "Show logo", "Image du logo": "Logo image", "Position": "Position", "Haut gauche": "Top left", "Haut droite": "Top right", "Bas gauche": "Bottom left", "Bas droite": "Bottom right", "Bas centre": "Bottom centre", "Haut centre": "Top centre", "Centre": "Centre", "Taille (%)": "Size (%)", "Opacité (%)": "Opacity (%)", "Animation du logo": "Logo animation", "Aucune": "None", "Pulsation": "Pulse", "Lueur": "Glow", "Flottement": "Float", "Respiration": "Breathing", "Éclat": "Shine", "Badge EN DIRECT": "LIVE badge", "EN DIRECT": "LIVE", "Horloge": "Clock", "Compte à rebours avant l’événement": "Countdown before the event", "Type": "Type", "Culte": "Service", "Heure de début": "Start time", "ou dans (minutes)": "or in (minutes)", "Titre (facultatif)": "Title (optional)", "Message (facultatif)": "Message (optional)", "Fond (image ou vidéo)": "Background (image or video)", "Masquer automatiquement à zéro": "Hide automatically at zero", "▶ Lancer": "▶ Start", "+1 min": "+1 min", "−1 min": "−1 min", "⏹ Arrêter": "⏹ Stop", "Clé Gemini (free tier)": "Gemini key (free tier)", "Clé OpenRouter (fallback)": "OpenRouter key (fallback)", "Demande": "Request", "Envoyer": "Send", "Les clés IA sont configurées dans le panel PHP/MySQL : la régie utilise les modèles du panel grâce à votre licence.": "Automatic rotation of free models, with a pause when the quota is exceeded.", "Fondu": "Fade", "Glissé ←": "Slide ←", "Glissé →": "Slide →", "Glissé ↑": "Slide ↑", "Volet": "Wipe", "Flou": "Blur", "Bascule": "Flip", "▶ TAKE": "▶ TAKE", "Police": "Font", "Notes pasteur (écran Stage uniquement)": "Pastor notes (Stage screen only)", "Appairage": "Pairing", "Scanner le QR, ou rien à faire : les écrans du même réseau se connectent seuls.": "Scan the QR, or do nothing: screens on the same network connect by themselves.", "Appairage automatique": "Automatic pairing", "Nouveau code": "New code", "Relais réseau (manuel, optionnel)": "Network relay (manual, optional)", "Lier": "Link", "Écrans connectés": "Connected screens", "Compte à rebours (min)": "Countdown (min)", "Recherche de la régie…": "Looking for the control desk…", "recherche de la régie…": "looking for the control desk…", "📷 Scanner QR": "📷 Scan QR", "📷 QR": "📷 QR", "⇄ Mode": "⇄ Mode", "recherche…": "searching…", "◀ Précédent": "◀ Previous", "Suivant ▶": "Next ▶", "Couplets": "Verses", "🔄 Avant / Arrière": "🔄 Front / Back", "Fermer": "Close", "Projection automatique sur HDMI / VGA / DVI": "Automatic projection on HDMI / VGA / DVI", "Changer de mode": "Change mode", "Nom": "Name", "Nom (Culte, Concert…)": "Name (Service, Concert…)", "+ Verset : Jean 3:16-18": "+ Verse: John 3:16-18", "+ Section : Louange, Prédication…": "+ Section: Praise, Preaching…", "Le culte commence dans": "The service starts in", "Le concert commence dans": "The concert starts in", "L’événement commence dans": "The event starts in", "Merci de prendre place": "Please take your seats", "Chants sur la grâce / verset sur l'espoir / traduis en ES…": "Songs about grace / a verse about hope / translate into FR…", "Transition": "Transition", "Durée de la transition": "Transition duration", "Notes, minutage, rappel…": "Notes, timing, reminders…", "Code (facultatif)": "Code (optional)", "Code": "Code", "{ ... } ou USFX / OSIS": "{ ... } or USFX / OSIS", "Style": "Style", "Animation": "Animation", "Couleur": "Colour", "Aperçu": "Preview", "▶ Afficher": "▶ Show", "⏹ Masquer": "⏹ Hide", "+ Programme": "+ Programme", "Nom / texte principal": "Name / main text", "Titre / sous-texte": "Title / subtext", "Durée d’affichage (s, 0 = manuel)": "Display time (s, 0 = manual)", "Barre": "Bar", "Verre": "Glass", "Ruban": "Ribbon", "Info TV": "TV news", "Minimal": "Minimal", "Cadre": "Frame", "Bandeau large": "Wide banner", "Néon": "Neon", "Rebond": "Bounce", "Haut": "Top", "Prédicateur": "Preacher", "Prédication": "Preaching", "Conférencier": "Speaker", "Chant spécial": "Special song", "Actions de grâces": "Thanksgiving", "Témoignage": "Testimony", "Baptême": "Baptism", "Sainte-Cène": "Communion", "Verset du jour": "Verse of the day", "Invité": "Guest", "Louange": "Praise", "Adoration": "Worship", "Intercession": "Intercession", "Exhortation": "Exhortation", "Offrande": "Offering", "Annonces": "Announcements", "Bienvenue": "Welcome", "Prière": "Prayer", "Dîme": "Tithe", "Enseignement": "Teaching", "Message": "Message", "Artiste": "Artist", "Groupe": "Band", "Chanteur": "Singer", "Présentateur": "Host", "Animateur": "MC", "Sponsor": "Sponsor", "Titre du morceau": "Song title", "Présentation": "Presentation", "Intervenant": "Speaker", "Programme du jour": "Today's programme", "Couche 3 — logo / caméra incrustée": "Layer 3 — logo / inset camera", "Position de la couche 3": "Layer 3 position", "Taille de la couche 3 (%)": "Layer 3 size (%)", "Taille du texte (%)": "Text size (%)", "Taille du sous-titre (%)": "Subtitle size (%)", "Couleur du texte": "Text colour", "Afficher le compte à rebours": "Show countdown", "Afficher référence / sous-titre": "Show reference / subtitle", "Compte à rebours": "Countdown", "Compte à rebours d’avant-programme": "Pre-event countdown", "Rôle de l’écran": "Screen role", "Réinitialiser": "Reset", "Appliquer à tous les écrans": "Apply to all screens", "Les changements s’appliquent en direct sur l’écran concerné et sont mémorisés pour la prochaine fois.": "Changes apply live on the screen concerned and are remembered for next time.", "Aucun média.": "No media.", "Aucun écran pour l'instant. Ils se connecteront seuls.": "No screens yet. They will connect by themselves.", "Programme vide. Ajoutez chants, versets, médias, lower thirds avec les boutons « + Prog. », ou saisissez un verset ci-dessus.": "Empty programme. Add songs, verses, media and lower thirds with the « + Prog. » buttons, or type a verse above.", "Aucune caméra. Sur un téléphone, ouvrez l’app puis le mode Caméra.": "No camera. On a phone, open the app then Camera mode.", "🟢 image reçue": "🟢 image received", "⏳ connexion…": "⏳ connecting…", "L1 fond": "L1 background", "L2 plein": "L2 full", "L3 incrustée": "L3 inset", "installée": "installed", "Démo (3 versets)": "Demo (3 verses)", "Aucune Bible installée. Ouvrez « Télécharger des Bibles » ci-dessous.": "No Bible installed. Open « Download Bibles » below.", "Format : utilisateur/dépôt": "Format: user/repo", "Référence non reconnue. Exemples : Jean 3:16 · 1 Cor 13:4-7 · Salmos 23 · Ps 91.": "Reference not recognised. Examples: John 3:16 · 1 Cor 13:4-7 · Psalm 23 · Ps 91.", "Chapitre introuvable dans cette version.": "Chapter not found in this version.", "Installer la sélection": "Install selection", "Cochez au moins un fichier.": "Tick at least one file.", "Cochez au moins une version.": "Tick at least one version.", "Aucun modèle disponible (pause ou clé manquante). Réessayez dans un instant.": "No model available (paused or missing key). Try again in a moment.", "Aucun écran externe": "No external screen", "Audio envoyé aux écrans Program": "Audio sent to Program screens", "Bible collée": "Pasted Bible", "Texte collé": "Pasted text", "Personnalisée": "Custom", "Caméra indisponible": "Camera unavailable", "Caméra indisponible : ": "Camera unavailable: ", "Enregistrement annulé": "Recording cancelled", "Enregistrement sauvegardé": "Recording saved", "Échec de l’enregistrement : ": "Recording failed: ", "Impossible d’ouvrir la fenêtre": "Unable to open the window", "Média absent de la bibliothèque": "Media missing from library", "Notes du pasteur (écran non public)": "Pastor's notes (non-public screen)", "Nouveau code — les écrans se rattachent seuls": "New code — screens reattach by themselves", "Plusieurs régies trouvées : choisissez-en une": "Several control desks found: pick one", "Programme importé": "Programme imported", "Réseau local non détecté": "Local network not detected", "réseau indisponible": "network unavailable", "Scanner indisponible (bibliothèque non chargée)": "Scanner unavailable (library not loaded)", "Service enregistré": "Service saved", "Sorties auto : désactivées": "Auto outputs: disabled", "Sorties automatiques activées": "Automatic outputs enabled", "Sorties automatiques désactivées": "Automatic outputs disabled", "Touchez l’écran pour activer le son": "Tap the screen to enable sound", "connecté": "connected", "● en direct vers la régie": "● live to the control desk", "⬛ Écran vide": "⬛ Blank screen", "Appliqué à tous les écrans": "Applied to all screens", "Régie": "Control desk", "Écran ": "Screen ", "Caméra ": "Camera ", "Média : ": "Media: ", "Ajouté au programme « ": "Added to programme « ", "Service chargé : « ": "Service loaded: « ", " (vérifiez la connexion, ou importez le fichier)": " (check the connection, or import the file)", " — vérifiez le nom du dépôt ou la connexion.": " — check the repository name or the connection.", "Référence non reconnue": "Reference not recognised", "Avant / Arrière": "Front / Back" } }, PATS = [];
 const SPLIT = /^([^\p{L}\p{N}]*)([\s\S]*?)([^\p{L}\p{N}]*)$/u;
 function t(s) {
@@ -2837,6 +3019,11 @@ function ovTog(k) {
     }
 }
 function renderOv() {
+    try {
+        if ($('lgOn'))
+            $('lgOn').checked = !!S.bug.on;
+    }
+    catch (_a) { }
     const st = { logo: S.bug.on, live: S.bug.live, clock: S.bug.clock, lt: !!(S.lt && S.lt.on), alert: !!(S.alert && S.alert.on), pre: !!(S.pre && S.pre.on) };
     document.querySelectorAll('#ovList .sw').forEach(e => e.classList.toggle('on', !!st[e.dataset.k]));
     const b = $('alBtn');
@@ -2909,6 +3096,10 @@ function airSync() {
 function airMediaOpts() {
     if (MODE !== 'host' || !$('bugImg'))
         return;
+    try {
+        logoUI();
+    }
+    catch (_a) { }
     const o = m => `<option value="${m.id}">${esc(m.name)}</option>`;
     const keep = $('preBg').value;
     $('bugImg').innerHTML = '<option value="">—</option>' + Object.values(HF).filter(m => m.kind === 'image').map(o).join('');
@@ -3330,6 +3521,66 @@ handlers.camWant = m => { if (MODE !== 'camera' || m.to !== CID || !CAMSTREAM)
     return; camOffer(); };
 /* ---- enregistrement vidéo + son dans la mémoire du téléphone ---- */
 let CREC = null, CRECT = null;
+async function camPhoto() {
+    const v = $('camVid');
+    if (!CAMSTREAM || !v || !v.videoWidth) {
+        toast(t('Caméra indisponible'));
+        return;
+    }
+    const fl = $('camFlash');
+    fl.classList.add('on');
+    setTimeout(() => fl.classList.remove('on'), 160);
+    try {
+        navigator.vibrate && navigator.vibrate(30);
+    }
+    catch (_a) { }
+    let blob = null;
+    try {
+        const tr = CAMSTREAM.getVideoTracks()[0];
+        if (window.ImageCapture && tr) {
+            blob = await new ImageCapture(tr).takePhoto();
+        }
+    }
+    catch (_b) { }
+    if (!blob) {
+        const c = document.createElement('canvas');
+        c.width = v.videoWidth;
+        c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .92));
+    }
+    if (!blob) {
+        toast(t('Photo impossible'));
+        return;
+    }
+    const name = 'Photo-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.jpg';
+    const file = new File([blob], name, { type: 'image/jpeg' });
+    let saved = '';
+    try {
+        if (NATIVE && NATIVE.savePhoto)
+            saved = NATIVE.savePhoto(name, await b64(blob));
+    }
+    catch (_c) { }
+    if (!saved) {
+        try {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 2000);
+            saved = name;
+        }
+        catch (_d) { }
+    }
+    toast('📸 ' + t('Photo enregistrée') + (saved ? ' (' + saved + ')' : '') + (PAIRED ? ' · ' + t('envoyée à la régie') : ''));
+    if (PAIRED) {
+        try {
+            await rUpload([file], 'lib');
+        }
+        catch (_e) { }
+    }
+}
 async function camRecToggle() {
     const btn = $('camRecBtn');
     if (CREC) {
@@ -3568,36 +3819,111 @@ async function toggleRec() {
         toast('Enregistrement annulé');
     }
 }
-/* --- Diffusion RTMP multi-flux + MP4 (EXE, via FFmpeg) --- */
-let LIVE = null;
+/* --- Diffusion RTMP multi-plateformes + MP4 (EXE/Mac, via FFmpeg) --- */
+const STRM = [
+    { id: 'yt', n: 'YouTube', ic: '▶️', url: 'rtmp://a.rtmp.youtube.com/live2/', help: 'https://studio.youtube.com/channel/UC/livestreaming', tip: 'YouTube Studio → Créer → Passer en direct → copier la « Clé de stream ».' },
+    { id: 'fb', n: 'Facebook', ic: '📘', url: 'rtmps://live-api-s.facebook.com:443/rtmp/', help: 'https://www.facebook.com/live/producer', tip: 'Facebook → Vidéo en direct → « Logiciel de streaming » → copier la clé de stream (valable une seule diffusion).' },
+    { id: 'tt', n: 'TikTok', ic: '🎵', url: '', help: 'https://livecenter.tiktok.com/', tip: 'TikTok LIVE Center / LIVE Studio → « Stream » : copier l’URL du serveur ET la clé. Nécessite l’accès LIVE (compte éligible).' },
+    { id: 'tw', n: 'Twitch', ic: '🟣', url: 'rtmp://live.twitch.tv/app/', help: 'https://dashboard.twitch.tv/settings/stream', tip: 'Tableau de bord → Paramètres → Stream → clé de stream principale.' },
+    { id: 'ig', n: 'Instagram', ic: '📸', url: 'rtmps://live-upload.instagram.com:443/rtmp/', help: 'https://www.instagram.com/', tip: 'Instagram Live via logiciel : l’URL et la clé sont générées pour chaque direct (accès requis). Collez l’URL serveur et la clé.' },
+    { id: 'kk', n: 'Kick', ic: '🟢', url: '', help: 'https://kick.com/dashboard/settings/stream', tip: 'Kick → Paramètres → Stream : copier l’URL du serveur et la clé.' },
+    { id: 'cu', n: 'RTMP personnalisé', ic: '🔗', url: '', help: '', tip: 'Tout serveur RTMP/RTMPS (nginx-rtmp, Restream, Castr, etc.) : URL complète (avec ou sans clé).' }
+];
+let STRMD = LS.get('wcStrm', null);
+if (!STRMD) {
+    STRMD = {};
+    const old = LS.get('wcRtmp', '');
+    if (old)
+        STRMD.cu = { on: true, url: String(old).split('\n')[0], key: '' };
+}
+function strmSave() { LS.set('wcStrm', STRMD); }
+function strmUrl(p) { const d = STRMD[p.id] || {}; if (!d.on)
+    return ''; let u = (d.url || p.url || '').trim(), k = (d.key || '').trim(); if (!u && !k)
+    return ''; if (!k)
+    return u; if (!u)
+    return ''; return u.endsWith('/') ? u + k : u + '/' + k; }
+function strmUI() {
+    const el = $('strmList');
+    if (!el)
+        return;
+    el.innerHTML = STRM.map(p => {
+        const d = STRMD[p.id] || {};
+        return `<div class="strm ${d.on ? 'on' : ''}"><div class="sth" onclick="strmTog('${p.id}')"><span class="sic">${p.ic}</span><b>${p.n}</b><i class="sw ${d.on ? 'on' : ''}"></i></div>
+   ${d.on ? `<div class="stb"><input type="text" placeholder="${esc(t('URL du serveur'))}${p.url ? ' (défaut : ' + p.url + ')' : ''}" value="${esc(d.url || '')}" onchange="strmSet('${p.id}','url',this.value)"><input type="password" autocomplete="off" placeholder="${esc(t('Clé de stream'))}" value="${esc(d.key || '')}" onchange="strmSet('${p.id}','key',this.value)"><small>${esc(t(p.tip))}</small>${p.help ? `<a href="#" onclick="strmHelp('${p.help}');return false">↗ ${esc(t('Ouvrir la page de diffusion'))}</a>` : ''}</div>` : ''}</div>`;
+    }).join('');
+    const q = $('strmQ');
+    if (q)
+        q.value = LS.get('wcStrmQ', '720');
+}
+function strmTog(id) { STRMD[id] = STRMD[id] || {}; STRMD[id].on = !STRMD[id].on; strmSave(); strmUI(); }
+function strmSet(id, k, v) { STRMD[id] = STRMD[id] || { on: true }; STRMD[id][k] = v.trim(); strmSave(); }
+function strmHelp(u) { try {
+    if (TAURI)
+        TAURI.invoke('open_url', { url: u });
+    else
+        window.open(u, '_blank');
+}
+catch (_a) {
+    window.open(u, '_blank');
+} }
+let LIVE = null, LIVET = 0, LIVEPOLL = 0, LIVEN = [];
 async function liveToggle() { return liveCore(false); }
+function liveTick() {
+    const sec = Math.floor((Date.now() - LIVET) / 1000), f = n => String(n).padStart(2, '0');
+    $('rtmpSt').textContent = '● ' + t('EN DIRECT') + ' ' + f(Math.floor(sec / 3600)) + ':' + f(Math.floor(sec / 60) % 60) + ':' + f(sec % 60) + (LIVEN.length ? ' · ' + LIVEN.join(', ') : '');
+}
+async function livePoll() {
+    try {
+        const r = await TAURI.invoke('stream_status');
+        if (LIVE && !r.running) {
+            toast(t('La diffusion s’est arrêtée') + (r.error ? ' : ' + r.error : ''));
+            LIVE.stop();
+            return;
+        }
+        if (r.error && LIVE) {
+            $('rtmpSt').dataset.err = r.error;
+            $('rtmpSt').textContent = '⚠ ' + r.error + ' · ' + LIVEN.join(', ');
+        }
+        else if (LIVE)
+            liveTick();
+    }
+    catch (_a) { }
+}
 async function liveCore(recOnly) {
+    if (!TAURI) {
+        toast(t('Diffusion : disponible dans l’EXE / Mac'));
+        return;
+    }
     if (LIVE) {
         LIVE.stop();
         return;
     }
-    const urls = recOnly ? [] : $('rtmpUrls').value.split('\n').map(x => x.trim()).filter(Boolean);
+    const dest = recOnly ? [] : STRM.map(p => ({ p, u: strmUrl(p) })).filter(x => x.u);
+    const urls = dest.map(x => x.u);
+    LIVEN = dest.map(x => x.p.n);
     if (urls.length && !PRO()) {
         needPro();
         return;
     }
     const rec = recOnly || $('rtmpRec').checked;
     if (!urls.length && !rec) {
-        toast('Ajoutez une adresse RTMP ou cochez MP4');
+        toast(t('Activez une plateforme et saisissez sa clé, ou cochez MP4'));
         return;
     }
+    const q = $('strmQ') ? $('strmQ').value : '720';
+    const Q = { 480: [854, 480, 1200], 720: [1280, 720, 3000], 1080: [1920, 1080, 5000], v720: [720, 1280, 3000] }[q] || [1280, 720, 3000];
     try {
         const st = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
-        await TAURI.invoke('stream_start', { urls, record: rec ? 'auto' : null });
+        await TAURI.invoke('stream_start', { urls, record: rec ? 'auto' : null, width: Q[0], height: Q[1], vbitrate: Q[2], fps: 30, vertical: q === 'v720' });
         const mt = ['video/webm;codecs=vp8,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t));
-        const mr = new MediaRecorder(st, Object.assign({ videoBitsPerSecond: 4000000 }, mt ? { mimeType: mt } : {}));
-        let q = Promise.resolve();
+        const mr = new MediaRecorder(st, Object.assign({ videoBitsPerSecond: 6000000 }, mt ? { mimeType: mt } : {}));
+        let qq = Promise.resolve();
         mr.ondataavailable = e => { if (e.data.size)
-            q = q.then(async () => TAURI.invoke('stream_write', new Uint8Array(await e.data.arrayBuffer()))).catch(() => { }); };
-        mr.onstop = async () => { st.getTracks().forEach(t => t.stop()); await q; try {
+            qq = qq.then(async () => TAURI.invoke('stream_write', new Uint8Array(await e.data.arrayBuffer()))).catch(() => { }); };
+        mr.onstop = async () => { clearInterval(LIVEPOLL); st.getTracks().forEach(t => t.stop()); await qq; try {
             await TAURI.invoke('stream_stop');
         }
-        catch (_a) { } LIVE = null; $('rtmpBtn').textContent = '▶ Démarrer la diffusion'; $('recBtn').textContent = '⏺ Enregistrer'; $('recBtn').classList.remove('live'); $('rtmpSt').textContent = 'Diffusion arrêtée' + (rec ? ' — MP4 dans Vidéos/' : ''); };
+        catch (_a) { } LIVE = null; S.bug.live = false; $('rtmpBtn').textContent = '▶ ' + t('Démarrer la diffusion'); $('recBtn').textContent = '⏺ ' + t('Enregistrer'); $('recBtn').classList.remove('live'); $('rtmpSt').textContent = t('Diffusion arrêtée') + (rec ? ' — MP4 ' + t('dans Vidéos/') : ''); render(); sync(); };
         st.getVideoTracks()[0].onended = () => { if (LIVE)
             LIVE.stop(); };
         try {
@@ -3607,25 +3933,32 @@ async function liveCore(recOnly) {
         catch (_a) { }
         mr.start(250);
         LIVE = mr;
+        LIVET = Date.now();
         if (recOnly) {
-            $('recBtn').textContent = '⏹ Arrêter (MP4)';
+            $('recBtn').textContent = '⏹ ' + t('Arrêter (MP4)');
             $('recBtn').classList.add('live');
         }
-        $('rtmpBtn').textContent = '⏹ Arrêter la diffusion';
-        $('rtmpSt').textContent = '● EN DIRECT (' + urls.length + ' flux' + (rec ? ' + MP4' : '') + ')';
+        $('rtmpBtn').textContent = '⏹ ' + t('Arrêter la diffusion');
+        liveTick();
+        LIVEPOLL = setInterval(() => { livePoll(); if (LIVE && !$('rtmpSt').dataset.err)
+            liveTick(); }, 2000);
+        if (urls.length) {
+            S.bug.live = true;
+            render();
+            sync();
+        }
     }
     catch (e) {
         try {
             await TAURI.invoke('stream_stop');
         }
         catch (_b) { }
-        toast('Diffusion impossible : ' + (e.message || e));
+        toast(t('Diffusion impossible') + ' : ' + (e.message || e));
     }
 }
-function liveInit() { const b = $('liveBox'); if (b && TAURI) {
-    b.classList.remove('hidden');
-    $('rtmpUrls').value = LS.get('wcRtmp', '');
-} }
+function liveInit() { strmUI(); const n = $('strmNote'); if (n)
+    n.classList.toggle('hidden', !!TAURI); const b = $('rtmpBtn'); if (b && !TAURI)
+    b.disabled = true; }
 /* ============ IA : free tiers, rotation + pause ============ */
 async function askAI() {
     const q = $('aiq').value.trim();
@@ -3879,7 +4212,7 @@ function renderViewer() {
     renderAlert(v, ov ? S.alert : null);
     {
         const stv = ROLE === 'preview' ? S.pvStudio : S.studio;
-        renderStudio(v, ov ? stv : null, ROLE === 'preview' ? { main: S.pvMain, sub: S.pvSub } : { main: S.main, sub: S.sub }, true);
+        renderStudio(v, ov ? stv : null, ROLE === 'preview' ? { main: S.pvMain, sub: S.pvSub, lt: S.pvLt && S.pvLt.on ? S.pvLt : null } : { main: S.main, sub: S.sub, lt: S.lt && S.lt.on ? S.lt : null }, true);
     }
     renderPre(v, S.pre, ov && cfg.pre, vUrl);
     viewerTimer();
@@ -4018,19 +4351,20 @@ const STL = {
     'rt': { n: 'Table ronde', s: [['c', 1.5, 3, 63, 68], ['c', 66.5, 3, 32, 32.5], ['c', 66.5, 38.5, 32, 32.5], ['v', 1.5, 74, 97, 22]] },
     'cc': { n: 'Concert', s: [['c', 0, 0, 100, 100], ['c', 2, 64, 22, 32], ['c', 76, 64, 22, 32]] }
 };
-const STPRE = { culte: ['pv', 0, '#2f7bff'], emission: ['em', 1, '#e5173f'], table: ['rt', 8, '#fbbf24'], conf: ['pv', 8, '#2f7bff'], concert: ['cc', 1, '#ff6f91'] };
-const STU = Object.assign({ layout: 'pv', slots: [], caps: [], bg: { k: 'g', i: 0 }, key: { on: false, color: '#00ff00', tol: 70 }, rad: 10, border: true, ac: '#2f7bff', live: false }, LS.get('wcStudio', null) || {});
+const STPRE = { culte: ['pv', 0, '#e0b050', 'real', 'church'], emission: ['em', 1, '#e5173f', 'real', 'tv'], table: ['rt', 8, '#fbbf24', 'real', 'talk'], conf: ['pv', 8, '#2f7bff', 'real', 'tv'], concert: ['cc', 1, '#ff6f91', 'real', 'concert'] };
+const STU = Object.assign({ layout: 'pv', slots: [], caps: [], bg: { k: 'g', i: 0 }, key: { on: false, color: '#00ff00', tol: 70 }, rad: 10, border: true, ac: '#2f7bff', d3: 'flat', set: 'tv', cam: true, live: false }, LS.get('wcStudio', null) || {});
 function stuPush() {
     const L = STL[STU.layout] || STL['1'];
     const cams = Object.keys(CAMS);
     STU.slots = STU.slots || [];
-    const used = new Set(STU.slots.filter(Boolean));
+    STU.slots = STU.slots.map(v => v && !v.includes(':') && !['verse', 'lt', 'clock', 'logo'].includes(v) ? 'cam:' + v : v);
+    const used = new Set(STU.slots.filter(v => v && v.startsWith('cam:')).map(v => v.slice(4)));
     let ci = 0;
-    L.s.forEach((sl, i) => { if (sl[0] === 'c' && !STU.slots[i]) {
+    L.s.forEach((sl, i) => { if (sl[0] === 'c' && STU.slots[i] === undefined) {
         while (ci < cams.length && used.has(cams[ci]))
             ci++;
         if (ci < cams.length) {
-            STU.slots[i] = cams[ci];
+            STU.slots[i] = 'cam:' + cams[ci];
             used.add(cams[ci]);
         }
     } });
@@ -4044,7 +4378,13 @@ function stuPush() {
 }
 function stuLayout(l) { if (!STL[l])
     return; STU.layout = l; stuPush(); }
-function stuSlot(i, c) { STU.slots = STU.slots || []; STU.slots[i] = c || ''; stuPush(); }
+function stuSlot(i, c) { STU.slots = STU.slots || []; c = c || ''; if (c && !c.includes(':') && !['verse', 'lt', 'clock', 'logo'].includes(c))
+    c = 'cam:' + c; STU.slots[i] = c; stuPush(); }
+function stuTrSet(i, k, v) { STU.trs = STU.trs || []; STU.trs[i] = Object.assign({}, STU.trs[i]); if (k === 't')
+    STU.trs[i].t = v;
+else
+    STU.trs[i].d = +v; stuPush(); }
+function stuTrAll(v) { STU.tdef = v; STU.trs = []; stuPush(); }
 function stuTake() { if (!PRO()) {
     needPro('studio');
     return;
@@ -4053,7 +4393,7 @@ function stuTake() { if (!PRO()) {
 function stuOff() { S.studio = null; render(); sync(); stuUI(); }
 function stuClosePv() { S.pvStudio = null; render(); sync(); stuUI(); }
 function stuPreset(k) { const p = STPRE[k]; if (!p)
-    return; STU.layout = p[0]; STU.bg = { k: 'g', i: p[1] }; STU.ac = p[2]; STU.slots = []; stuPush(); }
+    return; STU.layout = p[0]; STU.bg = { k: 'g', i: p[1] }; STU.ac = p[2]; STU.d3 = p[3] || 'flat'; STU.set = p[4] || STU.set || 'tv'; STU.slots = []; STU.trs = []; stuPush(); }
 function stuSet(k, v) {
     if (k === 'bgsel') {
         const [a, b] = String(v).split(':');
@@ -4086,16 +4426,29 @@ function stuUI() {
     if (act && el.contains(act) && act.tagName === 'INPUT' && act.type === 'text')
         return;
     const thumbs = Object.keys(STL).map(k => `<div class="stlt ${STU.layout === k ? 'on' : ''}" onclick="stuLayout('${k}')" title="${esc(t(STL[k].n))}"><div class="stlp">${STL[k].s.map(r => `<i class="${r[0]}" style="left:${r[1]}%;top:${r[2]}%;width:${r[3]}%;height:${r[4]}%"></i>`).join('')}</div><small>${esc(t(STL[k].n))}</small></div>`).join('');
-    const opt = (c) => '<option value="">—</option>' + cams.map(x => `<option value="${x.id}" ${c === x.id ? 'selected' : ''}>${esc(x.name)}${x.stream ? '' : ' ⏳'}</option>`).join('');
-    const slots = L.s.map((r, i) => r[0] === 'v' ? `<div class="stsl"><b>${esc(t('Verset / texte'))}</b><input type="text" placeholder="${esc(t('Légende'))}" value="${esc((STU.caps || [])[i] || '')}" onchange="stuCap(${i},this.value)"></div>`
-        : `<div class="stsl"><b>${esc(t('Caméra'))} ${i + 1}</b><select onchange="stuSlot(${i},this.value)">${opt((STU.slots || [])[i])}</select><input type="text" placeholder="${esc(t('Nom / légende (ex. Pasteur Josias)'))}" value="${esc((STU.caps || [])[i] || '')}" onchange="stuCap(${i},this.value)"></div>`).join('');
+    const srcOpt = (cur, isV) => {
+        const c = cur === undefined ? (isV ? 'verse' : '') : cur;
+        const o = (v, l) => `<option value="${esc(v)}" ${c === v ? 'selected' : ''}>${l}</option>`;
+        const cc = c && !c.includes(':') && !['verse', 'lt', 'clock', 'logo'].includes(c) ? 'cam:' + c : c;
+        const o2 = (v, l) => o(v, l).replace(/ selected/, '') + '';
+        const sel = (v, l) => `<option value="${esc(v)}" ${cc === v ? 'selected' : ''}>${l}</option>`;
+        const media = Object.values(HF).filter(m => !m.builtin && m.kind !== 'audio');
+        return sel('', '— ' + esc(t('Vide'))) + `<optgroup label="${esc(t('Caméras'))}">` + cams.map(x => sel('cam:' + x.id, '📷 ' + esc(x.name) + (x.stream ? '' : ' ⏳'))).join('') + `</optgroup><optgroup label="${esc(t('Texte'))}">` + sel('verse', '📖 ' + esc(t('Verset / texte projeté'))) + sel('lt', '🏷 Lower third') + sel('clock', '🕒 ' + esc(t('Horloge'))) + sel('logo', '⛪ ' + esc(t('Logo église'))) + `</optgroup><optgroup label="${esc(t('Médias'))}">` + media.map(m => sel('media:' + m.id + ':' + (m.kind === 'video' ? 'video' : 'image'), (m.kind === 'video' ? '🎬 ' : '🖼 ') + esc(m.name))).join('') + `</optgroup><optgroup label="${esc(t('Fonds'))}">` + DEFBG.map((d, i) => sel('bg:' + i, '🎨 ' + esc(d[0]))).join('') + sel('color:#101a33', '■ ' + esc(t('Couleur unie'))) + `</optgroup>`;
+    };
+    const trOpt = (i) => { const tr = stuTr(STU, i); return `<select onchange="stuTrSet(${i},'t',this.value)" title="${esc(t('Transition'))}">${Object.keys(STTR).map(k => `<option value="${k}" ${tr.t === k ? 'selected' : ''}>${esc(t(STTR[k]))}</option>`).join('')}</select><select onchange="stuTrSet(${i},'d',this.value)">${[300, 600, 1000, 1500].map(d => `<option value="${d}" ${tr.d === d ? 'selected' : ''}>${d} ms</option>`).join('')}</select>`; };
+    const slots = L.s.map((r, i) => {
+        const cur = (STU.slots || [])[i];
+        const isCol = cur && cur.startsWith('color:');
+        return `<div class="stsl"><b>${esc(t('Cadre'))} ${i + 1}</b><select onchange="stuSlot(${i},this.value)">${srcOpt(cur, r[0] === 'v')}</select>${isCol ? `<input type="color" value="${cur.slice(6)}" onchange="stuSlot(${i},'color:'+this.value)" style="height:30px;margin-top:4px">` : ''}<div class="sel2" style="margin-top:4px">${trOpt(i)}</div><input type="text" placeholder="${esc(t('Nom / légende (ex. Pasteur Josias)'))}" value="${esc((STU.caps || [])[i] || '')}" onchange="stuCap(${i},this.value)"></div>`;
+    }).join('');
+    const trAll = `<div class="cfgRow"><span>${esc(t('Transition par défaut'))}</span><select onchange="stuTrAll(this.value)">${Object.keys(STTR).map(k => `<option value="${k}" ${(STU.tdef || 'fade') === k ? 'selected' : ''}>${esc(t(STTR[k]))}</option>`).join('')}</select></div>`;
     const bgv = STU.bg.k === 'g' ? 'g:' + STU.bg.i : STU.bg.k === 'm' ? 'm:' + STU.bg.id : 'c:';
     const bgo = DEFBG.map((d, i) => `<option value="g:${i}" ${bgv === 'g:' + i ? 'selected' : ''}>🎨 ${esc(d[0])}</option>`).join('') + Object.values(HF).filter(m => !m.builtin && m.kind !== 'audio').map(m => `<option value="m:${m.id}" ${bgv === 'm:' + m.id ? 'selected' : ''}>${m.kind === 'video' ? '🎬' : '🖼'} ${esc(m.name)}</option>`).join('') + `<option value="c:" ${bgv === 'c:' ? 'selected' : ''}>■ ${esc(t('Couleur unie'))}</option>`;
     el.innerHTML = `<div class="stbar"><button class="live" onclick="stuTake()">▶ ${esc(t('TAKE STUDIO'))}</button><button onclick="stuOff()">⏹ ${esc(t('Quitter le studio'))}</button></div>
   <div class="stbar"><label class="inl"><input type="checkbox" ${STU.live ? 'checked' : ''} onchange="stuSet('live',this.checked)"> ${esc(t('Modifier en direct (Program suit)'))}</label>${S.pvStudio ? `<button class="sm" onclick="stuClosePv()">${esc(t('Fermer l’aperçu'))}</button>` : ''}</div>
   <label>${esc(t('Modèles'))}</label><div class="stbar" style="flex-wrap:wrap"><button class="sm" onclick="stuPreset('culte')">⛪ ${esc(t('Culte'))}</button><button class="sm" onclick="stuPreset('emission')">📺 ${esc(t('Émission'))}</button><button class="sm" onclick="stuPreset('table')">🗣 ${esc(t('Table ronde'))}</button><button class="sm" onclick="stuPreset('conf')">🎤 ${esc(t('Conférence'))}</button><button class="sm" onclick="stuPreset('concert')">🎸 ${esc(t('Concert'))}</button></div>
   <label>${esc(t('Disposition'))}</label><div class="stlg">${thumbs}</div>
-  <label>${esc(t('Sources'))}</label>${slots}
+  <label>${esc(t('Sources (par cadre)'))}</label>${trAll}${slots}
   <label>${esc(t('Fond du studio'))}</label><select onchange="stuSet('bgsel',this.value)">${bgo}</select>
   ${STU.bg.k === 'c' ? `<input type="color" value="${STU.bg.color || '#101a33'}" onchange="stuSet('bgcol',this.value)" style="margin-top:6px;height:34px">` : ''}
   <label>${esc(t('Suppression du fond (fond vert / incrustation)'))}</label>
@@ -4104,6 +4457,8 @@ function stuUI() {
   <div class="cfgRow"><span>${esc(t('Tolérance'))}</span><input type="range" min="10" max="160" value="${STU.key.tol}" onchange="stuSet('keytol',this.value)"></div>
   <div class="ai" style="margin-top:6px">${esc(t('Filmez devant un drap/mur vert (ou bleu), choisissez sa couleur : le fond est retiré et remplacé par le fond du studio.'))}</div>
   <label>${esc(t('Style'))}</label>
+  <div class="cfgRow"><span>${esc(t('Rendu'))}</span><select onchange="stuSet('d3',this.value)"><option value="flat" ${STU.d3 === 'flat' ? 'selected' : ''}>${esc(t('Plat (2D)'))}</option><option value="studio" ${STU.d3 === 'studio' ? 'selected' : ''}>${esc(t('Plateau 3D (sol + reflets)'))}</option><option value="wall" ${STU.d3 === 'wall' ? 'selected' : ''}>${esc(t('Mur d’écrans 3D'))}</option><option value="real" ${STU.d3 === 'real' ? 'selected' : ''}>${esc(t('3D réel (WebGL)'))}</option></select></div>
+  ${STU.d3 === 'real' ? `<div class="cfgRow"><span>${esc(t('Décor 3D'))}</span><select onchange="stuSet('set',this.value)"><option value="tv" ${STU.set === 'tv' ? 'selected' : ''}>📺 ${esc(t('Plateau TV'))}</option><option value="church" ${STU.set === 'church' ? 'selected' : ''}>⛪ ${esc(t('Sanctuaire'))}</option><option value="talk" ${STU.set === 'talk' ? 'selected' : ''}>🛋 ${esc(t('Salon / table ronde'))}</option><option value="concert" ${STU.set === 'concert' ? 'selected' : ''}>🎸 ${esc(t('Scène de concert'))}</option></select></div><div class="cfgRow"><span>${esc(t('Mouvement de caméra'))}</span><input type="checkbox" ${STU.cam !== false ? 'checked' : ''} onchange="stuSet('cam',this.checked)"></div>` : ''}
   <div class="cfgRow"><span>${esc(t('Coins arrondis'))}</span><input type="range" min="0" max="40" value="${STU.rad}" onchange="stuSet('rad',+this.value)"></div>
   <div class="cfgRow"><span>${esc(t('Bordure'))}</span><input type="checkbox" ${STU.border ? 'checked' : ''} onchange="stuSet('border',this.checked)"></div>
   <div class="cfgRow"><span>${esc(t('Couleur d’accent'))}</span><input type="color" value="${STU.ac}" onchange="stuSet('ac',this.value)"></div>`;
@@ -4159,26 +4514,875 @@ function fitStu(box, txt, key) {
     }
     txt.style.fontSize = lo + 'cqw';
 }
+/* ============ MOTEUR 3D WebGL natif (décors de studio, sans dépendance) ============ */
+const M4 = {
+    mul: (a, b) => { const o = new Array(16); for (let i = 0; i < 4; i++)
+        for (let j = 0; j < 4; j++) {
+            let s = 0;
+            for (let k = 0; k < 4; k++)
+                s += a[k * 4 + j] * b[i * 4 + k];
+            o[i * 4 + j] = s;
+        } return o; },
+    persp: (f, a, n, fr) => { const t = 1 / Math.tan(f / 2); return [t / a, 0, 0, 0, 0, t, 0, 0, 0, 0, (fr + n) / (n - fr), -1, 0, 0, 2 * fr * n / (n - fr), 0]; },
+    look: (e, c, u) => {
+        let z = [e[0] - c[0], e[1] - c[1], e[2] - c[2]], l = Math.hypot(...z);
+        z = z.map(v => v / l);
+        let x = [u[1] * z[2] - u[2] * z[1], u[2] * z[0] - u[0] * z[2], u[0] * z[1] - u[1] * z[0]];
+        l = Math.hypot(...x);
+        x = x.map(v => v / l);
+        const y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]], d = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        return [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -d(x, e), -d(y, e), -d(z, e), 1];
+    },
+    trs: (p, r, s) => {
+        const cx = Math.cos(r[0]), sx = Math.sin(r[0]), cy = Math.cos(r[1]), sy = Math.sin(r[1]);
+        /* T * Ry * Rx * S */
+        const Rx = [1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1], Ry = [cy, 0, -sy, 0, 0, 1, 0, 0, sy, 0, cy, 0, 0, 0, 0, 1];
+        const R = M4.mul(Ry, Rx);
+        return [R[0] * s[0], R[1] * s[0], R[2] * s[0], 0, R[4] * s[1], R[5] * s[1], R[6] * s[1], 0, R[8] * s[2], R[9] * s[2], R[10] * s[2], 0, p[0], p[1], p[2], 1];
+    }
+};
+const REFL = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+const hex3 = h => { h = String(h || '#2f7bff').replace('#', ''); if (h.length === 3)
+    h = h.split('').map(c => c + c).join(''); return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255]; };
+const hsv = (h, s, v) => { const f = n => { const k = (n + h * 6) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); }; return [f(5), f(3), f(1)]; };
+const G3VS = 'attribute vec2 aP;uniform mat4 uM,uVP;varying vec2 vUv;varying vec3 vW;varying float vD;void main(){vec4 w=uM*vec4(aP,0.,1.);vW=w.xyz;vUv=aP+.5;gl_Position=uVP*w;vD=gl_Position.w;}';
+const G3FS = `precision mediump float;uniform sampler2D uT;uniform vec4 uC,uC2;uniform int uMode;uniform float uA,uSh,uTime;varying vec2 vUv;varying vec3 vW;varying float vD;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){vec4 c=uC;
+ if(uMode==1){c=texture2D(uT,vec2(vUv.x,1.-vUv.y));}
+ else if(uMode==2){c=mix(uC,uC2,vUv.y);}
+ else if(uMode==3){vec2 g=abs(fract(vW.xz*.5)-.5);float l=smoothstep(.465,.5,max(g.x,g.y));c=mix(uC,uC2,l*.55);}
+ else if(uMode==4){float d=length(vUv-vec2(.5))*2.;c=vec4(uC.rgb,uC.a*pow(clamp(1.-d,0.,1.),1.6));}
+ else if(uMode==5){float e=1.-abs(vUv.x-.5)*2.;c=vec4(uC.rgb,uC.a*e*e*pow(vUv.y,.8));}
+ else if(uMode==6){vec2 q=vUv;float arch=step(q.y,.7)+step(.7,q.y)*step(length((q-vec2(.5,.7))*vec2(1.,1.)),.5);vec2 id=floor(q*vec2(3.,9.));vec3 col=.5+.5*cos(6.283*(h(id)+vec3(0.,.33,.67)));col*=.55+.45*sin(uTime*.6+h(id)*6.);c=vec4(col,arch*uC.a);}
+ else if(uMode==7){float pl=floor(vW.x*1.6);float v=h(vec2(pl,1.));float ln=smoothstep(.0,.03,abs(fract(vW.x*1.6)-.5)-.47);c=vec4(mix(uC.rgb,uC2.rgb,v*.6)*(1.-.6*ln),uC.a);}
+ else if(uMode==8){float d=length((vUv-vec2(.5))*2.);c=vec4(uC.rgb*(1.-.25*d),uC.a*step(d,1.));}
+ else if(uMode==9){float d=length((vUv-vec2(.5))*2.);c=vec4(mix(uC.rgb,uC2.rgb,d),uC.a*step(d,1.));}
+ c.rgb*=uSh;float f=clamp(vD/46.,0.,1.);c.rgb=mix(c.rgb,vec3(.02,.03,.06),f*.5);gl_FragColor=vec4(c.rgb,c.a*uA);}`;
+function g3Init(el) {
+    const cv = document.createElement('canvas');
+    cv.className = 'g3';
+    let gl = null;
+    try {
+        gl = cv.getContext('webgl', { antialias: true, alpha: false, premultipliedAlpha: false }) || cv.getContext('experimental-webgl');
+    }
+    catch (_a) { }
+    if (!gl)
+        return null;
+    const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+        throw new Error(gl.getShaderInfoLog(s)); return s; };
+    let pr;
+    try {
+        pr = gl.createProgram();
+        gl.attachShader(pr, sh(gl.VERTEX_SHADER, G3VS));
+        gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, G3FS));
+        gl.linkProgram(pr);
+        if (!gl.getProgramParameter(pr, gl.LINK_STATUS))
+            throw new Error('link');
+    }
+    catch (e) {
+        return null;
+    }
+    gl.useProgram(pr);
+    const b = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-.5, -.5, .5, -.5, -.5, .5, .5, .5]), gl.STATIC_DRAW);
+    const aP = gl.getAttribLocation(pr, 'aP');
+    gl.enableVertexAttribArray(aP);
+    gl.vertexAttribPointer(aP, 2, gl.FLOAT, false, 0, 0);
+    const U = {};
+    ['uM', 'uVP', 'uT', 'uC', 'uC2', 'uMode', 'uA', 'uSh', 'uTime'].forEach(n => U[n] = gl.getUniformLocation(pr, n));
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    const g = { cv, gl, U, tex: {}, keys: {}, fid: {}, frame: 0, refl: false, t: 0, vp: null };
+    g.Q = (m, o) => {
+        o = o || {};
+        if (g.refl) {
+            if (o.nr)
+                return;
+            m = M4.mul(REFL, m);
+        }
+        gl.uniformMatrix4fv(U.uM, false, m);
+        const c = o.c || [0, 0, 0, 1], c2 = o.c2 || c;
+        gl.uniform4f(U.uC, c[0], c[1], c[2], c[3] === undefined ? 1 : c[3]);
+        gl.uniform4f(U.uC2, c2[0], c2[1], c2[2], c2[3] === undefined ? 1 : c2[3]);
+        gl.uniform1i(U.uMode, o.m || 0);
+        gl.uniform1f(U.uA, (o.a === undefined ? 1 : o.a) * (g.refl ? .3 : 1));
+        gl.uniform1f(U.uSh, o.sh === undefined ? 1 : o.sh);
+        if (o.tex) {
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, o.tex);
+            gl.uniform1i(U.uT, 0);
+        }
+        gl.blendFunc(gl.SRC_ALPHA, o.add ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+    g.q = (p, r, s, o) => g.Q(M4.trs(p, r, s), o);
+    g.box = (cx, cy, cz, w, h, d, o) => {
+        o = o || {};
+        const sh = o.sh === undefined ? 1 : o.sh, Z = (k) => Object.assign({}, o, { sh: sh * k });
+        g.q([cx, cy, cz + d / 2], [0, 0, 0], [w, h, 1], Z(1));
+        g.q([cx, cy, cz - d / 2], [0, Math.PI, 0], [w, h, 1], Z(.6));
+        g.q([cx - w / 2, cy, cz], [0, -Math.PI / 2, 0], [d, h, 1], Z(.65));
+        g.q([cx + w / 2, cy, cz], [0, Math.PI / 2, 0], [d, h, 1], Z(.8));
+        g.q([cx, cy + h / 2, cz], [-Math.PI / 2, 0, 0], [w, d, 1], Z(1.18));
+    };
+    g.mk = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; };
+    g.up = (id, src) => { const t = g.tex[id] || (g.tex[id] = g.mk()); gl.bindTexture(gl.TEXTURE_2D, t); try {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    }
+    catch (_a) {
+        return null;
+    } return t; };
+    g.upv = (id, src) => { if (g.fid[id] === g.frame && g.tex[id])
+        return g.tex[id]; g.fid[id] = g.frame; return g.up(id, src); };
+    g.canvasTex = (id, key, w, h, draw) => { if (g.keys[id] === key && g.tex[id])
+        return g.tex[id]; g.keys[id] = key; const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return g.up(id, c); };
+    return g;
+}
+/* texte justifié, ajusté à la tuile */
+function g3Verse(ctx, w, h, main, sub, up) {
+    const gr = ctx.createLinearGradient(0, 0, w, h);
+    gr.addColorStop(0, '#0b1020');
+    gr.addColorStop(1, '#14204a');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, w, h);
+    const pad = w * .06, aw = w - pad * 2, ah = h - pad * 2 - (sub ? h * .1 : 0);
+    let txt = String(main || '');
+    if (up)
+        txt = txt.toUpperCase();
+    const words = txt.split(/\s+/).filter(Boolean);
+    const wrap = (px) => { ctx.font = '800 ' + px + 'px Inter,Arial,sans-serif'; const L = []; let cur = ''; for (const wd of words) {
+        const t = cur ? cur + ' ' + wd : wd;
+        if (ctx.measureText(t).width > aw && cur) {
+            L.push(cur);
+            cur = wd;
+        }
+        else
+            cur = t;
+    } if (cur)
+        L.push(cur); return L; };
+    let lo = 10, hi = Math.min(h, w) * .5, best = 10;
+    for (let i = 0; i < 10; i++) {
+        const m = (lo + hi) / 2, L = wrap(m);
+        if (L.length * m * 1.18 <= ah && L.every(l => ctx.measureText(l).width <= aw + 1)) {
+            best = m;
+            lo = m;
+        }
+        else
+            hi = m;
+    }
+    const L = wrap(best), lh = best * 1.18, y0 = pad + (ah - L.length * lh) / 2;
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'top';
+    ctx.font = '800 ' + best + 'px Inter,Arial,sans-serif';
+    L.forEach((ln, i) => {
+        const ws = ln.split(' ');
+        const last = i === L.length - 1;
+        if (last || ws.length < 2) {
+            ctx.fillText(ln, pad, y0 + i * lh);
+            return;
+        }
+        const tw = ws.reduce((a, b) => a + ctx.measureText(b).width, 0), gap = (aw - tw) / (ws.length - 1);
+        let x = pad;
+        ws.forEach(wd => { ctx.fillText(wd, x, y0 + i * lh); x += ctx.measureText(wd).width + gap; });
+    });
+    if (sub) {
+        ctx.fillStyle = '#ffd777';
+        ctx.font = '700 ' + Math.max(14, h * .055) + 'px Inter,Arial,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(String(sub), w - pad, h - pad - h * .06);
+        ctx.textAlign = 'left';
+    }
+}
+function g3Cap(ctx, w, h, txt, ac) { ctx.fillStyle = ac; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#fff'; ctx.font = '800 ' + h * .55 + 'px Inter,Arial,sans-serif'; ctx.textBaseline = 'middle'; ctx.fillText(txt, h * .4, h / 2 + 2); }
+/* ---------- décors ---------- */
+const WD = 9, HD = WD * 9 / 16, Y0 = 1.15;
+function g3Back(g, set, t, ac, bgTex) {
+    const A = ac, dk = [.02, .03, .07];
+    const wall = (w, h, x, y, z, ry, c1, c2, o) => g.q([x, y, z], [0, ry || 0, 0], [w, h, 1], Object.assign({ m: 2, c: c1, c2: c2 }, o || {}));
+    const strip = (x, y, z, w, h, col, ry) => { g.q([x, y, z + .02], [0, ry || 0, 0], [w * 1.6, h * 9, 1], { m: 4, c: [...col, .7], add: 1, nr: 0 }); g.q([x, y, z + .03], [0, ry || 0, 0], [w, h, 1], { c: [...col, 1], sh: 1.4 }); };
+    if (set === 'tv') {
+        wall(60, 16, 0, 6, -3, 0, [.07, .12, .3], [.2, .32, .62]);
+        wall(14, 14, -12, 6, 0, .9, [.04, .08, .2], [.1, .17, .38]);
+        wall(14, 14, 12, 6, 0, -.9, [.04, .08, .2], [.1, .17, .38]);
+        strip(0, .72, -2.9, 26, .07, A);
+        strip(0, 8.3, -2.9, 26, .07, A);
+        for (const x of [-12.5, -9.8, 9.8, 12.5])
+            strip(x, 4.2, -2.8, .09, 7, A);
+        for (let i = 0; i < 9; i++) {
+            const x = -12 + i * 3;
+            g.q([x, 4.2, -2.95], [0, 0, 0], [2.6, 7.6, 1], { m: 2, c: [.04, .07, .17, 1], c2: [.07, .11, .26, 1], a: .9 });
+        }
+    }
+    else if (set === 'church') {
+        wall(60, 16, 0, 6, -3, 0, [.1, .06, .03], [.28, .18, .1]);
+        for (let i = -3; i <= 3; i++) {
+            if (!i)
+                continue;
+            const x = i * 3.7;
+            g.q([x, 4.1, -2.8], [0, 0, 0], [1.9, 5.6, 1], { m: 6, c: [1, 1, 1, 1], a: .95 });
+            g.q([x, 4.1, -2.9], [0, 0, 0], [4.2, 6.8, 1], { m: 4, c: [1, .8, .5, .28], add: 1 });
+        }
+        for (let i = -4; i <= 4; i++)
+            g.box(i * 3.7 + 1.85, 3.6, -2.6, .45, 9, .7, { c: [.35, .25, .15, 1], sh: 1 });
+        g.q([0, 9.6, -2.7], [0, 0, 0], [6, 6, 1], { m: 4, c: [1, .85, .5, .5], add: 1 });
+        g.box(0, 9.3, -2.5, .28, 2.2, .2, { c: [.95, .8, .35, 1] });
+        g.box(0, 9.6, -2.5, 1.3, .28, .2, { c: [.95, .8, .35, 1] });
+    }
+    else if (set === 'concert') {
+        wall(60, 16, 0, 6, -3, 0, [.0, .0, .02], [.03, .02, .08]);
+        g.q([0, 4, -2.9], [0, 0, 0], [30, 10, 1], { m: 4, c: [...hsv((t * .04) % 1, .8, .9), .22], add: 1 });
+        for (let i = 0; i < 7; i++) {
+            const x = -12 + i * 4;
+            g.q([x, 3.7, -2.95], [0, 0, 0], [3.7, 7.4, 1], { m: 2, c: [.02, .02, .05, 1], c2: [.05, .04, .1, 1] });
+        }
+    }
+    else { /* talk */
+        wall(60, 16, 0, 6, -3, 0, [.34, .22, .13], [.62, .42, .24]);
+        for (let i = -7; i <= 7; i++) {
+            if (Math.abs(i * 1.15) < WD / 2 + .4)
+                continue;
+            g.q([i * 1.15, 4, -2.9], [0, 0, 0], [.9, 8, 1], { m: 2, c: [.42, .27, .15, 1], c2: [.62, .42, .25, 1] });
+        }
+        for (const sx of [-1, 1])
+            for (let r = 0; r < 4; r++) {
+                g.q([sx * 7.3, 1.6 + r * 1.6, -2.8], [0, 0, 0], [3.4, .12, 1], { c: [.2, .12, .07, 1] });
+                for (let b = 0; b < 9; b++) {
+                    const cl = hsv((b * .13 + r * .21) % 1, .5, .8);
+                    g.q([sx * 7.3 - 1.5 + b * .36, 2.05 + r * 1.6, -2.78], [0, 0, 0], [.26, .8 - (b % 3) * .08, 1], { c: [...cl, 1] });
+                }
+            }
+    }
+    if (bgTex) {
+        g.q([0, Y0 + HD / 2, -2.88], [0, 0, 0], [WD * 2.3, HD * 2.3, 1], { m: 1, tex: bgTex, a: .9 });
+    }
+}
+function g3Floor(g, set, ac) {
+    const f = { tv: [[.015, .025, .06, 1], [...ac, 1]], church: [[.22, .13, .07, 1], [.35, .22, .12, 1]], concert: [[.01, .01, .02, 1], [...ac, 1]], talk: [[.2, .12, .07, 1], [.12, .07, .04, 1]] }[set];
+    g.q([0, 0, 4], [-Math.PI / 2, 0, 0], [60, 60, 1], { m: set === 'church' || set === 'talk' ? 7 : 3, c: f[0], c2: f[1], a: set === 'concert' || set === 'tv' ? .8 : .82, nr: 1 });
+}
+function g3Front(g, set, t, ac) {
+    const A = ac;
+    if (set === 'tv') {
+        g.box(0, .5, 3.4, 7.4, 1, 1.7, { c: [.04, .06, .14, 1], sh: 1 });
+        g.box(0, 1.03, 3.4, 7.6, .08, 1.8, { c: [.85, .9, 1, 1] });
+        g.q([0, .55, 4.26], [0, 0, 0], [6.8, .09, 1], { c: [...A, 1], sh: 1.5 });
+        g.q([0, .55, 4.27], [0, 0, 0], [8.4, .9, 1], { m: 4, c: [...A, .4], add: 1 });
+        for (const x of [-5.6, 5.6]) {
+            g.box(x, .7, 2.4, .9, 1.4, .9, { c: [.05, .08, .18, 1] });
+            g.q([x, 1.5, 2.86], [0, 0, 0], [2, 2, 1], { m: 4, c: [...A, .4], add: 1 });
+        }
+        for (const x of [-6, 6])
+            g.q([x, 5.4, 0], [0, 0, 0], [3.2, 9.5, 1], { m: 5, c: [...A, .22], add: 1 });
+    }
+    else if (set === 'church') {
+        g.box(0, .2, 1.6, 13, .4, 5.6, { c: [.28, .17, .09, 1] });
+        g.q([0, .41, 1.9], [-Math.PI / 2, 0, 0], [3.2, 5.4, 1], { c: [.5, .06, .08, 1], sh: 1.1 });
+        for (const x of [-5.8, 5.8]) {
+            g.box(x, 1.0, 0, .5, 2, .5, { c: [.3, .2, .12, 1] });
+            g.q([x, 2.3, .1], [0, 0, 0], [1.8, 1.8, 1], { m: 4, c: [1, .85, .5, .5], add: 1 });
+        }
+        g.box(-3.3, .9, 2.6, 1.2, 1.1, .8, { c: [.35, .22, .12, 1] });
+        for (const x of [-2.5, 0, 2.5])
+            g.q([x, 6.5, 0], [0, 0, 0], [2.6, 10, 1], { m: 5, c: [1, .85, .55, .14], add: 1 });
+    }
+    else if (set === 'concert') {
+        g.box(0, .4, 1.2, 16, .8, 5.4, { c: [.025, .025, .04, 1] });
+        g.q([0, .82, 3.92], [0, 0, 0], [16, .07, 1], { c: [...A, 1], sh: 1.5 });
+        g.box(0, 7.4, 0, 22, .28, .28, { c: [.2, .2, .24, 1] });
+        for (const x of [-9, -6, -3, 0, 3, 6, 9]) {
+            g.box(x, 7.1, .2, .55, .4, .5, { c: [.12, .12, .14, 1] });
+            const col = hsv(((x + 9) / 20 + t * .08) % 1, .9, 1);
+            const sw = Math.sin(t * .9 + x) * .5;
+            g.q([x + sw * 1.5, 3.5, .4], [0, 0, sw * 0], [2.2, 7.3, 1], { m: 5, c: [...col, .55], add: 1 });
+        }
+        for (const x of [-9.2, 9.2]) {
+            g.box(x, 1.6, .8, 1.6, 3.2, 1.4, { c: [.03, .03, .04, 1] });
+            g.q([x, 1.6, 1.52], [0, 0, 0], [1.3, 2.9, 1], { m: 9, c: [.1, .1, .12, 1], c2: [.03, .03, .04, 1] });
+        }
+        g.q([0, 1.2, 2], [0, 0, 0], [26, 3, 1], { m: 4, c: [.8, .8, 1, .07], add: 1 });
+    }
+    else {
+        g.q([0, .45, 3.1], [-Math.PI / 2, 0, 0], [7.4, 5.2, 1], { m: 9, c: [.1, .06, .03, 1], c2: [.04, .02, .01, 1], a: .7 });
+        g.q([0, 1.05, 3.1], [-Math.PI / 2, 0, 0], [6, 4, 1], { m: 8, c: [.62, .4, .22, 1] });
+        g.q([0, 1.0, 3.1], [-Math.PI / 2, 0, 0], [6.2, 4.2, 1], { m: 8, c: [.25, .14, .07, 1] });
+        g.box(0, .5, 3.1, .6, 1, .6, { c: [.2, .12, .06, 1] });
+        for (const x of [-3.6, 3.6]) {
+            g.q([x, 5.6, 1], [0, 0, 0], [5, 5, 1], { m: 4, c: [1, .8, .5, .55], add: 1 });
+            g.box(x, 6.3, 1, .06, 3, .06, { c: [.2, .2, .2, 1] });
+            g.box(x, 4.8, 1, .9, .5, .9, { c: [.95, .8, .55, 1] });
+        }
+    }
+}
+function g3Frame(g, st, L, vt, el, t, tiles) {
+    const ac = hex3(st.ac), set = st.set || 'tv';
+    L.s.forEach((r, i) => {
+        const w = r[3] / 100 * WD, h = r[4] / 100 * HD, cx = (r[1] / 100 + r[3] / 200 - .5) * WD, cy = Y0 + HD * (1 - (r[2] + r[4] / 2) / 100), z = 0.05 + i * .001;
+        g.box(cx, cy, z - .12, w + .22, h + .22, .22, { c: [.015, .018, .03, 1] });
+        g.q([cx, cy, z + .02], [0, 0, 0], [w + .14, h + .14, 1], { c: [...ac, 1], sh: 1.2 });
+        let tex = null, al = 1, ox = 0, sc = 1;
+        const tl = tiles[i], src = stuSrc(st, i, r), k = src.split(':')[0];
+        const scEl = tl && [...tl.children].find(c => c.classList.contains('sc') && !c.classList.contains('old'));
+        if (k === 'cam' || k === 'media' || k === 'logo') {
+            const kc = scEl && scEl.querySelector('canvas.kc'), m = scEl && scEl.querySelector('video,img');
+            const el2 = (k === 'cam' && st.key && st.key.on && kc && kc.style.display === 'block') ? kc : m;
+            if (el2) {
+                const ok = el2.tagName === 'CANVAS' ? el2.width > 1 : el2.tagName === 'IMG' ? (el2.complete && el2.naturalWidth) : (el2.readyState >= 2 && el2.videoWidth);
+                if (ok)
+                    tex = g.upv('v' + i, el2);
+            }
+        }
+        else if (k === 'verse' || k === 'lt' || k === 'clock') {
+            const asp = w / h, TW = 1024, TH = Math.round(1024 / asp);
+            let m = '', sb = '';
+            if (k === 'verse') {
+                m = vt && vt.main;
+                sb = vt && vt.sub;
+            }
+            else if (k === 'lt') {
+                const l = vt && vt.lt;
+                m = l ? [l.l1, l.l2].filter(Boolean).join(' · ') : '';
+                sb = l && l.tag || '';
+            }
+            else {
+                m = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            tex = g.canvasTex('t' + i, [k, m, sb, S.up, TW, TH].join('|'), TW, TH, (c, W, H) => g3Verse(c, W, H, m, sb, S.up !== false && k !== 'clock'));
+        }
+        else if (k === 'bg' || k === 'color') {
+            const q = src.slice(k.length + 1);
+            tex = g.canvasTex('t' + i, src, 512, 288, (c, W, H) => { if (k === 'color') {
+                c.fillStyle = q || '#101a33';
+                c.fillRect(0, 0, W, H);
+            }
+            else {
+                const spec = (DEFBG[+q] || DEFBG[0])[1];
+                for (const l of spec) {
+                    let gr;
+                    if (l[0] === 'l') {
+                        const an = l[1] * Math.PI / 180, dx = Math.sin(an), dy = -Math.cos(an), len = Math.abs(W * dx) + Math.abs(H * dy);
+                        gr = c.createLinearGradient(W / 2 - dx * len / 2, H / 2 - dy * len / 2, W / 2 + dx * len / 2, H / 2 + dy * len / 2);
+                        l[2].forEach(([p, cl]) => gr.addColorStop(p, cl));
+                    }
+                    else {
+                        gr = c.createRadialGradient(l[1] * W, l[2] * H, 0, l[1] * W, l[2] * H, l[3] * W);
+                        l[4].forEach(([p, cl]) => gr.addColorStop(Math.min(1, p), cl));
+                    }
+                    c.fillStyle = gr;
+                    c.fillRect(0, 0, W, H);
+                }
+            } });
+        }
+        if (tl && tl.dataset.tt) {
+            const [t0, tt, dd] = tl.dataset.tt.split('|'), e = (Date.now() - (+t0)) / (+dd || 600);
+            if (tt !== 'cut' && e >= 0 && e < 1 && (tl.dataset.sk0 !== undefined || true)) {
+                const q = 1 - Math.pow(1 - e, 3);
+                if (tt === 'fade' || tt === 'wipe')
+                    al = q;
+                else if (tt === 'slide') {
+                    ox = (1 - q) * w;
+                    al = Math.min(1, q * 3);
+                }
+                else if (tt === 'zoom') {
+                    sc = .55 + .45 * q;
+                    al = q;
+                }
+                else if (tt === 'flip') {
+                    sc = Math.max(.02, Math.abs(q * 2 - 1) * .0 + q);
+                    al = q;
+                }
+            }
+        }
+        if (tex)
+            g.q([cx + ox, cy, z + .03], [0, 0, 0], [w * sc, h * sc, 1], { m: 1, tex, a: al });
+        else
+            g.q([cx, cy, z + .03], [0, 0, 0], [w, h, 1], { m: 2, c: [.03, .04, .09, 1], c2: [.07, .09, .18, 1] });
+        const cap = (st.caps || [])[i];
+        if (cap) {
+            const cw = Math.min(w * .8, .5 + cap.length * .2), ch = .38, tx = g.canvasTex('c' + i, cap + '|' + st.ac, 512, 64, (c, W, H) => g3Cap(c, W, H, cap, st.ac));
+            g.q([cx - w / 2 + cw / 2, cy - h / 2 + ch / 2 + .04, z + .06], [0, 0, 0], [cw, ch, 1], { m: 1, tex: tx });
+        }
+    });
+}
+function g3Render(el, g) {
+    const o = el._g3o;
+    if (!o)
+        return;
+    const st = o.st, L = STL[st.layout] || STL['1'], gl = g.gl, t = (performance.now() - g.t0) / 1000;
+    const cw = Math.min(1280, Math.round(el.clientWidth * (window.devicePixelRatio || 1))), ch = Math.round(cw * el.clientHeight / Math.max(1, el.clientWidth));
+    if (cw < 8 || ch < 8)
+        return;
+    if (g.cv.width !== cw || g.cv.height !== ch) {
+        g.cv.width = cw;
+        g.cv.height = ch;
+    }
+    g.frame++;
+    gl.viewport(0, 0, cw, ch);
+    gl.clearColor(.01, .015, .03, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    const set = st.set || 'tv', sw = st.cam === false ? 0 : 1;
+    const eye = [Math.sin(t * .22) * 1.3 * sw, 2.5 + Math.sin(t * .17) * .25 * sw, 12.2 - Math.sin(t * .13) * .6 * sw], P = M4.persp(36 * Math.PI / 180, cw / ch, .5, 80), V = M4.look(eye, [0, 3.55, 0], [0, 1, 0]);
+    const VP = M4.mul(P, V);
+    gl.uniformMatrix4fv(g.U.uVP, false, VP);
+    gl.uniform1f(g.U.uTime, t);
+    const ac = hex3(st.ac), tiles = [...el.querySelectorAll('.stscene>.stile')];
+    let bg = null;
+    const b = st.bg || {};
+    if (b.k === 'm') {
+        const bt = el.querySelector('.stbg img,.stbg video');
+        if (bt && (bt.tagName === 'IMG' ? bt.complete && bt.naturalWidth : bt.readyState >= 2))
+            bg = g.upv('bg', bt);
+    }
+    else if (b.k === 'c') {
+        const key = 'bg' + JSON.stringify(b);
+        bg = g.canvasTex('bgc', key, 512, 288, (c, W, H) => { if (b.k === 'c') {
+            c.fillStyle = b.color || '#101a33';
+            c.fillRect(0, 0, W, H);
+        }
+        else {
+            const k = document.createElement('canvas');
+            k.width = W;
+            k.height = H;
+            const x = k.getContext('2d');
+            const spec = DEFBG[b.i || 0][1];
+            for (const l of spec) {
+                let gr;
+                if (l[0] === 'l') {
+                    const a = l[1] * Math.PI / 180, dx = Math.sin(a), dy = -Math.cos(a), len = Math.abs(W * dx) + Math.abs(H * dy);
+                    gr = x.createLinearGradient(W / 2 - dx * len / 2, H / 2 - dy * len / 2, W / 2 + dx * len / 2, H / 2 + dy * len / 2);
+                    l[2].forEach(([p, cl]) => gr.addColorStop(p, cl));
+                }
+                else {
+                    gr = x.createRadialGradient(l[1] * W, l[2] * H, 0, l[1] * W, l[2] * H, l[3] * W);
+                    l[4].forEach(([p, cl]) => gr.addColorStop(Math.min(1, p), cl));
+                }
+                x.fillStyle = gr;
+                x.fillRect(0, 0, W, H);
+            }
+            c.drawImage(k, 0, 0);
+        } });
+    }
+    /* 1. reflets */
+    g.refl = true;
+    g3Back(g, set, t, ac, null);
+    g3Frame(g, st, L, o.vt, el, t, tiles);
+    g3Front(g, set, t, ac);
+    g.refl = false;
+    /* 2. sol */ g3Floor(g, set, ac);
+    /* 3. scène */ g3Back(g, set, t, ac, st.bgOn === false ? null : bg);
+    g3Frame(g, st, L, o.vt, el, t, tiles);
+    g3Front(g, set, t, ac);
+}
+/* ---------- three.js (optionnel : téléchargé par GitHub Actions dans vendor/three/) ---------- */
+let T3 = null, T3P = null;
+function t3Load() { if (T3P)
+    return T3P; T3P = (async () => { try {
+    const imp = new Function('u', 'return import(u)');
+    T3 = await imp('./vendor/three/three.module.js');
+    return T3;
+}
+catch (e) {
+    T3 = null;
+    return null;
+} })(); return T3P; }
+t3Load().then(m => { if (m)
+    document.querySelectorAll('.studio').forEach(e => { if (e._g3 && !e._g3.t3) {
+        g3Stop(e);
+        e._g3failed = 0;
+        if (e.parentNode)
+            stuRefresh();
+    } }); });
+function stuRefresh() { try {
+    render();
+}
+catch (_a) { } }
+const T3SET = { tv: { wall: 0x0b1530, glow: 0xe5173f, floor: 0x0a0d18 }, church: { wall: 0x1b1410, glow: 0xe0b050, floor: 0x15100c }, talk: { wall: 0x1a1f33, glow: 0xfbbf24, floor: 0x10131f }, concert: { wall: 0x120a1c, glow: 0xff6f91, floor: 0x0a0610 } };
+function t3Start(el) {
+    if (!T3)
+        return null;
+    const TH = T3;
+    let r;
+    try {
+        r = new TH.WebGLRenderer({ antialias: true, alpha: false });
+    }
+    catch (e) {
+        return null;
+    }
+    r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    r.domElement.className = 'g3';
+    const sc = new TH.Scene(), cam = new TH.PerspectiveCamera(36, 16 / 9, .5, 80);
+    const g = { t3: true, r, sc, cam, cv: r.domElement, tiles: [], raf: 0, t0: performance.now(), key: '' };
+    sc.add(new TH.AmbientLight(0xffffff, .8));
+    const dl = new TH.PointLight(0xffffff, 60, 40);
+    dl.position.set(0, 7, 8);
+    sc.add(dl);
+    const wallM = new TH.MeshStandardMaterial({ color: 0x0b1530, roughness: .8 }), floorM = new TH.MeshStandardMaterial({ color: 0x0a0d18, roughness: .25, metalness: .6, transparent: true, opacity: .82 });
+    const wall = new TH.Mesh(new TH.PlaneGeometry(14, 8), wallM);
+    wall.position.set(0, 3.6, -.4);
+    sc.add(wall);
+    const fl = new TH.Mesh(new TH.PlaneGeometry(20, 14), floorM);
+    fl.rotation.x = -Math.PI / 2;
+    fl.position.set(0, 0, 3);
+    sc.add(fl);
+    const glow = new TH.PointLight(0xe5173f, 40, 18);
+    glow.position.set(0, 4, 2);
+    sc.add(glow);
+    g.wallM = wallM;
+    g.floorM = floorM;
+    g.glow = glow;
+    g.TH = TH;
+    el.insertBefore(r.domElement, el.firstChild.nextSibling || null);
+    el._g3 = g;
+    const loop = () => { if (!el.isConnected || el._g3 !== g)
+        return; try {
+        t3Frame(el, g);
+    }
+    catch (e) {
+        console.warn('t3', e);
+        g.err = (g.err || 0) + 1;
+        if (g.err > 5) {
+            g3Stop(el);
+            el._g3failed = 0;
+            T3 = null;
+            el.dataset.d3 = 'studio';
+            return;
+        }
+    } g.raf = requestAnimationFrame(loop); };
+    g.raf = requestAnimationFrame(loop);
+    return g;
+}
+function t3Frame(el, g) {
+    const o = el._g3o;
+    if (!o)
+        return;
+    const st = o.st, L = STL[st.layout] || STL['1'], TH = g.TH, t = (performance.now() - g.t0) / 1000;
+    const cw = Math.min(1280, Math.round(el.clientWidth * (window.devicePixelRatio || 1))), ch = Math.round(cw * el.clientHeight / Math.max(1, el.clientWidth));
+    if (cw < 8 || ch < 8)
+        return;
+    if (g.cv.width !== cw || g.cv.height !== ch) {
+        g.r.setSize(cw, ch, false);
+        g.cam.aspect = cw / ch;
+        g.cam.updateProjectionMatrix();
+    }
+    const set = T3SET[st.set || 'tv'] || T3SET.tv;
+    g.wallM.color.setHex(set.wall);
+    g.floorM.color.setHex(set.floor);
+    g.glow.color.setHex(set.glow);
+    const sw = st.cam === false ? 0 : 1;
+    g.cam.position.set(Math.sin(t * .22) * 1.3 * sw, 2.5 + Math.sin(t * .17) * .25 * sw, 12.2);
+    g.cam.lookAt(0, 3.55, 0);
+    const ac = new TH.Color(st.ac || '#2f7bff'), tiles = [...el.querySelectorAll('.stscene>.stile')];
+    while (g.tiles.length > L.s.length) {
+        const x = g.tiles.pop();
+        g.sc.remove(x.grp);
+    }
+    L.s.forEach((rc, i) => {
+        let x = g.tiles[i];
+        if (!x) {
+            const grp = new TH.Group(), frame = new TH.Mesh(new TH.BoxGeometry(1, 1, .2), new TH.MeshStandardMaterial({ color: 0x05060a })), face = new TH.Mesh(new TH.PlaneGeometry(1, 1), new TH.MeshBasicMaterial({ color: 0x0a1020 })), refl = new TH.Mesh(new TH.PlaneGeometry(1, 1), new TH.MeshBasicMaterial({ color: 0x0a1020, transparent: true, opacity: .22 }));
+            face.position.z = .11;
+            grp.add(frame, face, refl);
+            g.sc.add(grp);
+            x = g.tiles[i] = { grp, frame, face, refl, src: null, tex: null };
+        }
+        const w = rc[3] / 100 * WD, h = rc[4] / 100 * HD, cx = (rc[1] / 100 + rc[3] / 200 - .5) * WD, cy = Y0 + HD * (1 - (rc[2] + rc[4] / 2) / 100);
+        x.grp.position.set(cx, cy, 0);
+        x.frame.scale.set(w + .2, h + .2, 1);
+        x.face.scale.set(w, h, 1);
+        x.frame.material.color.copy(ac).multiplyScalar(.35);
+        x.refl.position.set(0, -2 * cy, .11);
+        x.refl.scale.set(w, -h, 1);
+        const src = stuSrc(st, i, rc), k = src.split(':')[0], tl = tiles[i];
+        const scEl = tl && [...tl.children].find(c => c.classList.contains('sc') && !c.classList.contains('old'));
+        let tex = null, key = null;
+        if (k === 'cam' || k === 'media' || k === 'logo') {
+            const kc = scEl && scEl.querySelector('canvas.kc'), m = scEl && scEl.querySelector('video,img');
+            const e2 = (k === 'cam' && st.key && st.key.on && kc && kc.style.display === 'block') ? kc : m;
+            if (e2) {
+                if (x.srcEl !== e2) {
+                    x.srcEl = e2;
+                    x.tex = e2.tagName === 'VIDEO' ? new TH.VideoTexture(e2) : e2.tagName === 'CANVAS' ? new TH.CanvasTexture(e2) : new TH.Texture(e2);
+                    if (e2.tagName === 'IMG')
+                        x.tex.needsUpdate = true;
+                }
+                if (e2.tagName === 'CANVAS')
+                    x.tex.needsUpdate = true;
+                if (e2.tagName === 'IMG' && !x.imgOk && e2.complete && e2.naturalWidth) {
+                    x.imgOk = 1;
+                    x.tex.needsUpdate = true;
+                }
+                tex = x.tex;
+            }
+        }
+        else if (k === 'verse' || k === 'lt' || k === 'clock') {
+            let m = '', sb = '';
+            if (k === 'verse') {
+                m = (o.vt && o.vt.main) || '';
+                sb = (o.vt && o.vt.sub) || '';
+            }
+            else if (k === 'lt') {
+                const l = o.vt && o.vt.lt;
+                m = l ? [l.l1, l.l2].filter(Boolean).join(' · ') : '';
+                sb = l && l.tag || '';
+            }
+            else
+                m = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            key = [k, m, sb, S.up, w / h].join('|');
+            if (x.key !== key) {
+                x.key = key;
+                const cv = document.createElement('canvas');
+                cv.width = 1024;
+                cv.height = Math.round(1024 * h / w);
+                g3Verse(cv.getContext('2d'), cv.width, cv.height, m, sb, S.up !== false && k !== 'clock');
+                x.srcEl = cv;
+                x.tex = new TH.CanvasTexture(cv);
+            }
+            tex = x.tex;
+        }
+        else {
+            const q = src.slice(k.length + 1);
+            key = src;
+            if (x.key !== key) {
+                x.key = key;
+                const cv = document.createElement('canvas');
+                cv.width = 512;
+                cv.height = 288;
+                const c = cv.getContext('2d');
+                if (k === 'color') {
+                    c.fillStyle = q || '#101a33';
+                    c.fillRect(0, 0, 512, 288);
+                }
+                else {
+                    const spec = (DEFBG[+q] || DEFBG[0])[1];
+                    for (const l of spec) {
+                        let gr;
+                        if (l[0] === 'l') {
+                            const an = l[1] * Math.PI / 180, dx = Math.sin(an), dy = -Math.cos(an), len = Math.abs(512 * dx) + Math.abs(288 * dy);
+                            gr = c.createLinearGradient(256 - dx * len / 2, 144 - dy * len / 2, 256 + dx * len / 2, 144 + dy * len / 2);
+                            l[2].forEach(([p, cl]) => gr.addColorStop(p, cl));
+                        }
+                        else {
+                            gr = c.createRadialGradient(l[1] * 512, l[2] * 288, 0, l[1] * 512, l[2] * 288, l[3] * 512);
+                            l[4].forEach(([p, cl]) => gr.addColorStop(Math.min(1, p), cl));
+                        }
+                        c.fillStyle = gr;
+                        c.fillRect(0, 0, 512, 288);
+                    }
+                }
+                x.srcEl = cv;
+                x.tex = new TH.CanvasTexture(cv);
+            }
+            tex = x.tex;
+        }
+        if (tex) {
+            if (x.face.material.map !== tex) {
+                x.face.material.map = tex;
+                x.refl.material.map = tex;
+                x.face.material.color.set(0xffffff);
+                x.refl.material.color.set(0xffffff);
+                x.face.material.needsUpdate = true;
+                x.refl.material.needsUpdate = true;
+            }
+        }
+        /* transition : opacité / décalage selon l'âge du changement */
+        let al = 1, ox = 0, sc2 = 1;
+        if (tl && tl.dataset.tt) {
+            const [t0, tt, dd] = tl.dataset.tt.split('|'), e = (Date.now() - (+t0)) / (+dd || 600);
+            if (tt !== 'cut' && e >= 0 && e < 1) {
+                const q = 1 - Math.pow(1 - e, 3);
+                if (tt === 'fade' || tt === 'wipe' || tt === 'flip')
+                    al = q;
+                else if (tt === 'slide') {
+                    ox = (1 - q) * w;
+                    al = Math.min(1, q * 3);
+                }
+                else if (tt === 'zoom') {
+                    sc2 = .55 + .45 * q;
+                    al = q;
+                }
+            }
+        }
+        x.face.material.transparent = al < 1;
+        x.face.material.opacity = al;
+        x.face.position.x = ox;
+        x.face.scale.set(w * sc2, h * sc2, 1);
+    });
+    g.r.render(g.sc, g.cam);
+}
+function g3Start(el) {
+    if (el._g3)
+        return el._g3;
+    const g = g3Init(el);
+    if (!g)
+        return null;
+    g.t0 = performance.now();
+    el._g3 = g;
+    el.insertBefore(g.cv, el.firstChild.nextSibling || null);
+    const loop = () => { if (!el.isConnected || !el._g3) {
+        return;
+    } try {
+        g3Render(el, g);
+    }
+    catch (e) {
+        console.warn('g3', e);
+        el._g3err = (el._g3err || 0) + 1;
+        if (el._g3err > 5) {
+            g3Stop(el);
+            el.dataset.d3 = 'studio';
+            return;
+        }
+    } g.raf = requestAnimationFrame(loop); };
+    g.raf = requestAnimationFrame(loop);
+    return g;
+}
+function g3Stop(el) { const g = el._g3; if (!g)
+    return; cancelAnimationFrame(g.raf); if (g.t3) {
+    try {
+        g.r.dispose();
+        g.cv.remove();
+    }
+    catch (_a) { }
+    el._g3 = null;
+    return;
+} try {
+    g.cv.remove();
+    const e = g.gl.getExtension('WEBGL_lose_context');
+    e && e.loseContext();
+}
+catch (_b) { } el._g3 = null; }
+const STTR = { cut: 'Cut', fade: 'Fondu', slide: 'Glisser', zoom: 'Zoom', wipe: 'Volet', flip: 'Flip' };
+function stuSrc(st, i, r) { let v = (st.slots || [])[i]; if (v === undefined || v === null)
+    v = r[0] === 'v' ? 'verse' : ''; if (v && !v.includes(':') && !['verse', 'lt', 'clock', 'logo'].includes(v))
+    v = 'cam:' + v; return v; }
+function stuTr(st, i) { const t = (st.trs || [])[i] || {}; return { t: t.t || st.tdef || 'fade', d: t.d || st.td || 600 }; }
+function stuUrl(id) { return (typeof vUrl === 'function' ? vUrl(id) : null) || (HF[id] && HF[id].url) || ''; }
+function stuMk(src) {
+    const sc = document.createElement('div');
+    sc.className = 'sc';
+    const k = src.split(':')[0];
+    sc.dataset.k = k;
+    if (k === 'cam')
+        sc.innerHTML = '<video muted autoplay playsinline></video><canvas class="kc"></canvas>';
+    else if (k === 'media')
+        sc.innerHTML = src.split(':')[2] === 'video' ? '<video muted loop autoplay playsinline></video>' : '<img>';
+    else if (k === 'logo')
+        sc.innerHTML = '<img class="lg">';
+    else if (k === 'verse' || k === 'lt' || k === 'clock')
+        sc.innerHTML = '<div class="sv"><div class="svt"></div><div class="svr"></div></div>';
+    else
+        sc.innerHTML = '<div class="fill"></div>';
+    return sc;
+}
+function stuUpd(sc, src, st, vt, isViewer) {
+    const [k, a, b] = src.split(':');
+    if (k === 'cam') {
+        const v = sc.querySelector('video'), cv = sc.querySelector('canvas');
+        const stream = a ? camStreamOf(a) : null;
+        if (a && !stream && typeof need === 'function' && isViewer)
+            need('cam:' + a);
+        if (v.srcObject !== (stream || null)) {
+            v.srcObject = stream || null;
+            if (stream)
+                v.play().catch(() => { });
+        }
+        const key = !!(st.key && st.key.on && stream);
+        v.style.visibility = key ? 'hidden' : 'visible';
+        cv.style.display = key ? 'block' : 'none';
+        if (key) {
+            const h = (st.key.color || '#00ff00').replace('#', '');
+            cv._k = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+            cv._t = +st.key.tol || 70;
+            if (!STKEY)
+                STKEY = requestAnimationFrame(stuKeyLoop);
+        }
+        sc.classList.toggle('empty', !stream);
+    }
+    else if (k === 'media') {
+        const el = sc.querySelector('video,img'), u = stuUrl(a);
+        if (!u && typeof need === 'function' && isViewer)
+            need(a);
+        if (u && el.getAttribute('src') !== u) {
+            el.src = u;
+            if (el.play)
+                el.play().catch(() => { });
+        }
+    }
+    else if (k === 'logo') {
+        const u = S.bug && S.bug.id ? stuUrl(S.bug.id) : '';
+        const el = sc.querySelector('img');
+        if (u && el.getAttribute('src') !== u)
+            el.src = u;
+        sc.classList.toggle('empty', !u);
+    }
+    else if (k === 'bg') {
+        sc.firstChild.style.background = bgCss((DEFBG[+a] || DEFBG[0])[1]);
+    }
+    else if (k === 'color') {
+        sc.firstChild.style.background = a ? '#' + a.replace('#', '') : '#101a33';
+    }
+    else {
+        const box = sc.querySelector('.sv'), tx = sc.querySelector('.svt'), sr = sc.querySelector('.svr');
+        const up = S.up !== false;
+        let m = '', sb = '';
+        if (k === 'verse') {
+            m = (vt && vt.main) || '';
+            sb = (vt && vt.sub) || '';
+        }
+        else if (k === 'lt') {
+            const l = vt && vt.lt;
+            m = l ? [l.l1, l.l2].filter(Boolean).join('\n') : '';
+            sb = l ? l.tag || '' : '';
+        }
+        else {
+            box.dataset.clock = 1;
+            m = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            sb = '';
+        }
+        tx.textContent = m;
+        sr.textContent = sb;
+        tx.style.textTransform = (up && k !== 'clock') ? 'uppercase' : 'none';
+        tx.style.textAlign = (up && k === 'verse') ? 'justify' : 'center';
+        fitStu(box, tx, [m, up, k, sc.clientWidth, sc.clientHeight].join('|'));
+    }
+}
+setInterval(() => document.querySelectorAll('.studio .sv[data-clock] .svt').forEach(e => { e.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }), 1000);
 function renderStudio(root, st, vt, isViewer) {
-    var _a;
     if (!root)
         return;
     let el = root.querySelector(':scope>.studio');
     if (!(st && st.on)) {
-        if (el)
+        if (el) {
+            g3Stop(el);
             el.remove();
+        }
         return;
     }
     const L = STL[st.layout] || STL['1'];
     if (!el) {
         el = document.createElement('div');
         el.className = 'studio';
-        el.innerHTML = '<div class="stbg"></div>';
+        el.innerHTML = '<div class="stbg"></div><div class="stfloor"></div><div class="stscene"></div>';
         const lt = root.querySelector(':scope>.ltbox');
         root.insertBefore(el, lt || null);
     }
     el.style.setProperty('--ac', st.ac || '#2f7bff');
-    /* fond */
+    el.dataset.d3 = st.d3 || 'flat';
+    if (st.d3 === 'real') {
+        el._g3o = { st, vt };
+        if (!el._g3 && !el._g3failed) {
+            if (!(T3 && t3Start(el)) && !g3Start(el)) {
+                el._g3failed = 1;
+            }
+        }
+        if (el._g3failed)
+            el.dataset.d3 = 'studio';
+    }
+    else if (el._g3)
+        g3Stop(el);
+    const scene = el.querySelector('.stscene');
     const bg = el.querySelector('.stbg'), b = st.bg || { k: 'g', i: 0 };
     const bk = JSON.stringify(b);
     if (bg.dataset.k !== bk) {
@@ -4191,9 +5395,9 @@ function renderStudio(root, st, vt, isViewer) {
             bg.innerHTML = '';
         }
         else if (b.k === 'm') {
-            const u = (typeof vUrl === 'function' ? vUrl(b.id) : null) || (HF[b.id] && HF[b.id].url);
+            const u = stuUrl(b.id);
             if (u) {
-                const m = (HF[b.id] && HF[b.id].kind) || ((_a = (S.media || []).find(x => x.id === b.id)) === null || _a === void 0 ? void 0 : _a.kind) || 'image';
+                const m = (HF[b.id] && HF[b.id].kind) || 'image';
                 bg.style.background = '#000';
                 bg.innerHTML = m === 'video' ? `<video src="${u}" muted loop autoplay playsinline></video>` : `<img src="${u}">`;
             }
@@ -4206,57 +5410,51 @@ function renderStudio(root, st, vt, isViewer) {
         }
         bg.dataset.k = bk;
     }
-    /* tuiles */
-    const tiles = [...el.querySelectorAll(':scope>.stile')];
+    const tiles = [...scene.querySelectorAll(':scope>.stile')];
     while (tiles.length > L.s.length)
         tiles.pop().remove();
     L.s.forEach((r, i) => {
-        let tl = el.querySelectorAll(':scope>.stile')[i];
+        let tl = scene.querySelectorAll(':scope>.stile')[i];
         if (!tl) {
             tl = document.createElement('div');
             tl.className = 'stile';
-            el.appendChild(tl);
+            scene.appendChild(tl);
+            const c = document.createElement('div');
+            c.className = 'cap';
+            tl.appendChild(c);
         }
-        if (tl.dataset.type !== r[0]) {
-            tl.dataset.type = r[0];
-            tl.innerHTML = r[0] === 'c' ? '<video muted autoplay playsinline></video><canvas class="kc"></canvas><div class="cap"></div>' : '<div class="sv"><div class="svt"></div><div class="svr"></div></div><div class="cap"></div>';
-        }
-        tl.style.cssText = `left:${r[1]}%;top:${r[2]}%;width:${r[3]}%;height:${r[4]}%;border-radius:${(st.rad || 0) / 10}cqw;${st.border ? `border:.32cqw solid var(--ac);` : ''}`;
+        const cx = r[1] + r[3] / 2, ry = st.d3 === 'studio' ? (50 - cx) * .26 : 0;
+        tl.style.cssText = `--ry:${ry}deg;left:${r[1]}%;top:${r[2]}%;width:${r[3]}%;height:${r[4]}%;border-radius:${(st.rad || 0) / 10}cqw;${st.border ? `border:.32cqw solid var(--ac);` : ''}`;
         const cap = tl.querySelector('.cap'), ct = (st.caps || [])[i] || '';
         cap.textContent = ct;
         cap.style.display = ct ? 'block' : 'none';
-        if (r[0] === 'c') {
-            const id = (st.slots || [])[i], v = tl.querySelector('video'), cv = tl.querySelector('canvas');
-            const stream = id ? camStreamOf(id) : null;
-            if (id && !stream && typeof need === 'function' && isViewer)
-                need('cam:' + id);
-            if (v.srcObject !== (stream || null)) {
-                v.srcObject = stream || null;
-                if (stream)
-                    v.play().catch(() => { });
+        const src = stuSrc(st, i, r) || 'none:';
+        let sc = [...tl.children].find(c => c.classList.contains('sc') && !c.classList.contains('old'));
+        if (!sc || tl.dataset.sk !== src) {
+            const first = !sc, tr = stuTr(st, i), old = sc;
+            sc = stuMk(src);
+            tl.insertBefore(sc, tl.firstChild);
+            if (old) {
+                old.classList.add('old');
+                if (tr.t !== 'cut') {
+                    old.style.setProperty('--d', tr.d + 'ms');
+                    old.dataset.tr = tr.t;
+                    setTimeout(() => old.remove(), tr.d + 80);
+                }
+                else
+                    old.remove();
             }
-            const key = !!(st.key && st.key.on && stream);
-            v.style.visibility = key ? 'hidden' : 'visible';
-            cv.style.display = key ? 'block' : 'none';
-            if (key) {
-                const h = (st.key.color || '#00ff00').replace('#', '');
-                cv._k = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-                cv._t = +st.key.tol || 70;
-                if (!STKEY)
-                    STKEY = requestAnimationFrame(stuKeyLoop);
+            if (!first && tr.t !== 'cut') {
+                sc.style.setProperty('--d', tr.d + 'ms');
+                sc.dataset.tr = tr.t;
+                sc.classList.add('tin');
+                setTimeout(() => sc.classList.remove('tin'), tr.d + 80);
             }
-            tl.classList.toggle('empty', !stream);
+            tl.dataset.sk = src;
+            tl.dataset.tt = Date.now() + '|' + tr.t + '|' + tr.d;
         }
-        else {
-            const box = tl.querySelector('.sv'), tx = tl.querySelector('.svt'), sr = tl.querySelector('.svr');
-            const m = (vt && vt.main) || '', sb = (vt && vt.sub) || '';
-            const up = S.up !== false;
-            tx.textContent = m;
-            sr.textContent = sb;
-            tx.style.textTransform = up ? 'uppercase' : 'none';
-            tx.style.textAlign = up ? 'justify' : 'center';
-            fitStu(box, tx, [m, up, tl.clientWidth, tl.clientHeight].join('|'));
-        }
+        if (src !== 'none:')
+            stuUpd(sc, src, st, vt, isViewer);
     });
 }
 function rStuRender() {
@@ -4272,7 +5470,7 @@ function rStuRender() {
     const L = STL[lay || 'pv'];
     el.innerHTML = `<div class="rsh">🎬 Studio <button class="live" onclick="cmd('ston')">▶ TAKE</button><button onclick="cmd('stoff')">⏹</button></div>
   <div class="rsl">${Object.keys(STL).map(k => `<button class="${lay === k ? 'on' : ''}" onclick="cmd('stlayout','${k}')">${esc(t(STL[k].n))}</button>`).join('')}</div>
-  ${L ? L.s.map((r, i) => r[0] === 'c' ? `<div class="rsc"><b>${i + 1}</b>${cams.map(c => `<button class="${st && st.slots && st.slots[i] === c.id ? 'on' : ''}" onclick="cmd('stcam',${i},'${c.id}')">${esc(c.name)}</button>`).join('') || '<small>—</small>'}</div>` : '').join('') : ''}`;
+  ${L ? L.s.map((r, i) => r[0] === 'c' ? `<div class="rsc"><b>${i + 1}</b>${cams.map(c => `<button class="${st && st.slots && st.slots[i] === 'cam:' + c.id ? 'on' : ''}" onclick="cmd('stcam',${i},'cam:${c.id}')">${esc(c.name)}</button>`).join('') || '<small>—</small>'}</div>` : '').join('') : ''}`;
 }
 function renderRemote() {
     rStuRender();
