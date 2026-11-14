@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p src-tauri/bin
-          curl -fsSL --retry 3 -o ff.zip https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
+          curl -fsSL --retry 3 -o ff.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
           mkdir ffx
           python -c "import zipfile;zipfile.ZipFile('ff.zip').extractall('ffx')"
           FF=$(find ffx -name ffmpeg.exe | head -1)
