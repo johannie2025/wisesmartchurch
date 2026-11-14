@@ -1,11 +1,9 @@
 name: Build APK (mobile + TV)
-
 on:
   workflow_dispatch:
   push:
     branches: [main, master]
     tags: ['v*']
-
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -14,23 +12,33 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Installer les composants Android SDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Bibliothèques QR (copie locale pour le mode hors-ligne)
         run: |
           mkdir -p web/vendor
-          curl -fsSL --retry 3 -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
-          curl -fsSL --retry 3 -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
-      - name: Accepter les licences Android SDK
-        run: yes | sdkmanager --licenses || true
+          curl -fsSL --retry 3 -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+          curl -fsSL --retry 3 -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+
+      - name: three.js (GitHub master.zip)
+        run: bash tools/fetch-three.sh
 
       - name: Synchroniser l'interface web vers les assets Android
         run: |
           mkdir -p android/app/src/main/assets/vendor
           cp web/index.html android/app/src/main/assets/index.html
+          # Version compatible anciens WebView (Android TV) : JS en ES2017, CSS sans inset
           npm i -g typescript >/dev/null 2>&1 && node tools/make-android-html.js || echo 'transpilation ignorée'
           cp web/vendor/*.js android/app/src/main/assets/vendor/
+          mkdir -p android/app/src/main/assets/vendor/three && cp web/vendor/three/*.js android/app/src/main/assets/vendor/three/ 2>/dev/null || true
 
       - uses: gradle/actions/setup-gradle@v4
 

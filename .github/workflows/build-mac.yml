@@ -12,14 +12,16 @@ jobs:
         with: { node-version: 20 }
       - uses: dtolnay/rust-toolchain@stable
         with: { targets: 'aarch64-apple-darwin,x86_64-apple-darwin' }
-      - name: Bibliothèques QR + FFmpeg 
+      - name: Bibliothèques QR + FFmpeg
         run: |
           mkdir -p web/vendor src-tauri/bin
           curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
           curl -fsSL -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
           brew install ffmpeg
           cp "$(which ffmpeg)" src-tauri/bin/ffmpeg || true
-          touch src-tauri/bin/.keep
+      - name: three.js (GitHub master.zip)
+        shell: bash
+        run: bash tools/fetch-three.sh
       - run: npm install
       - run: npx tauri icon web/icon.png
       - run: npx tauri build --target universal-apple-darwin --bundles dmg
