@@ -1,25 +1,38 @@
 name: Build EXE (Windows)
+
 on:
   workflow_dispatch:
   push:
     tags: ['v*']
+
 jobs:
   exe:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - uses: dtolnay/rust-toolchain@stable
+        with:
+          node-version: 20
+
+      - name: Configurer Rust (toolchain stable)
+        shell: bash
+        run: |
+          rustup default stable
+          rustc --version
+          cargo --version
+
       - name: Télécharger les bibliothèques QR (copie locale, mode hors-ligne)
         shell: bash
         run: |
           mkdir -p web/vendor
-          curl -fsSL -o web/vendor/qrcode.min.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
-          curl -fsSL -o web/vendor/jsQR.min.js https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js
+          curl -fsSL --retry 3 -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
+          curl -fsSL --retry 3 -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
+
       - name: three.js (GitHub master.zip)
         shell: bash
         run: bash tools/fetch-three.sh
+
       - name: FFmpeg (diffusion RTMP + MP4)
         shell: bash
         run: |
@@ -30,10 +43,11 @@ jobs:
           FF=$(find ffx -name ffmpeg.exe | head -1)
           test -n "$FF" && cp "$FF" src-tauri/bin/ffmpeg.exe
           rm -rf ff.zip ffx
+
       - run: npm install
       - run: npx tauri icon web/icon.png
-        
       - run: npx tauri build
+
       - uses: actions/upload-artifact@v4
         with:
           name: WiseChurch-Setup
