@@ -22,6 +22,10 @@ jobs:
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Bibliothèques QR (copie locale pour le mode hors-ligne)
         run: |
           mkdir -p web/vendor
@@ -35,11 +39,8 @@ jobs:
         run: |
           mkdir -p android/app/src/main/assets/vendor
           cp web/index.html android/app/src/main/assets/index.html
-          # Version compatible anciens WebView (Android TV) : JS en ES2017, CSS sans inset
-          npm i -g typescript >/dev/null 2>&1 && node tools/make-android-html.js || echo 'transpilation ignorée'
-          cp web/vendor/*.js android/app/src/main/assets/vendor/
-          mkdir -p android/app/src/main/assets/vendor/three && cp web/vendor/three/*.js android/app/src/main/assets/vendor/three/ 2>/dev/null || true
-
+          npm install -g typescript && node tools/make-android-html.js || echo 'transpilation ignorée'
+          cp -r web/vendor/* android/app/src/main/assets/vendor/
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Compiler l'APK (debug)
