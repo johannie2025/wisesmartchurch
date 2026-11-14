@@ -314,6 +314,13 @@ fn stream_start(app: AppHandle, urls: Vec<String>, record: Option<String>, width
             let dir = format!("{}/Videos", home.replace('\\', "/"));
             let _ = std::fs::create_dir_all(&dir);
             r = format!("{}/WiseChurch-{}.mp4", dir, ts);
+        } else if !r.contains('/') && !r.contains('\\') {
+            // nom saisi par l'utilisateur : fichier dans le dossier Vidéos
+            let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).unwrap_or_default();
+            let dir = format!("{}/Videos", home.replace('\\', "/"));
+            let _ = std::fs::create_dir_all(&dir);
+            let clean: String = r.chars().filter(|c| !"<>:\"|?*".contains(*c)).collect();
+            r = format!("{}/{}", dir, if clean.to_lowercase().ends_with(".mp4") { clean } else { format!("{}.mp4", clean) });
         }
         outs.push(format!("[f=mp4:movflags=frag_keyframe+empty_moov]{}", r.replace('\\', "/")));
     }

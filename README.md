@@ -83,3 +83,9 @@ Au démarrage Windows demande la fenêtre/écran à capturer : choisir la sortie
 - **Studio virtuel (façon vMix)** : chaque cadre choisit sa source — caméra, verset, lower third, horloge, logo, média image/vidéo, fond, couleur — et sa transition (Cut, Fondu, Glisser, Zoom, Volet, Flip + durée) ; transition par défaut réglable.
 - **Cast** : bouton « Caster » (Presentation API, Chrome/Edge) ou « Copier le lien écran » : l'EXE sert la page écran en HTTP sur le port du relais (`http://IP:port/?mode=viewer&code=…`) ; ouvrez-la sur n'importe quel navigateur/TV du réseau, ou utilisez Chrome ⋮ → Caster (onglet) vers un Chromecast. Un Chromecast classique ne lance pas l'app elle-même : il affiche cette page.
 - **three.js** : `tools/fetch-three.sh` (appelé par les 3 workflows GitHub Actions) télécharge `https://github.com/mrdoob/three.js/archive/refs/heads/master.zip` et copie les fichiers de build dans `web/vendor/three/`. L'app l'utilise pour le mode « 3D réel » s'il est présent ; sinon (ou en cas d'erreur) elle retombe sur son moteur WebGL intégré.
+
+## Mise à jour (texte, zoom caméra, enregistrement, three.js)
+- Texte : minuscules **et** majuscules remplissent l'écran (bord perdu de 5 px) ; justifié avec **dernière ligne alignée à gauche** (plus de mot isolé à l'autre bout).
+- Caméra téléphone : bouton 🔍 — zoom manuel (1–4×) et **zoom IA** qui suit le visage/prédicateur (API FaceDetector si disponible, sinon détection par teinte de peau) ; photo et enregistrement utilisent l'image zoomée.
+- Enregistrement : une fenêtre demande le nom du fichier (EXE : MP4 dans le dossier Vidéos ; navigateur : sélecteur de fichier).
+- 3D : le studio « 3D réel » utilise three.js (`web/vendor/three/three.module.js` + `three.core.js`, récupérés par `tools/fetch-three.sh`, branche dev puis master). Plateaux three.js : TV, culte (colonnes/vitrail), table ronde, concert (portique/faisceaux), reflets, transitions par cadre.
