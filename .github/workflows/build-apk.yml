@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -21,10 +24,6 @@ jobs:
         run: |
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - name: Bibliothèques QR (copie locale pour le mode hors-ligne)
         run: |
@@ -39,8 +38,19 @@ jobs:
         run: |
           mkdir -p android/app/src/main/assets/vendor
           cp web/index.html android/app/src/main/assets/index.html
-          npm install -g typescript && node tools/make-android-html.js || echo 'transpilation ignorée'
-          cp -r web/vendor/* android/app/src/main/assets/vendor/
+          # Version compatible anciens WebView (Android TV) : JS en ES2017, CSS sans inset
+          npm i --no-save --prefix "$RUNNER_TEMP/ts" typescript >/dev/null 2>&1 || true
+          export PATH="$RUNNER_TEMP/ts/node_modules/.bin:$PATH"
+          node tools/make-android-html.js || echo '::warning::transpilation ignorée'
+          cp web/vendor/*.js android/app/src/main/assets/vendor/
+          if ls web/vendor/three/*.js >/dev/null 2>&1; then
+            mkdir -p android/app/src/main/assets/vendor/three
+            cp web/vendor/three/*.js android/app/src/main/assets/vendor/three/
+            echo "three.js inclus dans l'APK :"; ls android/app/src/main/assets/vendor/three
+          else
+            echo "::warning::three.js absent : l'APK utilisera le moteur WebGL intégré"
+          fi
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Compiler l'APK (debug)
