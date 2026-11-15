@@ -3,7 +3,9 @@ name: Build EXE (Windows)
 on:
   workflow_dispatch:
   push:
+    branches: [main, master]
     tags: ['v*']
+    paths-ignore: ['server/**','samples/**','README.md']
 
 jobs:
   exe:
