@@ -10,11 +10,22 @@ android {
         applicationId 'com.wisedesign.wisechurch'
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 110
+        versionName '1.1.0'
+    }
+    // Signature FIXE (même clé à chaque compilation) : l'APK s'installe par-dessus l'ancienne version
+    // sans désinstallation, donc sans perdre Bibles, médias ni réglages.
+    signingConfigs {
+        wdscs {
+            storeFile file('wdscs.keystore')
+            storePassword 'wdscs2026'
+            keyAlias 'wdscs'
+            keyPassword 'wdscs2026'
+        }
     }
     buildTypes {
-        release { minifyEnabled false }
+        debug { signingConfig signingConfigs.wdscs }
+        release { minifyEnabled false; signingConfig signingConfigs.wdscs }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

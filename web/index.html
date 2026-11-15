@@ -455,6 +455,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
     <button class="ghost" onclick="blank()">⬛ Noir</button>
     <button class="ghost" onclick="openViewer()">🖥 Ouvrir un écran</button>
     <button class="ghost" id="recBtn" onclick="toggleRec()">⏺ Enregistrer</button>
+    <button class="ghost hidden" id="updBtn" onclick="updShow()" style="color:#facc15">🔔</button>
     <button class="ghost" id="mixBtn" onclick="mixToggle()" title="Mixeur audio">🎚</button>
     <button class="ghost" onclick="resetMode()" title="Changer de mode">⇄</button>
   </div>
@@ -555,6 +556,8 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
         <div class="bar" style="margin-top:8px"><button class="live" onclick="preStart()">▶ Lancer</button><button onclick="preAdj(1)">+1 min</button><button onclick="preAdj(-1)">−1 min</button><button onclick="preStop()">⏹ Arrêter</button></div>
       </div>
       <div class="pane hidden" id="p-tools">
+        <details><summary style="cursor:pointer;font-weight:700;color:var(--ac)">📚 Catalogue (Bibles · fonds · studios 3D · cantiques)</summary>
+          <div class="ai" id="catSt">Réservé aux abonnés actifs.</div><div class="bar"><button class="sm" onclick="catLoad()">↻ Actualiser le catalogue</button></div><div id="catBox"></div></details>
         <details open><summary style="cursor:pointer;font-weight:700;color:var(--ac)">Licence / Abonnement</summary>
           <div class="ai" id="licSt">—</div>
           <label>Clé d’activation</label><div class="bar"><input id="licKey" placeholder="WDSC-XXXX-XXXX-XXXX" style="flex:1"><button class="pri" onclick="licActivate()">Activer</button></div>
@@ -2262,6 +2265,42 @@ async function hostSendCam(vid,cam){
 }
 handlers.camNeed=m=>{if(MODE==='host')hostSendCam(m.from,m.cam)};
 
+/* ============ Catalogue du panel + mises à jour ============ */
+const APP_VER='1.1.0';
+let CATI=[],UPD=null;
+const CATK={bible:['📖','Bibles','Biblias','Bibles'],background:['🎨','Fonds d’écran','Fondos de pantalla','Backgrounds'],studio:['🧊','Studios virtuels 3D','Estudios virtuales 3D','3D virtual studios'],hymns:['🎼','Cantiques','Cánticos','Hymns']};
+async function catLoad(){
+  if(!LIC||!LIC.key){$('catSt').textContent=tr3('Activez votre abonnement pour accéder au catalogue.','Active su suscripción para acceder al catálogo.','Activate your subscription to access the catalog.');return}
+  $('catSt').textContent='⏳';
+  try{const {j}=await licCall('catalog',{key:LIC.key,device:DEVID});if(!j.ok)throw new Error(j.error||'refusé');CATI=j.items||[];$('catSt').textContent=CATI.length+' '+tr3('éléments','elementos','items');catRender()}
+  catch(e){$('catSt').textContent=tr3('Catalogue indisponible : ','Catálogo no disponible: ','Catalog unavailable: ')+(e.message||e)}}
+function catRender(){const done=LS.get('wcCatDone',{});
+  $('catBox').innerHTML=Object.keys(CATK).map(k=>{const l=CATI.filter(x=>x.kind===k);if(!l.length)return '';const i=LANG==='es'?2:LANG==='en'?3:1;
+    return `<h4 style="margin:10px 0 4px">${CATK[k][0]} ${esc(CATK[k][i])}</h4>`+l.map(x=>`<div class="scr">${esc(x.title)} <small style="color:var(--tx3)">${esc(x.lang||'')} ${esc(x.info||'')}</small><button class="sm" style="margin-left:auto" onclick="catInstall(${x.id})" id="cat${x.id}">${done[x.id]?'✓ '+tr3('Réinstaller','Reinstalar','Reinstall'):'⬇ '+tr3('Installer','Instalar','Install')}</button></div>`).join('')}).join('')||''}
+async function catInstall(id){
+  const x=CATI.find(c=>c.id==id);if(!x)return;const b=$('cat'+id);if(b)b.textContent='⏳';
+  try{
+    if(x.kind==='bible'){const books=parseBibleAuto(await fetchText([x.url]));await bibleStore({id:'c'+x.id,name:x.title,lang:x.lang||'fr',lic:'Catalogue'},books);renderBibleUI()}
+    else if(x.kind==='hymns'){const tx=await fetchText([x.url]);let o=null;try{o=JSON.parse(tx)}catch{}let n=0;if(o)n=songsFromJSON(o);else{const sg=parseSong(x.url.split('/').pop(),tx);if(sg){SONGS.push(sg);n=1}}LS.set('wcSongs',SONGS);renderSongs();toast(n+' '+tr3('chant(s)','canto(s)','song(s)'))}
+    else{const r=await fetch(x.url);if(!r.ok)throw new Error('HTTP '+r.status);const bl=await r.blob();let nm=decodeURIComponent((x.url.split('?')[0].split('/').pop()||'')).trim();
+      if(x.kind==='studio'&&!/\.(glb|gltf|js|mjs)$/i.test(nm))nm=(x.title||'studio')+'.glb';if(x.kind==='background'&&!/\.\w{2,4}$/.test(nm))nm=(x.title||'fond')+(bl.type.startsWith('video')?'.mp4':'.jpg');
+      await addMedia([new File([bl],nm,{type:bl.type||''})])}
+    const d=LS.get('wcCatDone',{});d[id]=1;LS.set('wcCatDone',d);toast('✔ '+x.title)}
+  catch(e){toast('❌ '+x.title+' : '+(e.message||e))}
+  catRender()}
+function verCmp(a,b){const A=String(a).split('.').map(Number),B=String(b).split('.').map(Number);for(let i=0;i<4;i++){const d=(A[i]||0)-(B[i]||0);if(d)return d>0?1:-1}return 0}
+async function updCheck(){
+  if(!LIC||!LIC.key||!PRO())return;
+  try{const {j}=await licCall('update',{key:LIC.key,device:DEVID,platform:platName(),version:APP_VER});
+    if(!j.ok||!j.latest||verCmp(j.latest.version,APP_VER)<=0){UPD=null;$('updBtn').classList.add('hidden');return}
+    UPD=j.latest;$('updBtn').classList.remove('hidden');$('updBtn').title=tr3('Mise à jour disponible','Actualización disponible','Update available')+' v'+UPD.version;
+    if(LS.get('wcUpdSeen','')!==UPD.version){LS.set('wcUpdSeen',UPD.version);toast('🔔 '+tr3('Mise à jour disponible : v','Actualización disponible: v','Update available: v')+UPD.version);updShow()}}
+  catch{}}
+function updShow(){if(!UPD)return;const n=(UPD.notes&&(UPD.notes[LANG]||UPD.notes.fr||UPD.notes.en))||'';
+  const d=document.createElement('div');d.id='rDlg';d.innerHTML=`<div><h3 style="margin:0 0 8px">🔔 ${esc(tr3('Mise à jour disponible','Actualización disponible','Update available'))} — v${esc(UPD.version)}</h3><div style="font-size:12px;color:var(--tx3);margin-bottom:8px">${esc(tr3('Version installée','Versión instalada','Installed version'))} : v${APP_VER}${UPD.mandatory?' · ⚠ '+esc(tr3('importante','importante','important')):''}</div><div style="white-space:pre-wrap;font-size:13px;max-height:40vh;overflow:auto">${esc(n)}</div><div style="font-size:12px;color:var(--tx3);margin-top:8px">${esc(tr3('Vos Bibles, médias et réglages sont conservés : installez par-dessus l’ancienne version.','Sus Biblias, medios y ajustes se conservan: instale sobre la versión anterior.','Your Bibles, media and settings are kept: install over the old version.'))}</div><div class="bar" style="margin-top:12px;justify-content:flex-end"><button id="upNo">${esc(tr3('Plus tard','Más tarde','Later'))}</button><button class="pri" id="upGo">⬇ ${esc(tr3('Télécharger','Descargar','Download'))}</button></div></div>`;
+  document.body.appendChild(d);d.querySelector('#upNo').onclick=()=>d.remove();
+  d.querySelector('#upGo').onclick=()=>{d.remove();try{if(TAURI)TAURI.invoke('open_url',{url:UPD.url});else window.open(UPD.url,'_blank')}catch{window.open(UPD.url,'_blank')}}}
+setTimeout(updCheck,6000);setInterval(updCheck,6*3600*1000);
 /* ============ Mixeur audio (façon vMix) ============ */
 function tr3(fr,es,en){return LANG==='es'?es:LANG==='en'?en:fr}
 const MIX={ctx:null,ch:{},use:true,open:false,raf:0};
@@ -3318,7 +3357,7 @@ async function licActivate(){
   try{
     const api=$('licApi').value.trim();
     if(api){LIC=Object.assign(LIC||{},{api})}
-    const {j,api:a2}=await licCall('activate',{key,device:DEVID,platform:platName(),version:'1.0',lang:LANG});
+    const {j,api:a2}=await licCall('activate',{key,device:DEVID,platform:platName(),version:APP_VER,lang:LANG});
     if(!j.ok){toast('Licence : '+(j.error||'refusée'));return}
     LIC={key,api:a2,plan:j.plan,exp:j.expires*1000,last:Date.now(),user:j.user||''};LS.set('wcLic',LIC);licUI();toast('Abonnement activé ✔');licVerify(true);
   }catch(e){toast('Serveur de licence injoignable')}
@@ -3326,7 +3365,7 @@ async function licActivate(){
 async function licVerify(silent){
   if(!LIC||!LIC.key)return;
   try{
-    const {j}=await licCall('verify',{key:LIC.key,device:DEVID,platform:platName(),usage:USE});
+    const {j}=await licCall('verify',{key:LIC.key,device:DEVID,platform:platName(),usage:USE});setTimeout(updCheck,500);
     if(j.ok){LIC.exp=j.expires*1000;LIC.plan=j.plan;LIC.last=Date.now();LIC.ai=j.ai||null;USE={takes:0,mins:0,sessions:USE.sessions,t0:Date.now()};LS.set('wcUse',USE)}
     else if(['expired','suspended','unknown'].includes(j.error)){LIC.exp=0}
     LS.set('wcLic',LIC);licUI();

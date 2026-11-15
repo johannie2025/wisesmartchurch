@@ -96,3 +96,9 @@ Au démarrage Windows demande la fenêtre/écran à capturer : choisir la sortie
 - **Mixeur audio** (🎚) : faders, muet, écoute régie et VU-mètres par caméra/micro + maître ; le mixage remplace le son capturé à l'enregistrement/diffusion (EXE).
 - **Guide interactif** : bouton ? en bas à gauche (FR/ES/EN), lancé automatiquement à la première ouverture.
 - Alerte : curseur de taille (50–400 %). Versets : un verset par ligne.
+
+## Mises à jour, catalogue, conservation des données
+- **Données conservées** : Bibles, médias et réglages sont stockés dans le profil de l'app (EXE : WebView2 sous `%LOCALAPPDATA%\com.wisedesign.wisechurch`, APK : stockage de l'app). Installez toujours **par-dessus** l'ancienne version ; sous Windows, ne cochez pas « supprimer les données » à la désinstallation. L'APK est maintenant signé avec une clé fixe (`android/app/wdscs.keystore`) : les mises à jour suivantes s'installent sans désinstaller. **Gardez ce fichier** (et ne changez pas `identifier` dans `tauri.conf.json`). Premier passage à cette clé : si Android refuse l'installation (signature différente), faites d'abord une sauvegarde (menu Fichier), désinstallez, installez, puis restaurez.
+- **Panel → Catalogue** (`admin/catalog.php`) : ajoutez des liens https de Bibles, fonds d'écran, studios 3D, cantiques ; les abonnés les installent depuis Outils → Catalogue (`api/catalog.php`).
+- **Panel → Mises à jour** (`admin/releases.php`) : publiez une version avec notes FR/ES/EN ; les abonnés actifs voient 🔔 + fenêtre (`api/update.php`, vérification au démarrage puis toutes les 6 h). Tables créées automatiquement.
+- **Compilation** : un push sur `main`/`master` lance maintenant l'EXE et l'APK (sauf si seuls `server/`, `samples/` ou le README changent) ; macOS reste sur tag `v*` ou lancement manuel.
