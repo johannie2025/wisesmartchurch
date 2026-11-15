@@ -89,3 +89,10 @@ Au démarrage Windows demande la fenêtre/écran à capturer : choisir la sortie
 - Caméra téléphone : bouton 🔍 — zoom manuel (1–4×) et **zoom IA** qui suit le visage/prédicateur (API FaceDetector si disponible, sinon détection par teinte de peau) ; photo et enregistrement utilisent l'image zoomée.
 - Enregistrement : une fenêtre demande le nom du fichier (EXE : MP4 dans le dossier Vidéos ; navigateur : sélecteur de fichier).
 - 3D : le studio « 3D réel » utilise three.js (`web/vendor/three/three.module.js` + `three.core.js`, récupérés par `tools/fetch-three.sh`, branche dev puis master). Plateaux three.js : TV, culte (colonnes/vitrail), table ronde, concert (portique/faisceaux), reflets, transitions par cadre.
+
+## Plateaux TV 3D, import 3D, mixeur audio, guide
+- Nouveaux plateaux three.js : **Journal TV**, **Interview**, **Reportage (rue de nuit)**, **Débat**, **Matinale** (+ Culte, Émission, Table ronde, Concert).
+- **Importer un studio 3D** (Studio → Décor 3D → 📥) : `.glb` / `.gltf` (géométrie, matériaux PBR, textures, hiérarchie ; sans Draco/animations) ou un module three.js `.js` : `export default function(THREE,{ctex,width,height,y0}){ const g=new THREE.Group(); /* … */ return g }`. Le fichier est envoyé aux écrans comme un média. Attention : un module `.js` est exécuté tel quel — n'importez que des fichiers de confiance.
+- **Mixeur audio** (🎚) : faders, muet, écoute régie et VU-mètres par caméra/micro + maître ; le mixage remplace le son capturé à l'enregistrement/diffusion (EXE).
+- **Guide interactif** : bouton ? en bas à gauche (FR/ES/EN), lancé automatiquement à la première ouverture.
+- Alerte : curseur de taille (50–400 %). Versets : un verset par ligne.
