@@ -22,7 +22,8 @@ jobs:
       - name: three.js (GitHub master.zip)
         shell: bash
         run: bash tools/fetch-three.sh
-      - run: npm install
+      - name: Installer Tauri CLI
+        run: npm install --no-package-lock @tauri-apps/cli@2
       - run: npx tauri icon web/icon.png
       - run: npx tauri build --target universal-apple-darwin --bundles dmg
       - uses: actions/upload-artifact@v4
