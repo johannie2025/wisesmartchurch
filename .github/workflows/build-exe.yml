@@ -46,7 +46,8 @@ jobs:
           test -n "$FF" && cp "$FF" src-tauri/bin/ffmpeg.exe
           rm -rf ff.zip ffx
 
-      - run: npm install
+      - name: Installer Tauri CLI
+        run: npm install --no-package-lock @tauri-apps/cli@2
       - run: npx tauri icon web/icon.png
       - run: npx tauri build
 
