@@ -61,6 +61,7 @@ label.inl{display:inline-flex;align-items:center;gap:6px;margin:0;text-transform
 .tile:hover{border-color:#ffffff40}.tile.on{border-color:var(--ac);background:#5b8cff18}.tile.live{border-color:var(--live);background:#ff4d5e14}
 .tile .n{position:absolute;top:4px;right:8px;font-size:10px;color:var(--tx3);font-weight:800}
 .tile .tx{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+body.dndOn::after{content:'⬇ Déposez vos fichiers ici';position:fixed;inset:10px;border:3px dashed #5b8cff;border-radius:16px;background:#2f7bff22;z-index:2147483600;display:flex;align-items:center;justify-content:center;font:700 22px sans-serif;color:#fff;pointer-events:none}
 .mtile{background:var(--s2);border:2px solid var(--line);border-radius:10px;overflow:hidden}
 .mtile .th{aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative}
 .mtile .th>img,.mtile .th>video{width:100%;height:100%;object-fit:cover}
@@ -500,7 +501,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
     <span class="pill" id="relayP">relais : —</span>
     <span class="pill hidden" id="outP" style="cursor:pointer" onclick="toggleOut()" title="Projection automatique sur HDMI / VGA / DVI">sorties auto</span>
     <div class="sp"></div>
-    <button class="ghost" onclick="blank()">⬛ Noir</button>
+    <button class="ghost" onclick="blank()">⬛ Noir</button><button class="ghost" title="Preview noir" onclick="blankPv()">⬛ Noir PV</button>
     <button class="ghost" onclick="openViewer()">🖥 Ouvrir un écran</button>
     <button class="ghost" id="castHdr" onclick="castStart()" title="Chromecast / TV / navigateur">📡 Cast</button>
     <button class="ghost" id="recBtn" onclick="toggleRec()">⏺ Enregistrer</button>
@@ -512,7 +513,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
     <div class="side">
       <div class="pnl-h">Ressources</div>
       <div class="tabs">
-        <div class="tab on" data-t="songs">Chants</div><div class="tab" data-t="bible">Bible</div><div class="tab" data-t="media">Médias</div><div class="tab" data-t="studio">🎬 Studio</div><div class="tab" data-t="pl">Conducteur du culte</div><div class="tab" data-t="lt">Lower 3rd</div><div class="tab" data-t="gt">🎨 GT</div><div class="tab" data-t="cap">📸 Capture</div><div class="tab" data-t="edit" onclick="setTimeout(edOpen,0)">✂ Montage</div><div class="tab" data-t="air">Diffusion</div><div class="tab" data-t="ai">IA</div><div class="tab" data-t="tools">Outils</div>
+        <div class="tab on" data-t="songs">Chants</div><div class="tab" data-t="bible">Bible</div><div class="tab" data-t="media">Médias</div><div class="tab" data-t="studio">🎬 Studio</div><div class="tab" data-t="pl">Conducteur du culte</div><div class="tab" data-t="lt">Lower 3rd</div><div class="tab" data-t="gt">🎨 GT</div><div class="tab" data-t="cap">📸 Capture</div><div class="tab" data-t="edit">✂ Montage</div><div class="tab" data-t="air">Diffusion</div><div class="tab" data-t="ai">IA</div><div class="tab" data-t="tools">Outils</div>
       </div>
       <div class="pane" id="p-songs"></div>
       <div class="pane hidden" id="p-bible">
@@ -552,7 +553,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
         <label>Caméras (téléphones)</label><div id="camList"></div>
         <label>Fichiers</label>
         <div class="bar"><button class="pri" onclick="$('mFile').click()">+ Importer médias · PPTX · PDF · HTML</button><label class="inl"><input type="checkbox" id="mLive"> Direct</label></div>
-        <input type="file" id="mFile" hidden multiple accept="image/*,video/*,audio/*,.pptx,.pdf,.html,.htm" onchange="addMedia(this.files);this.value=''">
+        <input type="file" id="mFile" hidden multiple accept="image/*,video/*,audio/*,.pptx,.pdf,.html,.htm,.json" onchange="addMedia(this.files);this.value=''">
         <div class="bar" style="margin:8px 0"><button onclick="toggleVideo()">⏯ Vidéo</button><button onclick="toggleAudio()">🔊 Audio</button><button onclick="clearLayers()">Vider couches</button></div>
         <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">L1 = fond plein écran · L2 = plein cadre · L3 = logo coin. Les médias sont envoyés automatiquement aux écrans et conservés sur cet appareil.</div>
         <div id="frameBox" style="margin:6px 0 10px;padding:8px;border:1px solid var(--line);border-radius:10px"></div>
@@ -954,7 +955,7 @@ async function initHost(){
   else if(TAURI){setTimeout(async()=>useRelay('ws://127.0.0.1:'+await relayPort()),500)}
   else{const r=LS.get('wcRelay','');if(r)useRelay(r)}
   drawQR();setInterval(()=>{if(!HOSTIP)drawQR()},6000);
-  try{for(const r of await idb.all()){HF[r.id]={id:r.id,name:r.name,kind:r.kind,mime:r.mime,file:r.blob,url:URL.createObjectURL(r.blob)}}}catch{}
+  try{for(const r of await idb.all()){HF[r.id]={id:r.id,name:r.name,kind:r.kind,mime:r.mime,file:r.blob,url:URL.createObjectURL(r.blob),tpl:r.tpl}}}catch{}
   await loadDefaultBgs();renderMedia();bibleLoadInstalled();camsHostInit();wake();outputsLoop();
   if(!TAURI&&!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia))$('recBtn').classList.add('hidden');
   handlers.hello=m=>{
@@ -966,10 +967,10 @@ async function initHost(){
   handlers.ping=m=>{if(screens[m.id])screens[m.id].t=Date.now();else{screens[m.id]={id:m.id,name:m.id.slice(0,5),role:ROLES[m.id]||m.role||'program',t:Date.now()};renderScreens()}};
   handlers.rhello=()=>sync();
   handlers.mNeed=m=>pushMedia(m.id);
-  handlers.cmd=m=>{({stlayout:()=>stuLayout(m.i),stview:()=>camPre(m.i),tk:tkToggle,mixcut:mixCut,mixauto:mixAuto,mixftb:mixFtb,mixpvw:()=>mixPvw(m.i),ston:stuTake,stoff:stuOff,stcam:()=>stuSlot(m.i,m.a),alert:()=>alertSet(m.k||'garderie',m.msg||'',!!m.on),next:()=>step(1),prev:()=>step(-1),take,blank,goto:()=>pick(m.i),vplay:toggleVideo,audio:toggleAudio,clearlayers:clearLayers,plnext:()=>plStep(1),plprev:()=>plStep(-1),plgoto:()=>runItem(m.i),bible:()=>{$('bref').value=m.a;bibleGo()},song:()=>loadSong(m.i,true),pladdverse:()=>{$('plVerse').value=m.a;addVerseRefToPL()},pladdsong:()=>addSongToPL(m.i),pladdmedia:()=>addMediaToPL(m.i),media:()=>assignLayer(m.i,+m.a),mflag:()=>mediaFlag(m.i,m.a),maudio:()=>mediaAudioToggle(m.i),songstep:()=>songStep(m.i),mediastep:()=>mediaStep(m.i),mtap:()=>mediaTap(m.i,m.a),unlive:()=>unlive(m.a),unpv:()=>unpv(m.a),ltprev:()=>remoteLt(m.a,'pv'),ltlive:()=>remoteLt(m.a,'live'),lthide:()=>{ltHide()},lcfg:()=>lcfgSet(m.i,m.a.k,m.a.v),songadd:()=>remoteSongAdd(m.a),songfile:()=>remoteSongFile(m.a)})[m.cmd]?.()};
+  handlers.cmd=m=>{({stlayout:()=>stuLayout(m.i),stview:()=>camPre(m.i),tk:tkToggle,mixcut:mixCut,mixauto:mixAuto,mixftb:mixFtb,mixpvw:()=>mixPvw(m.i),ston:stuTake,stoff:stuOff,stclear:stuClear,blankpv:blankPv,stcam:()=>stuSlot(m.i,m.a),alert:()=>alertSet(m.k||'garderie',m.msg||'',!!m.on),next:()=>step(1),prev:()=>step(-1),take,blank,goto:()=>pick(m.i),vplay:toggleVideo,audio:toggleAudio,clearlayers:clearLayers,plnext:()=>plStep(1),plprev:()=>plStep(-1),plgoto:()=>runItem(m.i),bible:()=>{$('bref').value=m.a;bibleGo()},song:()=>loadSong(m.i,true),pladdverse:()=>{$('plVerse').value=m.a;addVerseRefToPL()},pladdsong:()=>addSongToPL(m.i),pladdmedia:()=>addMediaToPL(m.i),media:()=>assignLayer(m.i,+m.a),mflag:()=>mediaFlag(m.i,m.a),maudio:()=>mediaAudioToggle(m.i),songstep:()=>songStep(m.i),mediastep:()=>mediaStep(m.i),mtap:()=>mediaTap(m.i,m.a),unlive:()=>unlive(m.a),unpv:()=>unpv(m.a),ltprev:()=>remoteLt(m.a,'pv'),ltlive:()=>remoteLt(m.a,'live'),lthide:()=>{ltHide()},lcfg:()=>lcfgSet(m.i,m.a.k,m.a.v),songadd:()=>remoteSongAdd(m.a),songfile:()=>remoteSongFile(m.a)})[m.cmd]?.()};
   handlers.rUpStart=m=>{RUP[m.id]={m,parts:[],got:0}};
   handlers.rUpChunk=m=>{const r=RUP[m.id];if(!r||r.parts[m.i]!=null)return;r.parts[m.i]=m.d;if(++r.got===r.m.n)rUpDone(m.id)};
-  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{if(['gt','cap','edit'].includes(t.dataset.t)&&!PRO()){needPro();return}document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));['songs','bible','media','studio','pl','lt','gt','cap','edit','air','ai','tools'].forEach(k=>$('p-'+k).classList.toggle('hidden',k!==t.dataset.t));WSTAB=t.dataset.t;if(t.dataset.t==='studio'){const e=$('p-studio');delete e.dataset.k;stuUI()}if(t.dataset.t==='gt')renderGT();if(t.dataset.t==='cap')capUI();renderWS(true)});
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{if(['gt','cap','edit'].includes(t.dataset.t)&&!PRO()){needPro();return}document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));['songs','bible','media','studio','pl','lt','gt','cap','edit','air','ai','tools'].forEach(k=>$('p-'+k).classList.toggle('hidden',k!==t.dataset.t));WSTAB=t.dataset.t;if(t.dataset.t==='studio'){const e=$('p-studio');delete e.dataset.k;stuUI()}if(t.dataset.t==='gt')renderGT();if(t.dataset.t==='cap')capUI();if(t.dataset.t==='edit')setTimeout(edOpen,0);renderWS(true)});
   S.tr=LS.get('wcTr','fade');S.trDur=LS.get('wcTrDur',600);$('trSel').value=S.tr;$('trDur').value=S.trDur;{const sb=LS.get('wcBug',null);if(sb)S.bug=sb}airSync();renderLTPane();
   setInterval(()=>{const now=Date.now();Object.values(screens).forEach(s=>{if(now-s.t>9000)delete screens[s.id]});renderScreens()},4000);
   setInterval(()=>{if($('pairAuto').checked)send({type:'announce',pair:CODE,name:LS.get('wcName','Régie')},'LOBBY')},2000);
@@ -1061,10 +1062,12 @@ function parseSong(name,t){
 function setItems(a){S.items=a;S.idx=-1;step(1)}
 
 /* ----- diffusion ----- */
-function pick(i){if(!S.items[i])return;S.idx=i;S.pvMain=S.items[i].main;S.pvSub=S.items[i].sub;S.next=S.items[i+1]?.main||'';render();sync()}
+function pick(i){if(!S.items[i])return;S.pvBlank=false;S.idx=i;S.pvMain=S.items[i].main;S.pvSub=S.items[i].sub;S.next=S.items[i+1]?.main||'';render();sync()}
 function step(d){if(!S.items.length)return;pick(Math.max(0,Math.min(S.items.length-1,S.idx+d)))}
 function take(){S.takeN=(S.takeN||0)+1;S.main=S.pvMain;S.sub=S.pvSub;S.layers=JSON.parse(JSON.stringify(S.pvLayers));S.blank=false;$('liveP').textContent='EN DIRECT';$('liveP').className='pill on';render();sync()}
 function blank(){S.blank=!S.blank;render();sync()}
+function blankPv(){S.pvBlank=!S.pvBlank;render();sync();stuUI()}
+function blankBoth(){const v=!(S.blank&&S.pvBlank);S.blank=v;S.pvBlank=v;render();sync();stuUI()}
 function startTimer(){S.timerEnd=Date.now()+(+$('tmin').value||1)*60000;S.timerAll=!!($('tmAll')&&$('tmAll').checked);sync();tmRead()}
 function stopTimer(){S.timerEnd=0;sync();tmRead()}
 function tmRead(){const r=S.timerEnd?Math.max(0,Math.round((S.timerEnd-Date.now())/1000)):-1,txt=r<0?'--:--':fmtT(r);['tmRead','tmRead2'].forEach(k=>{const e=$(k);if(e){e.textContent=txt;e.style.color=r===0?'#ff4d5e':''}})}
@@ -1072,7 +1075,7 @@ setInterval(()=>{if(MODE==='host'||MODE==='remote')tmRead()},500);
 function sync(){
   if(MODE!=='host')return;
   const l=curList();
-  send({type:'state',s:{gtcss:S.gtcss,gtbg:S.gtbg,gfx:S.gfx,stgN:S.stgN,stgCfg:S.stgCfg,tk:S.tk,main:S.main,sub:S.sub,pvMain:S.pvMain,pvSub:S.pvSub,blank:S.blank,bleed:S.bleed,tr:S.tr,trDur:S.trDur,takeN:S.takeN,lt:S.lt,pvLt:S.pvLt,alert:S.alert,studio:S.studio,pvStudio:S.pvStudio,cams:Object.values(CAMS).map(c=>({id:c.id,name:c.name,ok:!!c.stream})),bug:S.bug,pre:S.pre,fs:S.fs,up:S.up,font:S.font,notes:S.notes,next:S.next,timerEnd:S.timerEnd,timerAll:S.timerAll,idx:S.idx,songs:SONGS.map(x=>x.t),media:Object.values(HF).map(m=>({id:m.id,name:m.name,kind:m.kind,loop:m.loop!==false,mute:!!m.mute})),
+  send({type:'state',s:{gtcss:S.gtcss,gtbg:S.gtbg,gfx:S.gfx,stgN:S.stgN,stgCfg:S.stgCfg,tk:S.tk,main:S.main,sub:S.sub,pvMain:S.pvMain,pvSub:S.pvSub,blank:S.blank,pvBlank:S.pvBlank,bleed:S.bleed,tr:S.tr,trDur:S.trDur,takeN:S.takeN,lt:S.lt,pvLt:S.pvLt,alert:S.alert,studio:S.studio,pvStudio:S.pvStudio,cams:Object.values(CAMS).map(c=>({id:c.id,name:c.name,ok:!!c.stream})),bug:S.bug,pre:S.pre,fs:S.fs,up:S.up,font:S.font,notes:S.notes,next:S.next,timerEnd:S.timerEnd,timerAll:S.timerAll,idx:S.idx,songs:SONGS.map(x=>x.t),media:Object.values(HF).map(m=>({id:m.id,name:m.name,kind:m.kind,loop:m.loop!==false,mute:!!m.mute})),
     layers:S.layers,pvLayers:S.pvLayers,lcfg:S.lcfg,audio:S.audio,audioOn:S.audioOn,vplay:S.vplay,
     items:S.items.map(x=>({main:x.main.slice(0,80),sub:(x.sub||'').slice(0,40)})),
     pl:{name:l?l.name:'',cur:PLCUR,items:l?l.items.map(it=>({label:it.label})):[]}}});
@@ -1178,6 +1181,7 @@ function fitHost(){
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(()=>{if(MODE==='viewer')renderViewer()},80)});
 function render(){
   if(MODE!=='host')return;
+  {const pb=$('pvBox');if(pb){let o=pb.querySelector(':scope>.pvblk');if(S.pvBlank){if(!o){o=document.createElement('div');o.className='pvblk';o.style.cssText='position:absolute;inset:0;background:#000;z-index:90;display:flex;align-items:center;justify-content:center;color:#444;font:700 12px sans-serif';o.textContent='PREVIEW ⬛';pb.appendChild(o)}}else if(o)o.remove()}}
   $('pvM').textContent=S.pvMain;$('pvS').textContent=S.pvSub;
   $('pgM').textContent=S.blank?'':S.main;$('pgS').textContent=S.blank?'':S.sub;
   const u=id=>HF[id]&&HF[id].url;
@@ -1216,7 +1220,7 @@ const COMP_T={
  credits:{n:'Générique défilant',p:{title:'Merci !',lines:'Louange : Équipe musique\nSon : Équipe technique\nVidéo : Équipe média',c1:'#2f7bff'},h:'<style>.r{width:100%;height:100%;background:#05070f;overflow:hidden;color:#fff;font-family:Arial,sans-serif;text-align:center}.s{padding-top:6cqh}.t{font-size:5cqw;font-weight:800;color:{{c1}}}.x{font-size:2.8cqw;line-height:2;margin-top:4cqh}</style><div class="r"><div class="s" data-scroll="1" data-speed="9"><div class="t">{{title}}</div><div class="x">{{lines}}</div></div></div>'}
 };
 const compEsc=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/\n/g,'<br>');
-function compSource(c){return c.type==='comp'?(COMP_T[c.tpl]||COMP_T.title).h.replace(/\{\{(\w+)\}\}/g,(m,k)=>k in(c.props||{})?compEsc(c.props[k]):(COMP_T[c.tpl]&&COMP_T[c.tpl].p[k]!=null?compEsc(COMP_T[c.tpl].p[k]):'')):String(c.html||'')}
+function compSource(c){return c.type==='comp'?(COMP_T[c.tpl]||COMP_T.title).h.replace(/\{\{(\w+)\}\}/g,(m,k)=>k in(c.props||{})?compEsc(c.props[k]):(COMP_T[c.tpl]&&COMP_T[c.tpl].p[k]!=null?compEsc(COMP_T[c.tpl].p[k]):'')):String(c.html||'').replace(TPL_RE,(m,n,ty,d)=>{n=n.trim();const v=(c.props&&c.props[n]!=null&&c.props[n]!=='')?c.props[n]:(d||'');return(ty==='image'||ty==='video'||tplGuess(n)==='image')?v:compEsc(v)})}
 const CMD={};async function compDataUrl(key){if(CMD[key])return CMD[key];let m=key==='logo'?HF[S.bug&&S.bug.id]:Object.values(HF).find(x=>x.id===key||x.name===key);if(!m||!m.url)return'';try{const b=await (await fetch(m.url)).blob(),r=await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)});CMD[key]=r;return r}catch{return''}}
 async function compBuild(c){const html=compSource(c),key=html+'|'+JSON.stringify(c.props||{});if(c._k===key&&c._root)return c._root;
   let h=html;const ms=[...h.matchAll(/\{\{media:([^}]+)\}\}/g)];for(const m of ms){h=h.replace(m[0],await compDataUrl(m[1]))}
@@ -1279,12 +1283,93 @@ function edText(x,c,t,W,H){const lt=t-c.start,p=eoc(lt/.7),po=clamp01((edEnd(c)-
   if(c.tpl==='kinetic'){const k=1+Math.max(0,1-lt*3)*.8;x.translate(cx,cy);x.scale(k,k);x.rotate((1-p)*-.12);x.translate(-cx,-cy);x.font=`900 ${fs*1.4}px "${c.fam||'Arial'}",Arial`}
   if(c.tpl==='words'){const ws=tx.split(' '),n=ws.length;x.textAlign='left';const full=x.measureText(tx).width;let xx=cx-full/2;ws.forEach((w,i)=>{const q=eoc((lt-i*.25)/.4);x.globalAlpha=Math.min(q,po)*(c.op/100);x.fillText(w,xx,cy+(1-q)*fs*.6);xx+=x.measureText(w+' ').width});x.restore();return}
   lines=edWrap(x,tx,W*.85);const lh=fs*1.15;lines.forEach((l,i)=>x.fillText(l,cx,cy-(lines.length-1)*lh/2+i*lh));x.restore()}
+/* ============ SOUS-TITRES AUTO + styles animés façon CapCut ============ */
+const ED_CC=[['cc_pop','💥 Pop (mot par mot)'],['cc_karaoke','🎤 Karaoké'],['cc_hormozi','🔥 Impact (contour)'],['cc_box','🟨 Boîte surlignée'],['cc_neon','✨ Néon'],['cc_bounce','⛹ Rebond'],['cc_type','⌨ Machine à écrire'],['cc_wave','🌊 Vague'],['cc_slideup','⬆ Glissé haut'],['cc_shake','📳 Tremblement']];
+ED_TPL.push(...ED_CC);
+function edCapWords(c){if(c.words&&c.words.length)return c.words;const w=String(c.text||'').split(/\s+/).filter(Boolean),d=c.dur/Math.max(1,w.length);return w.map((x,i)=>({w:x,s:i*d,e:(i+1)*d}))}
+function edCaption(x,c,t,W,H){const lt=t-c.start,W0=edCapWords(c),st=c.tpl,hl=c.hlc||'#ffd400',fs=c.fs/100*H*(c.sc/100),po=clamp01((edEnd(c)-t)/.2),pin=clamp01(lt/.15);
+  x.save();x.globalAlpha=Math.min(po,pin)*(c.op/100);const up=st==='cc_hormozi';x.font=`${up?900:800} ${fs}px "${c.fam||'Arial'}",Arial,sans-serif`;x.textBaseline='middle';x.textAlign='left';
+  let act=-1;W0.forEach((w,i)=>{if(lt>=w.s)act=i});
+  const label=w=>up?w.w.toUpperCase():w.w,sp=x.measureText(' ').width*(up?1.1:1),maxW=W*.84,lines=[];let cur=[],cw=0;
+  W0.forEach((w,i)=>{const m=x.measureText(label(w)).width;if(cw+m>maxW&&cur.length){lines.push({a:cur,w:cw-sp});cur=[];cw=0}cur.push({i,m,w});cw+=m+sp});if(cur.length)lines.push({a:cur,w:cw-sp});
+  const lh=fs*1.2,cy0=H/2+c.y/100*H-(lines.length-1)*lh/2,sl=st==='cc_slideup'?(1-eoc(lt/.35))*fs*1.2:0;
+  lines.forEach((ln,li)=>{let xx=W/2+c.x/100*W-ln.w/2;const yy=cy0+li*lh+sl;
+    ln.a.forEach(o=>{const w=o.w,i=o.i;let vis=true,sc=1,dy=0,col=c.col||'#fff',dx=0;const on=i===act,age=lt-w.s;
+      if(st==='cc_pop'){vis=lt>=w.s;const q=clamp01(age/.22);sc=vis?(q<1?1+Math.sin(q*Math.PI)*.35*(1-q*.3)+(q-1)*0:1):0;if(vis&&q<1)sc=.4+.6*eoc(q)+Math.sin(q*Math.PI)*.25}
+      else if(st==='cc_karaoke'||st==='cc_hormozi'||st==='cc_neon'){if(on)col=hl;if(st==='cc_hormozi'&&on)sc=1.12}
+      else if(st==='cc_box'){}
+      else if(st==='cc_bounce'){if(on){const q=clamp01(age/.3);dy=-Math.abs(Math.sin(q*Math.PI))*fs*.35;col=hl}}
+      else if(st==='cc_type'){const full=label(w),tot=W0.length;vis=lt>=w.s}
+      else if(st==='cc_wave'){dy=Math.sin(lt*7+i*.9)*fs*.18;if(on)col=hl}
+      else if(st==='cc_shake'){if(on){dx=Math.sin(lt*90)*fs*.05;dy=Math.cos(lt*77)*fs*.05;col=hl}}
+      if(!vis)return;const txt=label(w),cx=xx+o.m/2,cyy=yy+dy;x.save();x.translate(cx+dx,cyy);x.scale(sc,sc);
+      if(st==='cc_box'&&on){x.fillStyle=hl;const bw=o.m+fs*.4,bh=fs*1.1;x.beginPath();x.roundRect?x.roundRect(-bw/2,-bh/2,bw,bh,fs*.2):x.rect(-bw/2,-bh/2,bw,bh);x.fill();col='#111'}
+      x.textAlign='center';
+      if(st==='cc_neon'){x.shadowColor=on?hl:'#6cf';x.shadowBlur=fs*(on?.6:.3)}
+      if(st==='cc_hormozi'||st==='cc_pop'||st==='cc_karaoke'||st==='cc_bounce'||st==='cc_wave'||st==='cc_shake'){x.lineJoin='round';x.lineWidth=fs*(up?.22:.14);x.strokeStyle='#000';x.strokeText(txt,0,0)}
+      if(st==='cc_type'){const f=clamp01((lt-w.s)/.18);x.save();x.beginPath();x.rect(-o.m/2,-fs,o.m*f,fs*2);x.clip();x.fillStyle=col;x.textAlign='center';x.fillText(txt,0,0);x.restore()}
+      else{x.fillStyle=col;x.fillText(txt,0,0)}
+      x.restore();xx+=o.m+sp})});
+  x.restore()}
+function edParseSrt(tx){const cues=[];tx.replace(/\r/g,'').split(/\n\s*\n/).forEach(b=>{const m=b.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)/)||b.match(/()(\d+):(\d+)[,.](\d+)\s*-->\s*()(\d+):(\d+)[,.](\d+)/);if(!m)return;const T=(h,mi,s,ms)=>(+h||0)*3600+(+mi)*60+(+s)+(+ms)/1000;const s=T(m[1],m[2],m[3],m[4]),e=T(m[5],m[6],m[7],m[8]);const txt=b.split('\n').filter(l=>!/-->/.test(l)&&!/^\d+$/.test(l.trim())&&!/^WEBVTT/.test(l)).join(' ').replace(/<[^>]+>/g,'').trim();if(txt)cues.push({s,e,t:txt})});return cues}
+/* cues [{s,e,t}] ou mots [{w,s,e}] → clips texte */
+function edCapMake(words,off,per,style){const L=[];for(let i=0;i<words.length;i+=per)L.push(words.slice(i,i+per));
+  const sty=style||ED.capStyle||'cc_pop';let n=0;
+  L.forEach(g=>{const s=g[0].s+off,e=g[g.length-1].e+off;ED.clips.push(Object.assign({id:'e'+uid(),track:2,start:s,dur:Math.max(.4,e-s+.1),in:0,x:0,y:28,sc:100,op:100,vol:100,fi:'none',fo:'none',kb:0,type:'text',text:g.map(w=>w.w).join(' '),tpl:sty,col:'#ffffff',bgc:'#e11d2a',hlc:'#ffd400',fs:7,fam:'Arial',cap:1,words:g.map(w=>({w:w.w,s:w.s-g[0].s,e:w.e-g[0].s}))}));n++});
+  edSave();edUI();return n}
+function edCueWords(cues){const out=[];cues.forEach(q=>{const w=q.t.split(/\s+/).filter(Boolean),d=(q.e-q.s)/Math.max(1,w.length);w.forEach((x,i)=>out.push({w:x,s:q.s+i*d,e:q.s+(i+1)*d}))});return out}
+function edCapSource(){const c=ED.clips.find(x=>x.id===ED.sel&&(x.type==='video'||x.type==='audio'))||ED.clips.find(x=>x.type==='video')||ED.clips.find(x=>x.type==='audio');return c}
+function edCapStatus(m){const e=$('edCapSt');if(e)e.textContent=m}
+function edCapPer(){return +($('edCapPer')&&$('edCapPer').value)||4}
+function edCapStyleSel(){return($('edCapSty')&&$('edCapSty').value)||'cc_pop'}
+async function edCapSrt(files){const f=files&&files[0];if(!f)return;const src=edCapSource(),cues=edParseSrt(await f.text());if(!cues.length){edCapStatus(tr3('SRT/VTT illisible','SRT/VTT ilegible','Unreadable SRT/VTT'));return}
+  const n=edCapMake(edCueWords(cues),0,edCapPer(),edCapStyleSel());edCapStatus('✔ '+n+' '+tr3('sous-titres','subtítulos','captions'))}
+async function edCapWhisper(){const c=edCapSource();if(!c){edCapStatus(tr3('Ajoutez/sélectionnez un clip vidéo ou audio','Añada/seleccione un clip de video o audio','Add/select a video or audio clip'));return}
+  const m=HF[c.mid];if(!m){edCapStatus('?');return}
+  try{edCapStatus('⏳ Whisper : '+tr3('chargement du moteur (1ère fois ~40 Mo)…','cargando motor (1.ª vez ~40 MB)…','loading engine (first time ~40 MB)…'));
+    if(!window.__tfm){window.__tfm=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');window.__tfm.env.allowLocalModels=false}
+    const tf=window.__tfm;const model=($('edCapMd')&&$('edCapMd').value)||'Xenova/whisper-tiny';
+    if(!window.__asr||window.__asrM!==model){window.__asr=await tf.pipeline('automatic-speech-recognition',model,{progress_callback:p=>{if(p.status==='progress')edCapStatus('⏳ '+Math.round(p.progress||0)+'% '+(p.file||''))}});window.__asrM=model}
+    edCapStatus('⏳ '+tr3('extraction audio…','extrayendo audio…','extracting audio…'));
+    const buf=await (m.file||await (await fetch(m.url)).blob()).arrayBuffer(),ac=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,16000,16000),dec=await ac.decodeAudioData(buf);
+    const len=Math.ceil(dec.duration*16000),oc=new OfflineAudioContext(1,len,16000),src=oc.createBufferSource();src.buffer=dec;src.connect(oc.destination);src.start();const rb=await oc.startRendering();let pcm=rb.getChannelData(0);
+    const i0=Math.floor((c.in||0)*16000),i1=Math.min(pcm.length,i0+Math.floor(c.dur*16000));pcm=pcm.slice(i0,i1);
+    edCapStatus('⏳ '+tr3('transcription…','transcribiendo…','transcribing…'));
+    const lang=($('edCapLg')&&$('edCapLg').value)||null;const opt={chunk_length_s:30,stride_length_s:5,return_timestamps:'word',task:'transcribe'};if(lang&&lang!=='auto')opt.language=lang;
+    let r;try{r=await window.__asr(pcm,opt)}catch(e){opt.return_timestamps=true;r=await window.__asr(pcm,opt)}
+    let words=[];const ch=r.chunks||[];
+    if(ch.length&&ch[0].text!=null){ch.forEach(k=>{const ts=k.timestamp||[0,0];const s=ts[0]||0,e=ts[1]==null?s+1:ts[1];const w=String(k.text).trim().split(/\s+/).filter(Boolean),d=(e-s)/Math.max(1,w.length);w.forEach((x,i)=>words.push({w:x,s:s+i*d,e:s+(i+1)*d}))})}
+    else if(r.text){const w=r.text.trim().split(/\s+/),d=c.dur/w.length;w.forEach((x,i)=>words.push({w:x,s:i*d,e:(i+1)*d}))}
+    if(!words.length){edCapStatus(tr3('Aucune parole détectée','No se detectó voz','No speech detected'));return}
+    const n=edCapMake(words,c.start,edCapPer(),edCapStyleSel());edCapStatus('✔ '+n+' '+tr3('sous-titres générés (Whisper)','subtítulos generados (Whisper)','captions generated (Whisper)'))
+  }catch(e){console.error(e);edCapStatus('✕ Whisper : '+(e.message||e)+' — '+tr3('(réseau requis) essayez la reconnaissance du navigateur ou importez un .srt','(requiere red) pruebe el reconocimiento del navegador o importe un .srt','(network required) try browser recognition or import an .srt'))}}
+let EDSR=null;
+function edCapBrowser(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){edCapStatus(tr3('Reconnaissance vocale non supportée (utilisez Chrome/Edge) — essayez Whisper ou .srt','Reconocimiento no soportado (use Chrome/Edge) — pruebe Whisper o .srt','Speech recognition unsupported (use Chrome/Edge) — try Whisper or .srt'));return}
+  if(EDSR){EDSR.stop();return}
+  const c=edCapSource();const lg=($('edCapLg')&&$('edCapLg').value)||'';const r=new SR();r.continuous=true;r.interimResults=false;r.lang=lg&&lg!=='auto'?({fr:'fr-FR',es:'es-ES',en:'en-US'}[lg]||lg):(LANG==='es'?'es-ES':LANG==='en'?'en-US':'fr-FR');
+  const t0=c?c.start:ED.t;const words=[];let last=0;const clock=()=>(performance.now()-st)/1000;let st=performance.now();
+  r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){const now=clock(),w=e.results[i][0].transcript.trim().split(/\s+/).filter(Boolean),d=(now-last)/Math.max(1,w.length);w.forEach((x,k)=>words.push({w:x,s:last+k*d,e:last+(k+1)*d}));last=now}};
+  r.onend=()=>{EDSR=null;edStop();const b=$('edCapBr');if(b)b.textContent='🎤 '+tr3('Reconnaissance du navigateur','Reconocimiento del navegador','Browser recognition');if(words.length){const n=edCapMake(words,t0,edCapPer(),edCapStyleSel());edCapStatus('✔ '+n+' '+tr3('sous-titres','subtítulos','captions'))}else edCapStatus(tr3('Rien reconnu','Nada reconocido','Nothing recognised'))};
+  r.onerror=e=>edCapStatus('✕ '+e.error);EDSR=r;
+  if(c){edSeek(c.start);edPlay()}
+  r.start();const b=$('edCapBr');if(b)b.textContent='⏹ '+tr3('Arrêter','Detener','Stop');edCapStatus('🎤 '+tr3('écoute… le son du clip joue dans les haut-parleurs ; cliquez Arrêter à la fin','escuchando… el sonido del clip suena en los altavoces; pulse Detener al final','listening… clip audio plays on speakers; click Stop when done'))}
+function edCapApply(){const s=edCapStyleSel();ED.capStyle=s;let n=0;ED.clips.forEach(c=>{if(c.cap){c.tpl=s;n++}});edSave();edDraw(ED.t);edTl();edInsp();edCapStatus(n+' '+tr3('sous-titres restylés','subtítulos reestilizados','captions restyled'))}
+function edCapPanel(){const T=(a,b,c)=>esc(tr3(a,b,c));return`<b style="display:block;margin-top:10px">💬 ${T('Sous-titres auto (CapCut)','Subtítulos auto (CapCut)','Auto captions (CapCut)')}</b>
+<div style="display:flex;flex-direction:column;gap:4px;margin-top:4px"><select id="edCapLg"><option value="auto">${T('Langue : auto','Idioma: auto','Language: auto')}</option><option value="french">Français</option><option value="spanish">Español</option><option value="english">English</option></select>
+<select id="edCapMd"><option value="Xenova/whisper-tiny">Whisper tiny (rapide)</option><option value="Xenova/whisper-base">Whisper base</option><option value="Xenova/whisper-small">Whisper small (précis)</option></select>
+<select id="edCapSty">${ED_CC.map(o=>`<option value="${o[0]}" ${(ED.capStyle||'cc_pop')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
+<label style="display:flex;justify-content:space-between">${T('Mots / sous-titre','Palabras / subtítulo','Words / caption')}<input id="edCapPer" type="number" min="1" max="12" value="4" style="width:56px"></label>
+<button class="sm pri" onclick="edCapWhisper()">🧠 ${T('Extraire la parole (Whisper)','Extraer el habla (Whisper)','Extract speech (Whisper)')}</button>
+<button class="sm" id="edCapBr" onclick="edCapBrowser()">🎤 ${T('Reconnaissance du navigateur','Reconocimiento del navegador','Browser recognition')}</button>
+<label class="sm btn" style="cursor:pointer;text-align:center">⬆ ${T('Importer .srt / .vtt','Importar .srt / .vtt','Import .srt / .vtt')}<input type="file" accept=".srt,.vtt,text/vtt" hidden onchange="edCapSrt(this.files);this.value=''"></label>
+<button class="sm" onclick="edCapApply()">🎨 ${T('Appliquer ce style à tous','Aplicar este estilo a todos','Apply this style to all')}</button><small id="edCapSt" style="color:#8b95b8;min-height:14px"></small></div>`}
+
 const ED_FXP={none:{},bw:{gr:100,ct:115},sepia:{se:90,ct:105},vintage:{se:45,ct:95,br:105,sa:80,vg:45},warm:{sa:120,hu:-12,br:104},cold:{sa:95,hu:14,br:98},cinema:{ct:125,sa:85,br:92,vg:55,bars:1},vivid:{sa:160,ct:112},soft:{bl:1.2,br:106,ct:92}};
 const ED_TRS=[['none','—'],['fade','Fondu'],['dip','Fondu noir'],['slide','Poussée'],['slide-up','Poussée haut'],['wipe-left','Volet ←'],['wipe-right','Volet →'],['wipe-up','Volet ↑'],['wipe-down','Volet ↓'],['zoom','Zoom'],['spin','Rotation'],['blur','Flou'],['flash','Flash'],['glitch','Glitch']];
 function edFilter(c){const f=c.fx||{};const a=[];if(f.br!=null&&f.br!==100)a.push(`brightness(${f.br}%)`);if(f.ct!=null&&f.ct!==100)a.push(`contrast(${f.ct}%)`);if(f.sa!=null&&f.sa!==100)a.push(`saturate(${f.sa}%)`);if(f.gr)a.push(`grayscale(${f.gr}%)`);if(f.se)a.push(`sepia(${f.se}%)`);if(f.hu)a.push(`hue-rotate(${f.hu}deg)`);return a.join(' ')}
 function edDraw(t){const cv=EDC;if(!cv)return;const x=EDX,W=cv.width,H=cv.height;x.globalAlpha=1;x.filter='none';x.fillStyle=ED.bg;x.fillRect(0,0,W,H);
   for(const tr of [0,1,2]){for(const c of ED.clips.filter(c=>c.track===tr&&t>=c.start&&t<edEnd(c)).sort((a,b)=>a.start-b.start)){
-    if(c.type==='text'){edText(x,c,t,W,H);continue}
+    if(c.type==='text'){if(/^cc_/.test(c.tpl))edCaption(x,c,t,W,H);else edText(x,c,t,W,H);continue}
     const lt=t-c.start,tin=c.fi&&c.fi!=='none'?clamp01(lt/(c.fid||.6)):1,tout=c.fo&&c.fo!=='none'?clamp01((edEnd(c)-t)/(c.fod||.6)):1;let a=c.op/100,ox=0,oy=0,sc=c.sc/100,rot=0,bl=(c.fx&&c.fx.bl)||0,cr=null,fl=0,gl=0;
     const TR=(ty,p,inn)=>{const e=eoc(p),d=1-e,sg=inn?-1:1;switch(ty){case'fade':a*=p;break;case'dip':a*=p<.5?0:(p-.5)*2;break;case'slide':ox+=sg*d*W;break;case'slide-up':oy+=-sg*d*H;break;case'wipe-left':cr=[0,0,e*W,H];break;case'wipe-right':cr=[W-e*W,0,e*W,H];break;case'wipe-up':cr=[0,0,W,e*H];break;case'wipe-down':cr=[0,H-e*H,W,e*H];break;case'zoom':sc*=.6+.4*e;a*=p;break;case'spin':rot+=sg*d*Math.PI;sc*=.4+.6*e;a*=p;break;case'blur':bl+=d*30*(W/1920);a*=Math.min(1,p*2);break;case'flash':a*=p;fl=Math.max(fl,(1-p)*.9);break;case'glitch':gl=Math.max(gl,1-p);a*=p>.15?1:.4;break}};
     if(tin<1)TR(c.fi,tin,true);if(tout<1)TR(c.fo,tout,false);
@@ -1389,8 +1474,8 @@ function edProp(k,v){const c=ED.clips.find(x=>x.id===ED.sel);if(!c)return;c[k]=v
 function edDel(){ED.clips=ED.clips.filter(c=>c.id!==ED.sel);ED.sel=null;edSave();edUI();edDraw(ED.t)}
 function edSplit(){const c=ED.clips.find(x=>x.id===ED.sel);if(!c||ED.t<=c.start+.1||ED.t>=edEnd(c)-.1)return;const n=JSON.parse(JSON.stringify(c));n.id='e'+uid();n.start=ED.t;n.dur=edEnd(c)-ED.t;n.in=c.in+(ED.t-c.start);c.dur=ED.t-c.start;ED.clips.push(n);ED.sel=n.id;edSave();edUI()}
 function edDup(){const c=ED.clips.find(x=>x.id===ED.sel);if(!c)return;const n=JSON.parse(JSON.stringify(c));n.id='e'+uid();n.start=edEnd(c);ED.clips.push(n);ED.sel=n.id;edSave();edUI()}
-function edTl(){const el=$('edTl');if(!el)return;const tot=Math.max(30,edTotal()+5);el.style.width=tot*ED.pps+'px';
-  let h='<div id="edRu" style="height:22px;position:relative;border-bottom:1px solid #243">'+Array.from({length:Math.ceil(tot/5)+1},(_,i)=>`<span style="position:absolute;left:${i*5*ED.pps}px;font-size:10px;color:#889;padding-left:3px;border-left:1px solid #334">${i*5}s</span>`).join('')+'</div>';
+function edTl(){const el=$('edTl');if(!el)return;const tot=Math.max(30,edTotal()+5),RS=ED.pps<14?30:ED.pps<30?10:ED.pps>200?1:ED.pps>100?2:5;el.style.width=tot*ED.pps+'px';
+  let h='<div id="edRu" style="height:22px;position:relative;border-bottom:1px solid #243">'+Array.from({length:Math.ceil(tot/RS)+1},(_,i)=>`<span style="position:absolute;left:${i*RS*ED.pps}px;font-size:10px;color:#889;padding-left:3px;border-left:1px solid #334">${i*RS}s</span>`).join('')+'</div>';
   ED_TR.forEach((tr,ti)=>{h+=`<div class="edRow" data-tr="${ti}" style="height:44px;position:relative;border-bottom:1px solid #1a2238;background:${ti%2?'#0b1020':'#0d1326'}"><span style="position:sticky;left:0;z-index:3;background:#0a0e1c;padding:2px 6px;font-size:11px;color:#8b95b8">${tr[1]} ${tr[0]}</span>`;
     ED.clips.filter(c=>c.track===ti).forEach(c=>{const col={video:'#2f6bd8',image:'#0e8f6a',audio:'#a8622a',text:'#9333ea',html:'#c2410c',comp:'#c2410c'}[c.type]||'#555',lb=c.type==='text'?'🅣 '+c.text:(c.name||c.type);
       h+=`<div class="edC" data-id="${c.id}" style="position:absolute;left:${c.start*ED.pps}px;top:4px;height:36px;width:${Math.max(8,c.dur*ED.pps)}px;background:${col};border-radius:6px;overflow:hidden;white-space:nowrap;padding:8px 10px;box-sizing:border-box;cursor:grab;outline:${ED.sel===c.id?'2px solid #fff':'none'}">${esc(lb)}<i class="edRz" style="position:absolute;right:0;top:0;bottom:0;width:8px;background:#fff6;cursor:ew-resize"></i></div>`});h+='</div>'});
@@ -1406,8 +1491,9 @@ function edInsp(){const el=$('edIn');if(!el)return;const c=ED.clips.find(x=>x.id
   let h=`<b>${esc(c.type==='text'?'Texte':c.name||c.type)}</b>${n('start',T('Début (s)','Inicio (s)','Start (s)'),0,9999)}${n('dur',T('Durée (s)','Duración (s)','Duration (s)'),.3,9999)}`;
   if(c.type==='video'||c.type==='audio')h+=n('in',T('Début média (rognage s)','Inicio medio (recorte s)','Media in (trim s)'),0,9999)+sl('vol',T('Volume','Volumen','Volume'),0,200);
   if(c.type==='text'){h+=`<textarea rows="3" style="width:100%" oninput="edProp('text',this.value)">${esc(c.text)}</textarea><select onchange="edProp('tpl',this.value)">${ED_TPL.map(o=>`<option value="${o[0]}" ${c.tpl===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
-    <label style="display:flex;justify-content:space-between;margin:4px 0">${T('Couleur','Color','Colour')}<input type="color" value="${c.col}" oninput="edProp('col',this.value)"></label><label style="display:flex;justify-content:space-between;margin:4px 0">${T('Fond (lower)','Fondo','Bar colour')}<input type="color" value="${c.bgc}" oninput="edProp('bgc',this.value)"></label>${sl('fs',T('Taille','Tamaño','Size'),2,30)}`}
+    <label style="display:flex;justify-content:space-between;margin:4px 0">${T('Couleur','Color','Colour')}<input type="color" value="${c.col}" oninput="edProp('col',this.value)"></label><label style="display:flex;justify-content:space-between;margin:4px 0">${T('Fond (lower)','Fondo','Bar colour')}<input type="color" value="${c.bgc}" oninput="edProp('bgc',this.value)"></label>${/^cc_/.test(c.tpl)?`<label style="display:flex;justify-content:space-between;margin:4px 0">${T('Mot actif','Palabra activa','Active word')}<input type="color" value="${c.hlc||'#ffd400'}" oninput="edProp('hlc',this.value)"></label>`:''}${sl('fs',T('Taille','Tamaño','Size'),2,30)}`}
   if(c.type==='comp'){const T0=COMP_T[c.tpl]||COMP_T.title;h+=`<label>${T('Modèle','Modelo','Template')} <select onchange="edProp('tpl',this.value);edProp('props',Object.assign({},COMP_T[this.value].p));edUI()">${Object.entries(COMP_T).map(([k,v])=>`<option value="${k}" ${c.tpl===k?'selected':''}>${v.n}</option>`).join('')}</select></label>`+Object.keys(T0.p).map(k=>{const v=(c.props&&c.props[k]!=null)?c.props[k]:T0.p[k];return /^c\d$/.test(k)?`<label style="display:flex;justify-content:space-between;margin:4px 0">${k}<input type="color" value="${v}" oninput="edProps('${k}',this.value)"></label>`:`<label style="display:block;margin:4px 0">${k}<textarea rows="${String(v).length>40||/\n/.test(v)?3:1}" style="width:100%" oninput="edProps('${k}',this.value)">${esc(v)}</textarea></label>`}).join('')+`<button class="sm" onclick="edToHtml()">&lt;/&gt; ${T('Éditer le code','Editar código','Edit code')}</button>`}
+  if(c.type==='html'){const F=tplFields(c.html||'');if(F.length)h+=`<b style="display:block;margin-top:6px">🧩 ${T('Champs dynamiques','Campos dinámicos','Dynamic fields')}</b>`+F.map(f=>{const v=(c.props&&c.props[f.n]!=null)?c.props[f.n]:f.d;return f.t==='color'?`<label style="display:flex;justify-content:space-between;margin:4px 0">${esc(f.n)}<input type="color" value="${esc(v||'#ffffff')}" oninput="edProps('${esc(f.n)}',this.value)"></label>`:(f.t==='image'||f.t==='video')?`<label style="display:block;margin:4px 0">${esc(f.n)} <input type="file" accept="image/*,video/*" onchange="tplFileData(this.files[0]).then(d=>{edProps('${esc(f.n)}',d)})"></label>`:`<label style="display:block;margin:4px 0">${esc(f.n)}<textarea rows="1" style="width:100%" oninput="edProps('${esc(f.n)}',this.value)">${esc(v)}</textarea></label>`}).join('')}
   if(c.type==='html')h+=`<textarea rows="10" style="width:100%;font:11px monospace" oninput="edProp('html',this.value)">${esc(c.html)}</textarea><div style="color:#8b95b8;font-size:11px">${T('data-start, data-dur, data-anim, data-split, data-stagger, data-count-from/to, {{media:NOM}}, unités cqw/cqh','data-start, data-dur, data-anim, data-split, data-stagger, data-count-from/to, {{media:NOMBRE}}, unidades cqw/cqh','data-start, data-dur, data-anim, data-split, data-stagger, data-count-from/to, {{media:NAME}}, cqw/cqh units')}</div>`;
   if(c.type!=='audio'){h+=sl('op',T('Opacité','Opacidad','Opacity'),0,100)+sl('sc',T('Échelle (%)','Escala (%)','Scale (%)'),20,300)+sl('x','X',-100,100)+sl('y','Y',-100,100);
     if(c.type!=='text'){const f=c.fx||{},fs=(k,l,mn,mx,d)=>`<label style="display:block;margin:3px 0">${l} <input type="range" min="${mn}" max="${mx}" value="${f[k]==null?d:f[k]}" oninput="edFx('${k}',+this.value)" style="width:100%"></label>`,trs=k=>`<select onchange="edProp('${k}',this.value)">${ED_TRS.map(o=>`<option value="${o[0]}" ${(c[k]||'none')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`;
@@ -1422,14 +1508,36 @@ function edInsp(){const el=$('edIn');if(!el)return;const c=ED.clips.find(x=>x.id
 function edUI(full){const o=$('edOv');if(!o)return;const T=(a,b,c)=>esc(tr3(a,b,c)),[W,H]=edDims();
   if(full||!$('edCv')){const sel=(k,opts)=>`<select onchange="edSet('${k}',this.value)">${opts.map(x=>`<option value="${x[0]}" ${String(ED[k])===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>`;
     o.innerHTML=`<div style="display:flex;gap:8px;align-items:center;padding:8px 12px;background:#0d1326;border-bottom:1px solid #243"><b style="font-size:15px">✂ ${T('Montage vidéo','Montaje de video','Video editor')}</b>${sel('ratio',[['16:9','16:9'],['9:16','9:16'],['1:1','1:1'],['4:5','4:5'],['4:3','4:3'],['21:9','21:9']])}${sel('q',[['720','HD 720p'],['1080','FHD 1080p'],['1440','2K 1440p'],['2160','4K 2160p']])}${sel('fps',[['24','24 fps'],['30','30 fps'],['60','60 fps']])}<span style="color:#8b95b8">${W}×${H}</span><input type="color" value="${ED.bg}" onchange="edSet('bg',this.value)" title="Fond"><div style="flex:1"></div><button class="pri" id="edExp" onclick="edExport()">⬇ ${T('Exporter','Exportar','Export')}</button><button onclick="edClose()">✕</button></div>
-    <div style="flex:1;display:flex;min-height:0"><div style="width:230px;overflow:auto;padding:8px;border-right:1px solid #243"><b>${T('Médias','Medios','Media')}</b><button class="sm" style="margin-left:6px" onclick="$('mFile').click()">＋</button><div id="edBin"></div><b style="display:block;margin-top:10px">${T('Textes animés','Textos animados','Animated text')}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${ED_TPL.map(t=>`<button class="sm" onclick="edAddText('${t[0]}')">${t[1]}</button>`).join('')}</div><b style="display:block;margin-top:10px">${T('Compositions HTML','Composiciones HTML','HTML compositions')}</b><div style="display:flex;gap:4px;margin-top:4px"><button class="sm" onclick="edTplDownload()">⬇ ${T('Modèle HTML','Modelo HTML','HTML template')}</button><label class="sm btn" style="cursor:pointer">⬆ .html<input type="file" accept=".html,.htm" hidden onchange="edImportHtml(this.files);this.value=''"></label></div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${Object.entries(COMP_T).map(([k,v])=>`<button class="sm" onclick="edAddComp('${k}')">${v.n}</button>`).join('')}</div></div>
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#03050b;min-width:0;min-height:0;padding:8px"><canvas id="edCv" width="${W}" height="${H}" style="max-width:100%;height:calc(100% - 44px);width:auto;aspect-ratio:${W}/${H};background:#000;box-shadow:0 0 0 1px #243"></canvas><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button onclick="edSeek(0)">⏮</button><button class="pri" id="edPlayB" onclick="edPlay()">▶</button><span id="edTm">0:00.0</span><label>Zoom <input type="range" min="20" max="200" value="${ED.pps}" oninput="ED.pps=+this.value;edTl()" style="width:90px"></label></div></div>
+    <div style="flex:1;display:flex;min-height:0"><div style="width:230px;overflow:auto;padding:8px;border-right:1px solid #243"><b>${T('Médias','Medios','Media')}</b><button class="sm" style="margin-left:6px" onclick="$('mFile').click()">＋</button><div id="edBin"></div><b style="display:block;margin-top:10px">${T('Textes animés','Textos animados','Animated text')}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${ED_TPL.map(t=>`<button class="sm" onclick="edAddText('${t[0]}')">${t[1]}</button>`).join('')}</div>${edCapPanel()}<b style="display:block;margin-top:10px">${T('Compositions HTML','Composiciones HTML','HTML compositions')}</b><div style="display:flex;gap:4px;margin-top:4px"><button class="sm" onclick="edTplDownload()">⬇ ${T('Modèle HTML','Modelo HTML','HTML template')}</button><label class="sm btn" style="cursor:pointer">⬆ .html<input type="file" accept=".html,.htm" hidden onchange="edImportHtml(this.files);this.value=''"></label></div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${Object.entries(COMP_T).map(([k,v])=>`<button class="sm" onclick="edAddComp('${k}')">${v.n}</button>`).join('')}</div></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#03050b;min-width:0;min-height:0;padding:8px"><canvas id="edCv" width="${W}" height="${H}" style="max-width:100%;height:calc(100% - 44px);width:auto;aspect-ratio:${W}/${H};background:#000;box-shadow:0 0 0 1px #243"></canvas><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button onclick="edSeek(0)">⏮</button><button class="pri" id="edPlayB" onclick="edPlay()">▶</button><span id="edTm">0:00.0</span><span style="display:flex;gap:3px;align-items:center"><button class="sm" title="Zoom −" onclick="edZoom(-1)">🔍−</button><input type="range" id="edZ" min="8" max="400" value="${ED.pps}" oninput="edZoomSet(+this.value)" style="width:90px"><button class="sm" title="Zoom +" onclick="edZoom(1)">🔍+</button><button class="sm" title="${T('Ajuster','Ajustar','Fit')}" onclick="edZoomFit()">⇔</button></span><span style="display:flex;gap:3px"><button class="sm" title="${T('Couper (S)','Cortar (S)','Cut (S)')}" onclick="edSplit()">✂ ${T('Couper','Cortar','Cut')}</button><button class="sm" title="Ctrl+X" onclick="edCutClip()">✂⎘</button><button class="sm" title="Ctrl+C" onclick="edCopy()">⎘ ${T('Copier','Copiar','Copy')}</button><button class="sm" title="Ctrl+V" onclick="edPaste()">📋 ${T('Coller','Pegar','Paste')}</button><button class="sm" title="Suppr" onclick="edDel()">🗑</button></span></div></div>
     <div id="edIn" style="width:250px;overflow:auto;padding:8px;border-left:1px solid #243"></div></div>
     <div style="height:230px;overflow:auto;border-top:1px solid #243;position:relative"><div id="edTl" style="position:relative;min-width:100%"></div></div>`;
     EDC=$('edCv');EDX=EDC.getContext('2d')}
-  const bin=$('edBin');if(bin)bin.innerHTML=Object.values(HF).filter(m=>!m.builtin&&m.kind!=='model').map(m=>`<div onclick="edAddMedia('${m.id}')" style="display:flex;gap:6px;align-items:center;padding:4px;margin:3px 0;background:#121a33;border-radius:6px;cursor:pointer"><span style="width:44px;height:28px;background:#000 center/cover;border-radius:4px;${m.kind==='image'?`background-image:url(${m.url})`:''};display:flex;align-items:center;justify-content:center">${m.kind==='video'?'🎬':m.kind==='audio'?'🔊':''}</span><small style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</small></div>`).join('')||'<div style="color:#8b95b8;font-size:12px">'+T('Importez des médias (＋) ou capturez-les.','Importe medios (＋) o capturelos.','Import media (＋) or capture them.')+'</div>';
+  const bin=$('edBin');if(bin){bin.innerHTML=Object.values(HF).filter(m=>!m.builtin&&m.kind!=='model').map(m=>`<div draggable="true" data-mid="${m.id}" ondblclick="edAddMedia('${m.id}')" title="${T('Double-clic ou glisser vers la timeline','Doble clic o arrastrar a la línea de tiempo','Double-click or drag to the timeline')}" style="display:flex;gap:6px;align-items:center;padding:4px;margin:3px 0;background:#121a33;border-radius:6px;cursor:grab"><span style="width:44px;height:28px;flex:none;background:#000 center/cover;border-radius:4px;${m.kind==='image'?`background-image:url(${m.url})`:''};display:flex;align-items:center;justify-content:center">${m.kind==='video'?'🎬':m.kind==='audio'?'🔊':''}</span><small style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</small><button class="sm" title="+" onclick="edAddMedia('${m.id}')">＋</button><button class="sm" title="${T('Retirer de la liste','Quitar de la lista','Remove from list')}" onclick="edBinDel('${m.id}')">✕</button></div>`).join('')||'<div style="color:#8b95b8;font-size:12px">'+T('Importez des médias (＋), glissez-déposez des fichiers ici ou capturez-les.','Importe medios (＋), arrastre archivos aquí o capturelos.','Import media (＋), drop files here or capture them.')+'</div>';
+    bin.querySelectorAll('[draggable]').forEach(d=>d.ondragstart=e=>{e.dataTransfer.setData('text/wdscs-mid',d.dataset.mid);e.dataTransfer.effectAllowed='copy'})}
   edTl();edInsp();edDraw(ED.t)}
-document.addEventListener('keydown',e=>{const o=$('edOv');if(!o||o.style.display==='none'||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key===' '){e.preventDefault();edPlay()}else if(e.key==='Delete'||e.key==='Backspace')edDel();else if(e.key==='s'||e.key==='S')edSplit()});
+
+/* --- zoom / copier-coller / glisser-déposer du montage --- */
+function edZoomSet(v){ED.pps=Math.max(8,Math.min(400,v));const z=$('edZ');if(z)z.value=ED.pps;edSave();edTl()}
+function edZoom(d){edZoomSet(Math.round(ED.pps*(d>0?1.35:1/1.35)))}
+function edZoomFit(){const w=($('edTl')&&$('edTl').parentElement.clientWidth)||800;edZoomSet(Math.floor((w-40)/Math.max(5,edTotal()+1)))}
+let EDCLIP=null;
+function edCopy(){const c=ED.clips.find(x=>x.id===ED.sel);if(!c){toast(tr3('Sélectionnez un clip','Seleccione un clip','Select a clip'));return}EDCLIP=JSON.parse(JSON.stringify(c));toast('⎘ '+tr3('Copié','Copiado','Copied'))}
+function edCutClip(){edCopy();if(EDCLIP)edDel()}
+function edPaste(){if(!EDCLIP)return;const n=JSON.parse(JSON.stringify(EDCLIP));n.id='e'+uid();n.start=ED.t;ED.clips.push(n);ED.sel=n.id;edSave();edUI();edDraw(ED.t)}
+function edBinDel(id){const used=ED.clips.some(c=>c.mid===id);if(used&&!confirm(tr3('Ce média est utilisé dans le montage. Le retirer aussi de la timeline ?','Este medio se usa en el montaje. ¿Quitarlo también de la línea de tiempo?','This media is used in the project. Remove it from the timeline too?')))return;ED.clips=ED.clips.filter(c=>c.mid!==id);delMedia(id);edSave();edUI()}
+function edDropAt(x,y){const tl=$('edTl');if(!tl)return{start:ED.t,track:0};const r=tl.getBoundingClientRect(),st=Math.max(0,(x-r.left)/ED.pps);const row=document.elementFromPoint(x,y),rw=row&&row.closest&&row.closest('.edRow');return{start:st,track:rw?+rw.dataset.tr:null}}
+function edPlaceMedia(mid,x,y){const m=HF[mid];if(!m)return;const at=edDropAt(x,y);const n0=ED.clips.length;edAddMedia(mid);
+  const place=()=>{const c=ED.clips[ED.clips.length-1];if(!c||ED.clips.length===n0)return;c.start=at.start;if(at.track!=null){if(c.type==='audio')c.track=3;else if(c.type==='text')c.track=2;else if(at.track<2)c.track=at.track}ED.sel=c.id;edSave();edTl();edInsp();edDraw(ED.t)};
+  if(m.kind==='audio'){setTimeout(place,350)}else place()}
+async function edDropFiles(files,x,y){const hs=files.filter(f=>/\.(html?)$/i.test(f.name)),rest=files.filter(f=>!hs.includes(f));
+  if(hs.length&&edImportHtml){await edImportHtml(hs)}
+  if(rest.length){const ids=await addMedia(rest);let k=0;for(const id of(ids||[])){edPlaceMedia(id,x+k*40,y);k++}}
+  edUI()}
+document.addEventListener('dragover',e=>{const o=$('edOv');if(o&&o.style.display!=='none'&&e.target.closest&&e.target.closest('#edOv')&&e.dataTransfer&&Array.from(e.dataTransfer.types).includes('text/wdscs-mid')){e.preventDefault();e.dataTransfer.dropEffect='copy'}});
+document.addEventListener('drop',e=>{const o=$('edOv');if(!o||o.style.display==='none')return;const id=e.dataTransfer&&e.dataTransfer.getData('text/wdscs-mid');if(id&&e.target.closest('#edOv')){e.preventDefault();e.stopPropagation();edPlaceMedia(id,e.clientX,e.clientY)}},true);
+document.addEventListener('keydown',e=>{const o=$('edOv');if(!o||o.style.display==='none'||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key===' '){e.preventDefault();edPlay()}else if(e.key==='Delete'||e.key==='Backspace')edDel();else if((e.ctrlKey||e.metaKey)&&e.key==='c'){e.preventDefault();edCopy()}else if((e.ctrlKey||e.metaKey)&&e.key==='v'){e.preventDefault();edPaste()}else if((e.ctrlKey||e.metaKey)&&e.key==='x'){e.preventDefault();edCutClip()}else if(e.key==='+'||e.key==='=')edZoom(1);else if(e.key==='-')edZoom(-1);else if(e.key==='s'||e.key==='S')edSplit()});
+document.addEventListener('wheel',e=>{const o=$('edOv');if(o&&o.style.display!=='none'&&(e.ctrlKey||e.metaKey)&&e.target.closest&&e.target.closest('#edTl')){e.preventDefault();edZoom(e.deltaY<0?1:-1)}},{passive:false});
 /* ============ IMPORT PPTX / PDF / HTML → diapositives projetables ============ */
 const DOC_RE=/\.(pptx|pdf|html?)$/i;
 async function zipRead(buf){const dv=new DataView(buf),u8=new Uint8Array(buf);let e=u8.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('zip');
@@ -1504,6 +1612,66 @@ async function importDocs(files){files=Array.from(files||[]);let tot=0;
       const l=curList();l.items.push({t:'sec',id:'i'+uid(),label:'📑 '+base});ids.forEach((id,i)=>l.items.push({id:'i'+uid(),t:'media',label:'🖼 '+base+' '+(i+1)+'/'+ids.length,mid:id,kind:'image',name:imgs[i].name}));savePL();renderPL();sync();tot+=ids.length;
     }catch(e){console.error(e);toast('✕ '+f.name+' : '+(e.message||e))}}
   if(tot)toast('✔ '+tot+' diapo(s) ajoutée(s) au conducteur — ◀ ▶ Élément pour naviguer')}
+/* ============ MODÈLES DYNAMIQUES (HTML/JSON avec balises {{champ}}) ============ */
+const TPL_RE=/\{\{\s*([^{}:|]+?)\s*(?::\s*(text|image|video|color|textarea|number))?\s*(?:\|\s*([^{}]*?))?\s*\}\}/g;
+function tplGuess(n){return/logo|image|img|photo|fond|bg|picture|visuel/i.test(n)?'image':/vid[eé]o|clip|film/i.test(n)?'video':/couleur|color|colour/i.test(n)?'color':'text'}
+function tplFields(txt){const o=[],seen={};let m;TPL_RE.lastIndex=0;while((m=TPL_RE.exec(txt))){const n=m[1].trim();if(/^media$/i.test(n)||seen[n])continue;seen[n]=1;o.push({n,t:m[2]||tplGuess(n),d:(m[3]||'').trim()})}return o}
+function tplIsJson(t){return/^\s*[\[{]/.test(t)}
+function tplHtml(txt,vals){const j=tplIsJson(txt);let base=txt;
+  if(j){let o;try{o=JSON.parse(txt)}catch{o=null}
+    if(o&&typeof o.html==='string')base=o.html;
+    else{const rows=[];const walk=(v,k)=>{if(v&&typeof v==='object')Object.entries(v).forEach(([a,b])=>walk(b,a));else rows.push([k,String(v)])};if(o)walk(o,'');
+      base='<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b1020;color:#fff;font-family:Arial,sans-serif;gap:24px;padding:80px;box-sizing:border-box;text-align:center">'+rows.map(([k,v],i)=>`<div style="font-size:${i?48:96}px;font-weight:${i?500:800}">${v.replace(/</g,'&lt;')}</div>`).join('')+'</div>'}}
+  return base.replace(TPL_RE,(a,n,ty,d)=>{n=n.trim();if(/^media$/i.test(n))return a;const t=ty||tplGuess(n);let v=vals&&vals[n];if(v==null||v==='')v=(d||'');if(t==='image'||t==='video')return v;return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')})}
+async function tplRender(txt,vals){const html=tplHtml(txt,vals),W=1920,H=1080;
+  const d=new DOMParser().parseFromString(html,'text/html'),st=Array.from(d.querySelectorAll('style')).map(x=>x.textContent).join('\n'),body=new XMLSerializer().serializeToString(d.body).replace(/^<body/,'<div').replace(/<\/body>$/,'</div>');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${W}px;height:${H}px;overflow:hidden;position:relative;font-family:Arial,sans-serif"><style>${st.replace(/</g,'&lt;')}</style>${body}</div></foreignObject></svg>`;
+  const img=new Image();await new Promise((ok,ko)=>{img.onload=ok;img.onerror=()=>ko(new Error('html'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');c.fillStyle='#000';c.fillRect(0,0,W,H);c.drawImage(img,0,0);return new Promise(r=>cv.toBlob(r,'image/jpeg',.92))}
+function tplFileData(f){return new Promise(r=>{if(!f)return r('');if(/^video/.test(f.type)){const v=document.createElement('video');v.muted=true;v.src=URL.createObjectURL(f);v.onloadeddata=()=>{v.currentTime=Math.min(.5,v.duration/2||0)};v.onseeked=()=>{const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);r(c.toDataURL('image/jpeg',.9))};v.onerror=()=>r('');return}const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
+async function tplMediaData(id){const m=HF[id];if(!m)return'';if(m.kind==='video'||m.kind==='image')return tplFileData(m.file||await (await fetch(m.url)).blob());return''}
+async function tplImport(file,txt){const id='M'+uid(),name=file.name,tpl={text:txt,vals:{}};
+  const blob=await tplRender(txt,{});const f=new File([blob],name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+  HF[id]={id,name:'🧩 '+name,kind:'image',mime:'image/jpeg',file:f,url:URL.createObjectURL(f),tpl};
+  try{await idb.put({id,name:'🧩 '+name,kind:'image',mime:'image/jpeg',blob:f,tpl})}catch{}
+  return id}
+let TPLCUR=null,TPLVALS={};
+function tplEdit(id){const m=HF[id];if(!m||!m.tpl){toast(t('Pas de champs dynamiques'));return}
+  TPLCUR=id;TPLVALS=Object.assign({},m.tpl.vals);const F=tplFields(m.tpl.text);
+  let o=$('tplDlg');if(o)o.remove();o=document.createElement('div');o.id='tplDlg';o.style.cssText='position:fixed;inset:0;background:#000b;z-index:9999;display:flex;align-items:center;justify-content:center';
+  const rows=F.length?F.map(f=>{const v=esc(TPLVALS[f.n]||'');const lab=`<label style="font-size:12px;opacity:.8">${esc(f.n)} <small>(${f.t})</small></label>`;
+    if(f.t==='image'||f.t==='video'){const opts=Object.values(HF).filter(x=>(f.t==='video'?x.kind==='video'||x.kind==='image':x.kind==='image')&&!x.tpl&&!x.builtin).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');return`<div class="item" style="margin:6px 0">${lab}<div class="bar"><input type="file" accept="${f.t==='video'?'video/*,image/*':'image/*'}" onchange="tplPick('${esc(f.n)}',this.files[0])"><select onchange="tplPickLib('${esc(f.n)}',this.value)"><option value="">${esc(t('ou bibliothèque'))}</option>${opts}</select></div><small id="tplS_${esc(f.n).replace(/\W/g,'_')}">${TPLVALS[f.n]?'✔':''}</small></div>`}
+    if(f.t==='color')return`<div class="item" style="margin:6px 0">${lab}<input type="color" value="${v||f.d||'#ffffff'}" oninput="TPLVALS['${esc(f.n)}']=this.value"></div>`;
+    if(f.t==='textarea')return`<div class="item" style="margin:6px 0">${lab}<textarea rows="3" style="width:100%" oninput="TPLVALS['${esc(f.n)}']=this.value" placeholder="${esc(f.d)}">${v}</textarea></div>`;
+    return`<div class="item" style="margin:6px 0">${lab}<input style="width:100%" value="${v}" placeholder="${esc(f.d)}" oninput="TPLVALS['${esc(f.n)}']=this.value"></div>`}).join(''):`<div class="ai">${esc(t('Aucune balise {{champ}} trouvée dans ce fichier.'))}</div>`;
+  o.innerHTML=`<div style="background:var(--s2,#161b2e);color:var(--tx,#fff);border-radius:12px;padding:16px;width:min(520px,94vw);max-height:88vh;overflow:auto"><h3 style="margin:0 0 8px">🧩 ${esc(m.name)}</h3>${rows}<div class="bar" style="margin-top:10px"><button class="pri" onclick="tplApply()">✔ ${esc(t('Appliquer'))}</button><button onclick="$('tplDlg').remove()">${esc(t('Annuler'))}</button></div></div>`;
+  document.body.appendChild(o)}
+async function tplPick(n,f){TPLVALS[n]=await tplFileData(f);const s=$('tplS_'+n.replace(/\W/g,'_'));if(s)s.textContent='✔'}
+async function tplPickLib(n,id){if(!id)return;TPLVALS[n]=await tplMediaData(id);const s=$('tplS_'+n.replace(/\W/g,'_'));if(s)s.textContent='✔'}
+async function tplApply(){const m=HF[TPLCUR];if(!m)return;m.tpl.vals=Object.assign({},TPLVALS);
+  const blob=await tplRender(m.tpl.text,m.tpl.vals),f=new File([blob],m.file.name,{type:'image/jpeg'});
+  try{URL.revokeObjectURL(m.url)}catch{}m.file=f;m.url=URL.createObjectURL(f);
+  try{await idb.put({id:m.id,name:m.name,kind:'image',mime:'image/jpeg',blob:f,tpl:m.tpl})}catch{}
+  if(Object.keys(screens).length)pushMedia(m.id);
+  $('tplDlg').remove();render();sync();renderMedia();toast('✔ '+t('Modèle mis à jour'))}
+/* ============ GLISSER-DÉPOSER GLOBAL ============ */
+const DND={};
+function dndCtx(el){if(!el||!el.closest)return'media';
+  if(el.closest('#edOv'))return'editor';
+  if(el.closest('#p-pl')||WSTAB==='pl'&&el.closest('#ws'))return'pl';
+  if(el.closest('#p-songs'))return'songs';
+  if(el.closest('#p-bible'))return'bible';
+  return'media'}
+async function dndDrop(files,el,x,y){files=Array.from(files||[]);if(!files.length)return;const ctx=dndCtx(el);
+  if(ctx==='editor'&&window.edDropFiles){await edDropFiles(files,x,y,el);return}
+  if(ctx==='songs'){const sg=files.filter(f=>/\.(txt|lrc|json|xml|cho|crd|pro|chordpro|onsong)$/i.test(f.name)&&!/\{\{/.test(''));if(sg.length&&!files.some(f=>/^(image|video|audio)/.test(f.type))){importSongs(sg);return}}
+  const ids=await addMedia(files);
+  if(ctx==='pl')(ids||[]).forEach(id=>addMediaToPL(id));}
+(function(){const hi=e=>{if(e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files')){e.preventDefault();document.body.classList.add('dndOn')}};
+  addEventListener('dragenter',hi);addEventListener('dragover',e=>{hi(e);if(e.dataTransfer)e.dataTransfer.dropEffect='copy'});
+  addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('dndOn')});
+  addEventListener('drop',e=>{document.body.classList.remove('dndOn');if(MODE!=='host')return;if(!e.dataTransfer||!e.dataTransfer.files||!e.dataTransfer.files.length)return;if(e.defaultPrevented&&e.__own)return;e.preventDefault();dndDrop(e.dataTransfer.files,e.target,e.clientX,e.clientY)})})();
+
 /* ============ ZONE DE TRAVAIL (contenu complet) ============ */
 let WSTAB='songs',WSSIG='';
 function itemTileClick(i,e){
@@ -1532,7 +1700,7 @@ function renderWS(force){
       const aud=S.audio&&S.audio.id===m.id;
       const lay=m.kind==='audio'?`<button class="${aud&&S.audioOn?'on lv':''}" onclick="mediaAudioToggle('${m.id}')">${aud&&S.audioOn?'⏸':'▶'}</button>`:[1,2,3,4].map(n=>`<button class="${layerOn(m.id,n)?'on':''} ${layerLive(m.id,n)?'lv':''}" title="${t('Couche')} ${n}" onclick="assignLayer('${m.id}',${n})">${n}</button>`).join('');
       const fl=m.kind==='video'?`<button class="${m.loop!==false?'on':''}" title="Loop" onclick="mediaFlag('${m.id}','loop')">⟳</button><button class="${m.mute?'':'on'}" title="Audio" onclick="mediaFlag('${m.id}','mute')">${m.mute?'🔇':'🔊'}</button><button title="Lecture / pause" onclick="toggleVideo();renderWS(true)">${S.vplay===false?'▶':'⏸'}</button>`:'';
-      return `<div class="mtile"><div class="th">${th}</div><div class="nm">${esc(m.name)}</div><div class="cb">${fl}${lay}<button onclick="addMediaToPL('${m.id}')">+</button></div></div>`}).join('')||'<div class="ai">'+esc(t('Aucun média.'))+'</div>')+'</div><div class="bar" style="margin-top:8px"><button class="sm" onclick="clearLayers()">'+esc(t('Vider couches'))+'</button><button class="sm" onclick="$(\'mFile\').click()">'+esc(t('+ Importer médias'))+'</button></div>';
+      return `<div class="mtile" title="${esc(t('Clic : Preview · Double-clic : Program'))}" onclick="mediaClick('${m.id}',event)" ondblclick="mediaDbl('${m.id}',event)"><div class="th">${th}</div><div class="nm">${esc(m.name)}</div><div class="cb">${fl}${lay}<button onclick="addMediaToPL('${m.id}')">+</button></div></div>`}).join('')||'<div class="ai">'+esc(t('Aucun média.'))+'</div>')+'</div><div class="bar" style="margin-top:8px"><button class="sm" onclick="clearLayers()">'+esc(t('Vider couches'))+'</button><button class="sm" onclick="$(\'mFile\').click()">'+esc(t('+ Importer médias'))+'</button></div>';
   }else if(tb==='pl'){
     const l=curList();sig='p|'+l.id+'|'+PLCUR+'|'+l.items.map(x=>x.label).join('¦');
     if(!force&&sig===WSSIG)return;WSSIG=sig;
@@ -1548,7 +1716,7 @@ function renderWS(force){
     const its=S.items||[];sig='i|'+S.idx+'|'+(S.main||'').slice(0,30)+'|'+its.length+'|'+(its[0]?its[0].sub:'')+'|'+GFXLIB.map(c=>c.id+c.name+(S.gfx&&S.gfx.on&&S.gfx.cid===c.id?'L':'')).join(',');
     if(!force&&sig===WSSIG)return;WSSIG=sig;
     const ttl=its[0]?String(its[0].sub||'').replace(/ — \d+$/,'').replace(/:\d+(-\d+)?( ·.*)?$/,''):'';
-    html='<h4>'+esc(ttl||t('Couplets'))+(its.length?' — '+its.length:'')+'</h4>'+(its.length?'<div class="tiles'+(tb==='bible'?' lines':'')+'">'+its.map((x,i)=>`<div class="tile ${i===S.idx?'on':''} ${S.main&&x.main===S.main&&!S.blank?'live':''}" onclick="itemTileClick(${i},event)" title="${esc(t('Double-clic : afficher en direct'))}"><span class="n">${i+1}</span><div class="tx">${esc(x.main)}</div></div>`).join('')+'</div>':'<div class="ai">'+esc(t(tb==='bible'?'Tapez une référence : le chapitre entier s’affiche ici.':'Choisissez un chant : ses couplets s’affichent ici.'))+'</div>');
+    html='<h4>'+esc(ttl||t('Couplets'))+(its.length?' — '+its.length:'')+'</h4>'+(its.length?'<div class="tiles'+(tb==='bible'?' lines':'')+'">'+its.map((x,i)=>`<div class="tile ${i===S.idx?'on':''} ${S.main&&x.main===S.main&&!S.blank?'live':''}" onclick="itemTileClick(${i},event)" title="${esc(t('Double-clic : afficher en direct'))}"><span class="n">${i+1}</span><div class="tx">${esc(x.main)}</div></div>`).join('')+'</div>':'<div class="ai">'+esc(t(tb==='bible'?'Tapez une référence : le chapitre entier s’affiche ici.':'Choisissez un chant : ses couplets s’affichent ici.'))+'</div>')+((tb==='songs'||tb==='bible')&&typeof gfxTilesHtml==='function'?gfxTilesHtml():'');
   }
   el.innerHTML=html;
   el.querySelectorAll('video').forEach(v=>{try{v.currentTime=.1}catch{}});
@@ -1590,8 +1758,10 @@ async function loadDefaultBgs(){
 }
 const kindOf=f=>/\.(glb|gltf|mjs|js)$/i.test(f.name||'')?'model':f.type.startsWith('video')?'video':f.type.startsWith('audio')?'audio':'image';
 async function addMedia(files){
-  files=Array.from(files);const docs=files.filter(f=>DOC_RE.test(f.name));if(docs.length){files=files.filter(f=>!DOC_RE.test(f.name));importDocs(docs);if(!files.length)return[]}
-  const newIds=[];
+  files=Array.from(files);const tplIds=[];for(const f of files.slice()){if(/\.(html?|json)$/i.test(f.name)){let tx='';try{tx=await f.text()}catch{}if(/\{\{[^}]+\}\}/.test(tx)&&tplFields(tx).length){try{tplIds.push(await tplImport(f,tx));files=files.filter(x=>x!==f)}catch(e){console.error(e)}}}}
+  if(tplIds.length){renderMedia();toast('🧩 '+tplIds.length+' '+t('modèle(s) dynamique(s) — double-clic pour remplir les champs'));if(!files.length)return tplIds}
+  const docs=files.filter(f=>DOC_RE.test(f.name));if(docs.length){files=files.filter(f=>!DOC_RE.test(f.name));importDocs(docs);if(!files.length)return tplIds}
+  const newIds=[].concat(tplIds);
   for(const f of files){
     const id='M'+uid(),kind=kindOf(f);
     newIds.push(id);HF[id]={id,name:f.name,kind,mime:f.type,file:f,url:URL.createObjectURL(f)};
@@ -1605,7 +1775,7 @@ function bgStrip(){const el=$('bgStrip');if(!el)return;const l=Object.values(HF)
 function renderMedia(){
   airMediaOpts();renderFrame();bgStrip();
   const l=Object.values(HF).sort((a,b)=>(b.builtin?1:0)-(a.builtin?1:0));
-  $('mList').innerHTML=l.map(m=>`<div class="item"><div class="row"><div class="grow">${m.kind==='video'?'🎬':m.kind==='audio'?'🔊':'🖼'} ${esc(m.name)}${m.pct!=null&&m.pct<100?`<div class="prog" style="width:${m.pct}%"></div>`:''}</div><button class="sm" onclick="addMediaToPL('${m.id}')">+ Prog.</button><button class="sm" onclick="delMedia('${m.id}')">✕</button></div></div>`).join('')||'<div style="font-size:12px;color:var(--tx3)">Aucun média.</div>';
+  $('mList').innerHTML=l.map(m=>`<div class="item" ondblclick="mediaDbl('${m.id}',event)"><div class="row"><div class="grow">${m.tpl?'🧩':m.kind==='video'?'🎬':m.kind==='audio'?'🔊':'🖼'} ${esc(m.name)}${m.pct!=null&&m.pct<100?`<div class="prog" style="width:${m.pct}%"></div>`:''}</div>${m.tpl?`<button class="sm" onclick="tplEdit('${m.id}')">✎</button>`:''}<button class="sm" onclick="addMediaToPL('${m.id}')">+ Prog.</button><button class="sm" onclick="delMedia('${m.id}')">✕</button></div></div>`).join('')||'<div style="font-size:12px;color:var(--tx3)">Aucun média.</div>';
   renderWS(true);
 }
 async function logoUpload(files){if(!files||!files[0])return;const ids=await addMedia([files[0]]);if(ids[0]){S.bug.id=ids[0];S.bug.on=true;LS.set('wcBug',S.bug);render();sync();airMediaOpts();toast('✓ '+t('Logo de l’église enregistré'))}}
@@ -1615,6 +1785,11 @@ function logoUI(){const sel=$('lgSel');if(!sel)return;
   const pv=$('lgPrev'),m=HF[S.bug.id];pv.innerHTML=m&&m.url?`<img src="${m.url}">`:'<span>🖼</span>';$('lgOn').checked=!!S.bug.on}
 async function delMedia(id){try{await idb.del(id)}catch{}delete HF[id];renderMedia()}
 function layerObj(m){return {id:m.id,kind:m.kind,loop:m.loop!==false,mute:m.mute===true}}
+let MCT=null;
+function mediaClick(id,e){if(e&&e.target.closest('button'))return;clearTimeout(MCT);MCT=setTimeout(()=>mediaToPv(id),230)}
+function mediaDbl(id,e){if(e&&e.target.closest('button'))return;clearTimeout(MCT);const m=HF[id];if(m&&m.tpl){tplEdit(id);return}mediaToPgm(id)}
+function mediaToPv(id){const m=HF[id];if(!m)return;if(m.kind==='audio'){mediaAudioToggle(id);return}S.pvBlank=false;S.pvLayers[1]=layerObj(m);render();sync();renderMedia()}
+function mediaToPgm(id){const m=HF[id];if(!m)return;if(m.kind==='audio'){mediaAudioToggle(id);return}S.pvBlank=false;S.blank=false;S.pvLayers[1]=layerObj(m);S.layers[1]=layerObj(m);render();sync();renderMedia()}
 function assignLayer(id,n){
   const m=HF[id];if(!m)return;
   if(S.pvLayers[n]&&S.pvLayers[n].id===id){S.pvLayers[n]=null;if(S.layers[n]&&S.layers[n].id===id&&$('mLive')&&$('mLive').checked)S.layers[n]=null}
@@ -1716,6 +1891,7 @@ function plClick(i){if(PLCUR===i){PLCUR=-1;clearTimeout(PLT);S.pvMain='';S.pvSub
 function plEdit(i){const it=curList().items[i];if(!it)return;
   if(it.t==='gfx'){let c=GFXLIB.find(x=>x.id===it.card);if(!c){c={id:'c'+uid(),name:it.label.replace(/^\S+\s/,''),cfg:it.cfg};GFXLIB.push(c);it.card=c.id;savePL();LS.set('wcGFXLIB',GFXLIB)}gfxCardEdit(c.id);return}
   if(it.t==='verse'){const m=prompt(tr3('Texte','Texto','Text'),it.main||'');if(m==null)return;const r=prompt(tr3('Référence / sous-titre','Referencia / subtítulo','Reference / subtitle'),it.sub||'');it.main=m;if(r!=null)it.sub=r;it.label=(it.label.match(/^\S+/)||['📝'])[0]+' '+(it.sub||m).slice(0,28);savePL();renderPL();sync();return}
+  if(it.t==='media'&&HF[it.mid]&&HF[it.mid].tpl){tplEdit(it.mid);return}
   if(it.t==='sec'||it.t==='song'||it.t==='media'||it.t==='blank'||it.t==='lt'){const n=prompt(tr3('Nom','Nombre','Name'),it.label);if(n){it.label=n;savePL();renderPL();sync()}}}
 function plDur(i,v){curList().items[i].dur=Math.max(0,+v||0);savePL()}
 function plAdd(it){const l=curList();it.id='i'+uid();l.items.push(it);savePL();renderPL();sync();toast('Ajouté au programme « '+l.name+' »')}
@@ -2252,6 +2428,7 @@ function tkSet(k,v){TKF[k]=v;tkSave();if(S.tk&&S.tk.on){S.tk=Object.assign({},TK
 const tkAll=()=>TK_D.concat(gtList('tk').map(x=>['cu:'+x.id+':'+x.base,'★ '+x.name,x.v.ac]));
 function tkDesign(d){const x=tkAll().find(a=>a[0]===d);if(!x)return;TKF.design=d;TKF.accent=x[2];tkSave();if(S.tk&&S.tk.on)S.tk=Object.assign({},TKF,{on:true});renderTKPane();render();sync()}
 function tkToggle(){if(S.tk&&S.tk.on)S.tk=Object.assign({},TKF,{on:false});else S.tk=Object.assign({},TKF,{on:true});renderTKPane();render();sync()}
+function tkEditDesign(){const d=TKF.design||'news';if(/^cu:/.test(d)&&GT.find(x=>x.id===d.split(':')[1])){GTE=d.split(':')[1]}else{gtNew('tk',d);const t=GT.find(x=>x.id===GTE);if(t){TKF.design='cu:'+t.id+':'+t.base;tkSave()}}openTab('gt');renderGT();renderTKPane()}
 function renderTKPane(){const el=$('tkCard');if(!el)return;const T=(a,b,c)=>esc(tr3(a,b,c)),on=!!(S.tk&&S.tk.on);
   el.innerHTML=`<div class="tkdg">${tkAll().map(d=>`<button class="sm ${TKF.design===d[0]?'pri':''}" onclick="tkDesign('${d[0]}')" style="border-left:4px solid ${d[2]}">${esc(d[1])}</button>`).join('')}</div>
   <input id="tkLab" placeholder="${T('Étiquette (ex. FLASH INFO)','Etiqueta (p. ej. ÚLTIMA HORA)','Label (e.g. BREAKING)')}" value="${esc(TKF.label)}" oninput="tkSet('label',this.value)" style="margin-top:6px">
@@ -2261,6 +2438,7 @@ function renderTKPane(){const el=$('tkCard');if(!el)return;const T=(a,b,c)=>esc(
   <div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Taille / zoom','Tamaño / zoom','Size / zoom')}</span><input type="range" min="40" max="300" step="5" value="${TKF.scale}" style="flex:1" oninput="tkSet('scale',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span style="font-size:11px;width:40px">${TKF.scale}%</span></div>
   ${TKF.mode==='scroll'?`<div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Vitesse','Velocidad','Speed')}</span><input type="range" min="30" max="300" step="10" value="${TKF.speed}" style="flex:1" oninput="tkSet('speed',+this.value)"></div>`:`<div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Durée par annonce (s)','Duración por anuncio (s)','Seconds per item')}</span><input type="number" min="2" max="60" value="${TKF.hold}" style="width:70px" oninput="tkSet('hold',+this.value)"></div>`}
   <div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Hauteur du bord bas (%)','Elevación del borde (%)','Lift from edge (%)')}</span><input type="range" min="0" max="30" value="${TKF.lift}" style="flex:1" oninput="tkSet('lift',+this.value)"><input type="color" value="${TKF.accent}" oninput="tkSet('accent',this.value)" style="width:40px;height:28px"></div>
+  <div class="bar" style="margin-top:6px"><button class="sm pri" onclick="tkEditDesign()">🎨 ${T('Designer ce bandeau (couleurs, fond, police, forme…)','Diseñar esta banda (colores, fondo, fuente, forma…)','Design this ticker (colours, background, font, shape…)')}</button></div>
   <button class="${on?'live':'pri'}" style="width:100%;margin-top:6px" onclick="tkToggle()">${on?'⏹ '+T('Masquer le bandeau','Ocultar la banda','Hide ticker'):'📰 '+T('Afficher le bandeau','Mostrar la banda','Show ticker')}</button>`}
 function renderTicker(root,k){if(!root)return;let el=root.querySelector(':scope>.tkbar');const items=((k&&k.text)||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
   if(!(k&&k.on&&items.length)){if(el&&!el.classList.contains('out')){clearInterval(el._iv);el.classList.add('out');const e=el;setTimeout(()=>e.remove(),420)}return}
@@ -3371,18 +3549,26 @@ function stuPush(){
   STU.slots=STU.slots.map(v=>v&&!v.includes(':')&&!['verse','lt','clock','logo'].includes(v)?'cam:'+v:v);
   const used=new Set(STU.slots.filter(v=>v&&v.startsWith('cam:')).map(v=>v.slice(4)));let ci=0;
   L.s.forEach((sl,i)=>{if(sl[0]==='c'&&STU.slots[i]===undefined){while(ci<cams.length&&used.has(cams[ci]))ci++;if(ci<cams.length){STU.slots[i]='cam:'+cams[ci];used.add(cams[ci])}}});
-  LS.set('wcStudio',STU);
+  LS.set('wcStudio',STU);S.pvBlank=false;
   S.pvStudio=JSON.parse(JSON.stringify(Object.assign({},STU,{on:true})));
   if(STU.live&&S.studio&&S.studio.on)S.studio=JSON.parse(JSON.stringify(S.pvStudio));
   render();sync();stuUI();
 }
-function stuLayout(l){if(!STL[l])return;STU.layout=(STU.layout===l&&l!=='none')?'none':l;stuPush()}
+function stuLayout(l){if(!STL[l])return;STU.layout=(STU.layout===l&&l!=='none')?'none':l;if(STU.layout==='none'){stuClear();return}S.pvBlank=false;stuPush()}
+/* Aucune disposition : vide Preview ET Program (écrans noirs) → libère les écrans pour autre chose */
+function stuClear(){LS.set('wcStudio',STU);S.pvStudio=null;S.studio=null;S.blank=true;S.pvBlank=true;render();sync();stuUI()}
+const STU_EXIT=['stinger','black','media','keep'];
+function stuExitEl(cb){const m=STU.exit||'stinger';
+  if(m==='stinger'){stgFire(cb);return}
+  if(m==='media'&&STU.exitMedia&&HF[STU.exitMedia]){const o=layerObj(HF[STU.exitMedia]);S.layers[2]=o;S.pvLayers[2]=o;S.blank=false;render();sync();setTimeout(cb,350);setTimeout(()=>{S.layers[2]=null;render();sync()},(STU.exitDur||5)*1000);return}
+  if(m==='black'){S.blank=true;cb();return}
+  cb()}
 function stuSlot(i,c){STU.slots=STU.slots||[];c=c||'';if(c&&!c.includes(':')&&!['verse','lt','clock','logo'].includes(c))c='cam:'+c;STU.slots[i]=c;stuPush()}
 function stuTrSet(i,k,v){STU.trs=STU.trs||[];STU.trs[i]=Object.assign({},STU.trs[i]);if(k==='t')STU.trs[i].t=v;else STU.trs[i].d=+v;stuPush()}
 function stuTrAll(v){STU.tdef=v;STU.trs=[];stuPush()}
-function stuTake(){if(!PRO()){needPro('studio');return}if(!S.pvStudio)stuPush();S.studio=JSON.parse(JSON.stringify(Object.assign({},S.pvStudio,{on:true})));render();sync();stuUI()}
-function stuOff(){S.studio=null;render();sync();stuUI()}
-function stuClosePv(){S.pvStudio=null;render();sync();stuUI()}
+function stuTake(){if(!PRO()){needPro('studio');return}S.blank=false;S.pvBlank=false;if(!S.pvStudio)stuPush();S.studio=JSON.parse(JSON.stringify(Object.assign({},S.pvStudio,{on:true})));render();sync();stuUI()}
+function stuOff(){const was=S.studio&&S.studio.on;const done=()=>{S.studio=null;render();sync();stuUI()};if(was)stuExitEl(done);else done()}
+function stuClosePv(){S.pvStudio=null;S.pvBlank=true;render();sync();stuUI()}
 function stuPreset(k){const p=STPRE[k];if(!p)return;STU.layout=p[0];STU.bg={k:'g',i:p[1]};STU.ac=p[2];STU.d3=p[3]||'flat';STU.set=p[4]||STU.set||'tv';STU.slots=[];STU.trs=[];stuPush()}
 function stuSet(k,v){if(k==='bgsel'){const [a,b]=String(v).split(':');STU.bg=a==='g'?{k:'g',i:+b}:a==='m'?{k:'m',id:b}:{k:'c',color:STU.bg.color||'#101a33'}}
   else if(k==='bgcol')STU.bg={k:'c',color:v};else if(k==='key')STU.key.on=!!v;else if(k==='keycol')STU.key.color=v;else if(k==='keytol')STU.key.tol=+v;
@@ -3405,7 +3591,8 @@ function stuUI(){const el=$('p-studio');if(!el||el.classList.contains('hidden')&
   const trAll=`<div class="cfgRow"><span>${esc(t('Transition par défaut'))}</span><select onchange="stuTrAll(this.value)">${Object.keys(STTR).map(k=>`<option value="${k}" ${(STU.tdef||'fade')===k?'selected':''}>${esc(t(STTR[k]))}</option>`).join('')}</select></div>`;
   const bgv=STU.bg.k==='g'?'g:'+STU.bg.i:STU.bg.k==='m'?'m:'+STU.bg.id:'c:';
   const bgo=DEFBG.map((d,i)=>`<option value="g:${i}" ${bgv==='g:'+i?'selected':''}>🎨 ${esc(d[0])}</option>`).join('')+Object.values(HF).filter(m=>!m.builtin&&m.kind!=='audio').map(m=>`<option value="m:${m.id}" ${bgv==='m:'+m.id?'selected':''}>${m.kind==='video'?'🎬':'🖼'} ${esc(m.name)}</option>`).join('')+`<option value="c:" ${bgv==='c:'?'selected':''}>■ ${esc(t('Couleur unie'))}</option>`;
-  el.innerHTML=`${mixUI()}<div class="stbar"><button class="live" onclick="stuTake()">▶ ${esc(t('TAKE STUDIO'))}</button><button onclick="stuOff()">⏹ ${esc(t('Quitter le studio'))}</button></div>
+  el.innerHTML=`${mixUI()}<div class="stbar"><button class="live" onclick="stuTake()">▶ ${esc(t('TAKE STUDIO'))}</button><button onclick="stuOff()">⏹ ${esc(t('Quitter le studio'))}</button><button onclick="blankPv()" class="${S.pvBlank?'on':''}">⬛ ${esc(t('Preview noir'))}</button><button onclick="blank()" class="${S.blank?'on':''}">⬛ ${esc(t('Program noir'))}</button><button onclick="stuClear()">⌀ ${esc(t('Vider les écrans'))}</button></div>
+  <div class="stbar"><label class="inl">${esc(t('À la sortie du studio'))} <select onchange="STU.exit=this.value;LS.set('wcStudio',STU);stuUI()">${[['stinger','Stinger logo'],['media','Média (pub/intro/image/vidéo)'],['keep','Revenir au contenu (verset)'],['black','Noir']].map(o=>`<option value="${o[0]}" ${(STU.exit||'stinger')===o[0]?'selected':''}>${esc(t(o[1]))}</option>`).join('')}</select></label>${(STU.exit==='media')?`<select onchange="STU.exitMedia=this.value;LS.set('wcStudio',STU)"><option value="">—</option>${Object.values(HF).filter(m=>m.kind==='image'||m.kind==='video').map(m=>`<option value="${m.id}" ${STU.exitMedia===m.id?'selected':''}>${esc(m.name||m.id)}</option>`).join('')}</select>`:''}</div>
   <div class="stbar"><label class="inl"><input type="checkbox" ${STU.live?'checked':''} onchange="stuSet('live',this.checked)"> ${esc(t('Modifier en direct (Program suit)'))}</label>${S.pvStudio?`<button class="sm" onclick="stuClosePv()">${esc(t('Fermer l’aperçu'))}</button>`:''}</div>
   <label>${esc(t('Modèles'))}</label><div class="stbar" style="flex-wrap:wrap"><button class="sm" onclick="stuPreset('culte')">⛪ ${esc(t('Culte'))}</button><button class="sm" onclick="stuPreset('emission')">📺 ${esc(t('Émission'))}</button><button class="sm" onclick="stuPreset('table')">🗣 ${esc(t('Table ronde'))}</button><button class="sm" onclick="stuPreset('conf')">🎤 ${esc(t('Conférence'))}</button><button class="sm" onclick="stuPreset('concert')">🎸 ${esc(t('Concert'))}</button><button class="sm" onclick="stuPreset('journal')">📰 ${esc(t('Journal TV'))}</button><button class="sm" onclick="stuPreset('interview')">🎙 ${esc(t('Interview'))}</button><button class="sm" onclick="stuPreset('reportage')">🎥 ${esc(t('Reportage'))}</button><button class="sm" onclick="stuPreset('debat')">⚖ ${esc(t('Débat'))}</button><button class="sm" onclick="stuPreset('matinale')">☀ ${esc(t('Matinale'))}</button></div>
   <label>${esc(t('Disposition'))}</label><div class="stlg">${thumbs}</div>
@@ -4121,7 +4308,7 @@ function rStuRender(){const el=$('rStu');if(!el)return;
   const cams=S.cams||[];const st=S.pvStudio,lay=st?st.layout:'';
   const sig=JSON.stringify([lay,cams,!!(S.studio&&S.studio.on),st&&st.slots,LANG]);if(el.dataset.k===sig)return;el.dataset.k=sig;
   const L=STL[lay||'pv'];
-  el.innerHTML=`<div class="rsh">🎬 Studio <button class="live" onclick="cmd('ston')">▶ TAKE</button><button onclick="cmd('stoff')">⏹</button></div>
+  el.innerHTML=`<div class="rsh">🎬 Studio <button class="live" onclick="cmd('ston')">▶ TAKE</button><button onclick="cmd('stoff')">⏹</button><button onclick="cmd('stclear')">⌀</button><button onclick="cmd('blankpv')">⬛PV</button></div>
   <div class="rsl">${Object.keys(STL).map(k=>`<button class="${lay===k?'on':''}" onclick="cmd('stlayout','${k}')">${esc(t(STL[k].n))}</button>`).join('')}</div>
   ${(st&&st.mix&&st.mix.on)?`<div class="rsl">${[['mixcut','✂ CUT'],['mixauto','▶ AUTO'],['mixftb','⬛ FTB']].map(v=>`<button onclick="cmd('${v[0]}','')">${v[1]}</button>`).join('')}</div><div class="rsl">${mixRemSrc(cams).map(x=>`<button class="${st.mix.pvw===x[0]?'on':''}" onclick="cmd('mixpvw','${x[0]}')">${x[1]}</button>`).join('')}</div>`:''}
   <div class="rsl">${[['def','🎯'],['wide','↔'],['mid','▣'],['close','🔍'],['left','◀'],['right','▶'],['high','⬆'],['low','⬇']].map(v=>`<button onclick="cmd('stview','${v[0]}')">${v[1]}</button>`).join('')}</div>
