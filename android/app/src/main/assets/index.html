@@ -434,7 +434,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
 .gb-bokeh i{border-radius:50%;background:radial-gradient(circle,#ffffff66,var(--ac) 45%,transparent 70%);opacity:.35;animation:gbDrift ease-in-out infinite alternate}@keyframes gbDrift{to{transform:translate(8em,-6em) scale(1.3)}}
 .gb-waves svg{position:absolute;left:0;width:200%;height:40%;fill:var(--ac);animation:gbWave linear infinite}@keyframes gbWave{to{transform:translateX(-50%)}}
 .gb-rays::before{content:'';position:absolute;top:-60%;right:-60%;bottom:-60%;left:-60%;background:repeating-conic-gradient(from 0deg at 50% 60%,#ffffff14 0 8deg,transparent 8deg 22deg);animation:gbSpin 70s linear infinite}.gb-rays::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(ellipse at 50% 60%,var(--ac)55,transparent 65%)}@keyframes gbSpin{to{transform:rotate(360deg)}}
-.gb-vid video{width:100%;height:100%;object-fit:cover}.gb-vid::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:#0006}
+.gb-img{background-size:cover;background-position:center}.gb-solid{}.gb-verse{display:flex;align-items:center;justify-content:center;text-align:center;padding:6%;font-weight:800;font-size:2.6em;line-height:1.25;color:#ffffffcc;background:radial-gradient(circle at 50% 40%,#1b2a5c,#070a18)}.gb-verse small{display:block;font-size:.5em;margin-top:.6em;opacity:.75}.gb-dim{pointer-events:none}.gb-vid video{width:100%;height:100%;object-fit:cover}.gb-vid::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:#0006}
 .gx-t{font-size:5em;font-weight:var(--gfw,800);line-height:1.1;text-transform:var(--gup,none);text-shadow:0 .06em .4em #0009}.gx-t.huge{font-size:8em}.gx-s{font-size:2.6em;opacity:.9;margin-top:.2em;text-shadow:0 .06em .3em #0009}
 .gx-chip{display:inline-block;background:var(--ac);color:var(--gatx,#fff);padding:.3em 1em;border-radius:.5em;font-weight:800;letter-spacing:.12em;font-size:2.2em;white-space:nowrap}.gx-chip.big{font-size:3em}
 .gx-card{background:var(--gbg,rgba(10,14,30,.88));color:var(--gtx,#fff);border-radius:var(--grad,1em);border:var(--gbd,none);box-shadow:var(--gsh,0 .6em 2em #0009)}
@@ -1106,6 +1106,11 @@ function resetMode() { LS.del('wcMode'); location.href = location.pathname; }
 let UNMUTED = !!NATIVE || !!TAURI;
 function init(m) {
     MODE = m;
+    {
+        const tb = document.getElementById('tourBtn');
+        if (tb)
+            tb.style.display = m === 'host' ? '' : 'none';
+    }
     if (!window.__WC)
         LS.set('wcMode', m);
     const q = getQ();
@@ -1851,6 +1856,13 @@ function renderWS(force) {
         WSSIG = sig;
         html = '<h4>' + esc(l.name) + ' — ' + l.items.length + '</h4><div class="tiles">' + l.items.map((it, i) => it.t === 'sec' ? `<div class="tile" style="min-height:44px;background:var(--s3);font-weight:800" onclick="plClick(${i})">${esc(it.label)}</div>` : `<div class="tile ${i === PLCUR ? 'on' : ''}" onclick="plClick(${i})"><span class="n">${i + 1}</span><div class="tx">${esc(it.label)}</div></div>`).join('') + '</div>';
     }
+    else if (tb === 'gt') {
+        sig = 'g|' + GFXLIB.map(c => c.id + c.name + (S.gfx && S.gfx.on && S.gfx.cid === c.id ? 'L' : '')).join(',');
+        if (!force && sig === WSSIG)
+            return;
+        WSSIG = sig;
+        html = gfxTilesHtml();
+    }
     else if (tb === 'lt') {
         sig = 'l|' + (S.lt && S.lt.on ? S.lt.type : '') + '|' + (typeof LTF !== 'undefined' ? LTF.type : '');
         if (!force && sig === WSSIG)
@@ -1860,7 +1872,7 @@ function renderWS(force) {
     }
     else {
         const its = S.items || [];
-        sig = 'i|' + S.idx + '|' + (S.main || '').slice(0, 30) + '|' + its.length + '|' + (its[0] ? its[0].sub : '');
+        sig = 'i|' + S.idx + '|' + (S.main || '').slice(0, 30) + '|' + its.length + '|' + (its[0] ? its[0].sub : '') + '|' + GFXLIB.map(c => c.id + c.name + (S.gfx && S.gfx.on && S.gfx.cid === c.id ? 'L' : '')).join(',');
         if (!force && sig === WSSIG)
             return;
         WSSIG = sig;
@@ -2185,7 +2197,7 @@ function renderPL() {
         if (it.t === 'sec')
             return `<div ${dr} style="margin:12px 0 4px"><div class="row"><div class="grow" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">▸ ${esc(it.label)}</div>${mv}</div></div>`;
         n++;
-        return `<div class="item ${i === PLCUR ? 'on' : ''}" ${dr}><div class="row"><div class="grow" onclick="plClick(${i})">${n}. ${esc(it.label)}${plMissing(it) ? ' ⚠' : ''}</div><input type="number" min="0" title="Durée (s) pour le défilement auto" value="${it.dur || ''}" placeholder="s" style="width:50px;padding:4px 6px" onchange="plDur(${i},this.value)">${mv}</div></div>`;
+        return `<div class="item ${i === PLCUR ? 'on' : ''}" ${dr}><div class="row"><div class="grow" onclick="plClick(${i})" ondblclick="plEdit(${i})" title="Double-clic : éditer">${n}. ${esc(it.label)}${plMissing(it) ? ' ⚠' : ''}</div><input type="number" min="0" title="Durée (s) pour le défilement auto" value="${it.dur || ''}" placeholder="s" style="width:50px;padding:4px 6px" onchange="plDur(${i},this.value)">${mv}</div></div>`;
     }).join('') || '<div style="font-size:12px;color:var(--tx3)">Programme vide. Ajoutez chants, versets, médias, lower thirds avec les boutons « + Prog. », ou saisissez un verset ci-dessus.</div>';
 }
 function plMissing(it) { return (it.t === 'media' && !findMedia(it)) || (it.t === 'song' && !SONGS.some(s => s.t === it.song)); }
@@ -2203,6 +2215,46 @@ function plClick(i) { if (PLCUR === i) {
     sync();
     return;
 } runItem(i); }
+function plEdit(i) {
+    const it = curList().items[i];
+    if (!it)
+        return;
+    if (it.t === 'gfx') {
+        let c = GFXLIB.find(x => x.id === it.card);
+        if (!c) {
+            c = { id: 'c' + uid(), name: it.label.replace(/^\S+\s/, ''), cfg: it.cfg };
+            GFXLIB.push(c);
+            it.card = c.id;
+            savePL();
+            LS.set('wcGFXLIB', GFXLIB);
+        }
+        gfxCardEdit(c.id);
+        return;
+    }
+    if (it.t === 'verse') {
+        const m = prompt(tr3('Texte', 'Texto', 'Text'), it.main || '');
+        if (m == null)
+            return;
+        const r = prompt(tr3('Référence / sous-titre', 'Referencia / subtítulo', 'Reference / subtitle'), it.sub || '');
+        it.main = m;
+        if (r != null)
+            it.sub = r;
+        it.label = (it.label.match(/^\S+/) || ['📝'])[0] + ' ' + (it.sub || m).slice(0, 28);
+        savePL();
+        renderPL();
+        sync();
+        return;
+    }
+    if (it.t === 'sec' || it.t === 'song' || it.t === 'media' || it.t === 'blank' || it.t === 'lt') {
+        const n = prompt(tr3('Nom', 'Nombre', 'Name'), it.label);
+        if (n) {
+            it.label = n;
+            savePL();
+            renderPL();
+            sync();
+        }
+    }
+}
 function plDur(i, v) { curList().items[i].dur = Math.max(0, +v || 0); savePL(); }
 function plAdd(it) { const l = curList(); it.id = 'i' + uid(); l.items.push(it); savePL(); renderPL(); sync(); toast('Ajouté au programme « ' + l.name + ' »'); }
 function addSongToPL(i) { plAdd({ t: 'song', label: '🎵 ' + SONGS[i].t, song: SONGS[i].t }); }
@@ -2247,6 +2299,11 @@ function runItem(i) {
         S.pvLt = Object.assign({}, l, { on: true, id: uid() });
         if ($('plAuto').checked)
             ltLive(l);
+    }
+    else if (it.t === 'gfx') {
+        const c = GFXLIB.find(x => x.id === it.card), g = c ? c.cfg : it.cfg;
+        if (g)
+            gfxShowCfg(Object.assign({ cid: c ? c.id : '' }, g));
     }
     else if (it.t === 'blank') {
         S.pvMain = '';
@@ -3262,9 +3319,20 @@ S.gtcss = GT.map(gtCssOf).join('\n');
 gtApplyCss(S.gtcss);
 const gtList = k => GT.filter(t => t.kind === k);
 /* --- fonds animés --- */
-function gxBg(type, u) {
+function gxBg(type, u, g) {
     if (!type || type === 'none')
         return '';
+    g = g || {};
+    if (String(type).startsWith('image:')) {
+        const url = u(type.slice(6));
+        return url ? `<div class="gb gb-img" style="background-image:url('${url}')"></div>` : '';
+    }
+    if (type === 'solid')
+        return `<div class="gb gb-solid" style="background:${esc(g.bgc || '#0a0e1e')}"></div>`;
+    if (type === 'verse') {
+        const tx = g.vtx || '';
+        return tx ? `<div class="gb gb-verse"><div>${esc(tx.slice(0, 260))}${g.vsub ? `<small>${esc(g.vsub)}</small>` : ''}</div></div>` : '<div class="gb gb-verse"></div>';
+    }
     const R = (n, s) => { const x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
     if (type === 'aurora')
         return '<div class="gb gb-aurora"><i></i><i></i><i></i></div>';
@@ -3345,7 +3413,7 @@ function renderGfx(root, g, urlOf) {
     el.dataset.k = key;
     clearInterval(el._iv);
     const u = urlOf || (() => ''), z = (g.scale || 100) / 100, lid = (S.bug && S.bug.id) || '', lu = g.logo && lid ? u(lid) : '', logo = lu ? `<img class="gx-logo" src="${lu}">` : '';
-    el.innerHTML = `<div class="gfx gx-${g.kind} gv-${g.variant}"${g.theme ? ` data-cu="${esc(g.theme)}"` : ''} style="--ac:${esc(g.accent || '#2f7bff')};--dur:${g.dur || 12}s;font-size:${z}vw;font-size:${z}cqw">${gxBg(g.bg, u)}${gxInner(g, logo)}</div>`;
+    el.innerHTML = `<div class="gfx gx-${g.kind} gv-${g.variant}"${g.theme ? ` data-cu="${esc(g.theme)}"` : ''} style="--ac:${esc(g.accent || '#2f7bff')};--dur:${g.dur || 12}s;font-size:${z}vw;font-size:${z}cqw">${gxBg(g.bg, u, g)}${g.bgdim && g.bg && g.bg !== 'none' ? `<div class="gb gb-dim" style="background:rgba(0,0,0,${(g.bgdim / 100).toFixed(2)})"></div>` : ''}${gxInner(g, logo)}</div>`;
     const cl = el.querySelectorAll('.gx-cl');
     if (cl.length > 1) {
         let i = 0;
@@ -3355,7 +3423,7 @@ function renderGfx(root, g, urlOf) {
 const GFXD = { upnext: { label: 'À SUIVRE', l1: 'La prédication', l2: 'Pasteur Josias · 10h30', variant: 'sweep', bg: 'none' }, promo: { label: 'ÉVÉNEMENT', l1: 'Grande conférence', l2: 'Venez nombreux, invitez un ami', date: 'Dim. 24 novembre', time: '10h00', place: 'Salle principale', variant: 'cards', bg: 'aurora' }, loop: { label: '', l1: 'Bienvenue', l2: 'Nous sommes heureux de vous accueillir', lines: 'Culte à 10h00\nGarderie au 1er étage\nMerci d’éteindre vos téléphones', variant: 'center', bg: 'particles' } };
 const GFXF = Object.assign({ kind: 'upnext', theme: '', accent: '#2f7bff', scale: 100, dur: 12, logo: true, c: {} }, LS.get('wcGFX', {}));
 const gfxC = () => Object.assign({}, GFXD[GFXF.kind], GFXF.c[GFXF.kind] || {});
-function gfxMake(on) { return Object.assign({ id: uid() }, gfxC(), { on: !!on, kind: GFXF.kind, theme: GFXF.theme, accent: GFXF.accent, scale: GFXF.scale, dur: GFXF.dur, logo: GFXF.logo }); }
+function gfxMake(on) { const c0 = gfxC(); return Object.assign({ id: uid() }, c0, { vtx: c0.bg === 'verse' ? (S.main || S.pvMain || '') : '', vsub: c0.bg === 'verse' ? (S.sub || S.pvSub || '') : '', on: !!on, kind: GFXF.kind, theme: GFXF.theme, accent: GFXF.accent, scale: GFXF.scale, dur: GFXF.dur, logo: GFXF.logo }); }
 let GFXT = 0;
 function gfxSave() { LS.set('wcGFX', GFXF); }
 function gfxSet(k, v) { const c = GFXF.c[GFXF.kind] = GFXF.c[GFXF.kind] || {}; c[k] = v; gfxSave(); gfxLive(); }
@@ -3370,6 +3438,59 @@ function gfxShow() { clearTimeout(GFXT); S.gfx = gfxMake(true); if (GFXF.dur > 0
     GFXT = setTimeout(gfxHide, GFXF.dur * 1000); render(); sync(); renderGT(); }
 function gfxHide() { clearTimeout(GFXT); if (S.gfx)
     S.gfx = Object.assign({}, S.gfx, { on: false }); render(); sync(); renderGT(); }
+/* --- cartes graphiques enregistrées (panneau Versets / conducteur) --- */
+let GFXLIB = LS.get('wcGFXLIB', []);
+if (!Array.isArray(GFXLIB))
+    GFXLIB = [];
+let GFXED = null;
+const GFX_ICO = { upnext: '⏭', promo: '📣', loop: '🔁' };
+function gfxLibSave() { LS.set('wcGFXLIB', GFXLIB); renderWS(true); }
+function gfxCfgNow() { const c = gfxC(); return Object.assign({}, c, { kind: GFXF.kind, theme: GFXF.theme, accent: GFXF.accent, scale: GFXF.scale, dur: GFXF.dur, logo: GFXF.logo }); }
+function gfxCardSave(asNew) {
+    const cfg = gfxCfgNow(), nm = (cfg.l1 || cfg.label || GFXF.kind).slice(0, 40);
+    let c = GFXED && !asNew ? GFXLIB.find(x => x.id === GFXED) : null;
+    if (c) {
+        c.cfg = cfg;
+        c.name = nm;
+        curListsAll().forEach(l => l.items.forEach(it => { if (it.t === 'gfx' && it.card === c.id) {
+            it.cfg = JSON.parse(JSON.stringify(cfg));
+            it.label = GFX_ICO[cfg.kind] + ' ' + nm;
+        } }));
+        savePL();
+        renderPL();
+    }
+    else {
+        c = { id: 'c' + uid(), name: nm, cfg };
+        GFXLIB.push(c);
+        GFXED = c.id;
+    }
+    gfxLibSave();
+    renderGT();
+    toast(tr3('Carte enregistrée', 'Tarjeta guardada', 'Card saved'));
+}
+function curListsAll() { return PL.lists; }
+function gfxCardEdit(id) { const c = GFXLIB.find(x => x.id === id); if (!c)
+    return; const g = c.cfg; GFXF.kind = g.kind; GFXF.c[g.kind] = JSON.parse(JSON.stringify(g)); GFXF.theme = g.theme || ''; GFXF.accent = g.accent || GFXF.accent; GFXF.scale = g.scale || 100; GFXF.dur = g.dur == null ? 12 : g.dur; GFXF.logo = g.logo !== false; GFXED = id; gfxSave(); GTS = g.kind; openTab('gt'); renderGT(); gtPreview(); }
+function gfxCardNew(kind) { GFXED = null; GFXF.kind = kind; GTS = kind; openTab('gt'); renderGT(); }
+function gfxCardDel(id) { if (!confirm(tr3('Supprimer cette carte ?', '¿Eliminar esta tarjeta?', 'Delete this card?')))
+    return; GFXLIB = GFXLIB.filter(x => x.id !== id); if (GFXED === id)
+    GFXED = null; gfxLibSave(); renderGT(); }
+function gfxShowCfg(g) { clearTimeout(GFXT); S.gfx = Object.assign({}, g, { id: uid(), on: true, vtx: g.bg === 'verse' ? (S.main || S.pvMain || '') : '', vsub: g.bg === 'verse' ? (S.sub || S.pvSub || '') : '' }); if (g.dur > 0)
+    GFXT = setTimeout(gfxHide, g.dur * 1000); render(); sync(); renderWS(true); }
+function gfxCardClick(id, e) { const c = GFXLIB.find(x => x.id === id); if (!c)
+    return; if (e && e.detail > 1) {
+    gfxCardEdit(id);
+    return;
+} if (S.gfx && S.gfx.on && S.gfx.cid === id) {
+    gfxHide();
+    return;
+} gfxShowCfg(Object.assign({ cid: id }, c.cfg)); }
+function gfxCardPL(id) { const c = GFXLIB.find(x => x.id === id); if (!c)
+    return; plAdd({ t: 'gfx', label: GFX_ICO[c.cfg.kind] + ' ' + c.name, card: c.id, cfg: JSON.parse(JSON.stringify(c.cfg)) }); }
+function gfxTilesHtml() {
+    const T = (a, b, c) => esc(tr3(a, b, c));
+    return '<h4 style="margin-top:14px">' + T('Graphiques GT', 'Gráficos GT', 'GT graphics') + ' — ' + GFXLIB.length + ' <button class="sm" onclick="gfxCardNew(\'upnext\')">+ ' + T('À suivre', 'A continuación', 'Up next') + '</button><button class="sm" onclick="gfxCardNew(\'promo\')">+ Promo</button><button class="sm" onclick="gfxCardNew(\'loop\')">+ ' + T('Annonces', 'Anuncios', 'Loop') + '</button></h4><div class="tiles">' + (GFXLIB.map(c => `<div class="tile ${S.gfx && S.gfx.on && S.gfx.cid === c.id ? 'live' : ''}" onclick="gfxCardClick('${c.id}',event)" title="${T('Clic : afficher/masquer · Double-clic : éditer', 'Clic: mostrar/ocultar · Doble clic: editar', 'Click: show/hide · Double-click: edit')}"><div class="tx">${GFX_ICO[c.cfg.kind]} ${esc(c.name)}<br><small style="color:var(--tx3)">${esc(c.cfg.l2 || '')}</small></div><div class="cb" style="margin-top:6px"><button onclick="event.stopPropagation();gfxCardPL('${c.id}')">+ Prog.</button><button onclick="event.stopPropagation();gfxCardEdit('${c.id}')">✎</button><button onclick="event.stopPropagation();gfxCardDel('${c.id}')">🗑</button></div></div>`).join('') || '<div class="ai">' + T('Aucune carte. Créez-en dans l’onglet GT.', 'Ninguna tarjeta. Cree una en la pestaña GT.', 'No cards yet. Create one in the GT tab.') + '</div>') + '</div>';
+}
 /* --- stinger logo --- */
 const STGF = Object.assign({ style: 'sweep', color: '#5b8cff', dur: 1200 }, LS.get('wcSTG', {}));
 function stgSet(k, v) { STGF[k] = v; LS.set('wcSTG', STGF); }
@@ -3460,18 +3581,21 @@ function renderGT() {
         GFXF.kind = GTS;
         const c = gfxC(), on = !!(S.gfx && S.gfx.on), inp = (k, ph, ta) => ta ? `<textarea rows="3" placeholder="${esc(ph)}" oninput="gfxSet('${k}',this.value)" style="width:100%">${esc(c[k] || '')}</textarea>` : `<input placeholder="${esc(ph)}" value="${esc(c[k] || '')}" oninput="gfxSet('${k}',this.value)">`;
         const vars = { upnext: [['sweep', 'Bandeau balayage'], ['card', 'Carte + compte à rebours'], ['full', 'Plein écran']], promo: [['cards', 'Cartes date/heure/lieu'], ['news', 'Panneau info TV'], ['poster', 'Affiche']], loop: [['center', 'Centré + annonces tournantes'], ['list', 'Liste animée']] }[GTS];
-        const bgs = [['none', '— Aucun (sur l’image)'], ['aurora', 'Aurore'], ['particles', 'Particules'], ['bokeh', 'Bokeh lumineux'], ['waves', 'Vagues'], ['rays', 'Rayons de lumière']].concat(Object.values(HF).filter(m => !m.builtin && m.kind === 'video').map(m => ['video:' + m.id, '🎬 ' + m.name]));
+        const bgs = [['none', '— Aucun (sur l’image)'], ['aurora', 'Aurore'], ['particles', 'Particules'], ['bokeh', 'Bokeh lumineux'], ['waves', 'Vagues'], ['rays', 'Rayons de lumière'], ['solid', '🎨 ' + tr3('Couleur unie', 'Color sólido', 'Solid colour')], ['verse', '📖 ' + tr3('Verset en cours', 'Versículo actual', 'Current verse')]].concat(Object.values(HF).filter(m => !m.builtin && m.kind === 'video').map(m => ['video:' + m.id, '🎬 ' + m.name]), Object.values(HF).filter(m => !m.builtin && m.kind === 'image').map(m => ['image:' + m.id, '🖼 ' + m.name]));
         body = `${gtPvBox()}<label>${T('Étiquette', 'Etiqueta', 'Label')}</label>${inp('label', 'À SUIVRE')}<label>${T('Titre', 'Título', 'Title')}</label>${inp('l1', '')}<label>${T('Sous-titre', 'Subtítulo', 'Subtitle')}</label>${inp('l2', '')}
     ${GTS === 'promo' ? `<div class="cfgRow"><span>📅</span>${inp('date', 'Dim. 24 novembre')}</div><div class="cfgRow"><span>🕒</span>${inp('time', '10h00')}</div><div class="cfgRow"><span>📍</span>${inp('place', 'Salle principale')}</div>` : ''}
     ${GTS === 'loop' ? `<label>${T('Annonces (une par ligne)', 'Anuncios (uno por línea)', 'Announcements (one per line)')}</label>${inp('lines', '', 1)}` : ''}
     <div class="cfgRow"><span>${T('Mise en page', 'Diseño', 'Layout')}</span><select onchange="gfxSet('variant',this.value);renderGT()">${vars.map(x => `<option value="${x[0]}" ${c.variant === x[0] ? 'selected' : ''}>${esc(x[1])}</option>`).join('')}</select></div>
     <div class="cfgRow"><span>${T('Fond animé', 'Fondo animado', 'Motion background')}</span><select onchange="gfxSet('bg',this.value);renderGT()">${bgs.map(x => `<option value="${esc(x[0])}" ${c.bg === x[0] ? 'selected' : ''}>${esc(x[1])}</option>`).join('')}</select></div>
+    ${c.bg === 'solid' ? `<div class="cfgRow"><span>${T('Couleur du fond', 'Color del fondo', 'Background colour')}</span><input type="color" value="${c.bgc || '#0a0e1e'}" oninput="gfxSet('bgc',this.value)"></div>` : ''}${c.bg && c.bg !== 'none' && /^(image|video|verse)/.test(c.bg) ? `<div class="cfgRow"><span>${T('Assombrir le fond (%)', 'Oscurecer fondo (%)', 'Dim background (%)')}</span><input type="range" min="0" max="85" value="${c.bgdim == null ? 30 : c.bgdim}" oninput="gfxSet('bgdim',+this.value)"></div>` : ''}${c.bg === 'verse' ? `<div class="ai">${T('Le fond reprend le verset affiché au moment de l’affichage.', 'El fondo usa el versículo mostrado en ese momento.', 'Background uses the verse on screen when shown.')}</div>` : ''}
     <div class="cfgRow"><span>${T('Thème / design perso', 'Tema / diseño propio', 'Theme / custom design')}</span><select onchange="gfxTop('theme',this.value)"><option value="">—</option>${gtList('gfx').map(x => `<option value="${x.id}" ${GFXF.theme === x.id ? 'selected' : ''}>★ ${esc(x.name)}</option>`).join('')}</select></div>
     <div class="cfgRow"><span>${T('Couleur d’accent', 'Color de acento', 'Accent colour')}</span><input type="color" value="${GFXF.accent}" oninput="gfxTop('accent',this.value)"></div>
     <div class="cfgRow"><span>${T('Taille / zoom', 'Tamaño / zoom', 'Size / zoom')}</span><input type="range" min="40" max="200" value="${GFXF.scale}" oninput="gfxTop('scale',+this.value)"></div>
     <div class="cfgRow"><span>${T('Logo de l’église', 'Logo de la iglesia', 'Church logo')}</span><input type="checkbox" ${GFXF.logo ? 'checked' : ''} onchange="gfxTop('logo',this.checked)"></div>
     <div class="cfgRow"><span>${T('Durée (s, 0 = manuel)', 'Duración (s, 0 = manual)', 'Duration (s, 0 = manual)')}</span><input type="number" min="0" value="${GFXF.dur}" style="width:80px" oninput="gfxTop('dur',+this.value)"></div>
-    <div class="bar" style="margin-top:8px"><button class="${on ? '' : 'live'}" onclick="${on ? 'gfxHide()' : 'gfxShow()'}" style="flex:1">${on ? '⏹ ' + T('Masquer', 'Ocultar', 'Hide') : '▶ ' + T('Afficher à l’écran', 'Mostrar en pantalla', 'Show on screen')}</button></div>`;
+    <div class="bar" style="margin-top:8px"><button class="${on ? '' : 'live'}" onclick="${on ? 'gfxHide()' : 'gfxShow()'}" style="flex:1">${on ? '⏹ ' + T('Masquer', 'Ocultar', 'Hide') : '▶ ' + T('Afficher à l’écran', 'Mostrar en pantalla', 'Show on screen')}</button></div>
+    <div class="bar" style="margin-top:6px"><button class="pri sm" onclick="gfxCardSave()">💾 ${GFXED && GFXLIB.some(x => x.id === GFXED) ? T('Mettre à jour la carte', 'Actualizar tarjeta', 'Update card') : T('Enregistrer comme carte', 'Guardar como tarjeta', 'Save as card')}</button>${GFXED ? `<button class="sm" onclick="gfxCardSave(1)">⧉ ${T('Nouvelle carte', 'Nueva tarjeta', 'New card')}</button><button class="sm" onclick="GFXED=null;renderGT()">✕</button>` : ''}</div>
+    <div class="ai">${T('Les cartes enregistrées apparaissent dans le panneau central (Versets / GT) : clic = afficher, double-clic = éditer, « + Prog. » = ajouter au conducteur.', 'Las tarjetas guardadas aparecen en el panel central (Versículos / GT): clic = mostrar, doble clic = editar, « + Prog. » = añadir al programa.', 'Saved cards appear in the centre panel (Verses / GT): click = show, double-click = edit, “+ Prog.” = add to the run sheet.')}</div>`;
     }
     else {
         body = `<div class="ai">${T('Animation rapide du logo qui balaie l’écran pour masquer une coupure (caméra → carton d’annonce). Joue sur tous les écrans connectés.', 'Animación rápida del logo que barre la pantalla para ocultar un corte (cámara → cartel). Se reproduce en todas las pantallas conectadas.', 'Quick logo animation sweeping the screen to hide a cut (camera → announcement card). Plays on all connected screens.')}</div>
@@ -6589,10 +6713,10 @@ function camPre(k) {
         fov = Math.max(18, fov - 4);
     }
     else if (k === 'left') {
-        yaw += .55;
+        yaw -= .55;
     }
     else if (k === 'right') {
-        yaw -= .55;
+        yaw += .55;
     }
     else if (k === 'high') {
         pit = Math.min(1.2, pit + .5);
