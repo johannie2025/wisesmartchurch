@@ -1955,7 +1955,30 @@ function compEnsure(c, t, W, H) { const w = Math.min(W, 1920), h = Math.round(w 
     return; c._busy = 1; c._pk = q + '|' + w; compFrame(c, t, w, h).catch(() => { }).finally(() => { c._busy = 0; }); }
 const EDM = {};
 let EDC = null, EDX = null, EDAC = null, EDDEST = null, EDRAF = 0, EDT0 = 0, EDREC = null;
-const edSave = () => LS.set('wcEd', { ratio: ED.ratio, q: ED.q, fps: ED.fps, bg: ED.bg, clips: ED.clips, pps: ED.pps });
+const edVol = c => (c.mute || (ED.tm && ED.tm[c.track])) ? 0 : (c.vol == null ? 100 : c.vol) / 100;
+let EDH = [], EDHI = -1;
+function edHistPush() { const j = JSON.stringify(ED.clips); if (EDH[EDHI] === j)
+    return; EDH = EDH.slice(0, EDHI + 1); EDH.push(j); if (EDH.length > 120)
+    EDH.shift(); EDHI = EDH.length - 1; }
+function edHistRestore() { ED.clips = JSON.parse(EDH[EDHI]); ED.ms = []; ED.sel = null; LS.set('wcEd', { ratio: ED.ratio, q: ED.q, fps: ED.fps, bg: ED.bg, clips: ED.clips, pps: ED.pps, tm: ED.tm }); edUI(); edDraw(ED.t); }
+function edUndo() { if (EDHI > 0) {
+    EDHI--;
+    edHistRestore();
+}
+else
+    toast('↶ ' + tr3('Rien à annuler', 'Nada que deshacer', 'Nothing to undo')); }
+function edRedo() { if (EDHI < EDH.length - 1) {
+    EDHI++;
+    edHistRestore();
+}
+else
+    toast('↷ ' + tr3('Rien à rétablir', 'Nada que rehacer', 'Nothing to redo')); }
+const edSave = () => { LS.set('wcEd', { ratio: ED.ratio, q: ED.q, fps: ED.fps, bg: ED.bg, clips: ED.clips, pps: ED.pps, tm: ED.tm }); edHistPush(); };
+function edMute() { const m = edMS(); if (!m.length) {
+    toast(tr3('Sélectionnez un clip', 'Seleccione un clip', 'Select a clip'));
+    return;
+} const cs = m.map(i => ED.clips.find(c => c.id === i)).filter(Boolean), v = !cs.every(c => c.mute); cs.forEach(c => c.mute = v); edSave(); edUI(); edSync(ED.t, false); toast((v ? '🔇 ' : '🔊 ') + tr3(v ? 'Son coupé' : 'Son rétabli', v ? 'Sonido silenciado' : 'Sonido activado', v ? 'Muted' : 'Unmuted')); }
+function edMuteTrack(tr) { ED.tm = ED.tm || {}; ED.tm[tr] = !ED.tm[tr]; edSave(); edUI(); edSync(ED.t, false); }
 function edDims() { const [w16, h16] = CAP_Q[ED.q] || CAP_Q['1080'], [a, b] = CAP_R[ED.ratio] || [16, 9]; let W, H; if (a / b >= 16 / 9) {
     W = w16;
     H = Math.round(w16 * b / a);
@@ -2303,8 +2326,100 @@ async function edCapSrt(files) {
         edCapStatus(tr3('SRT/VTT illisible', 'SRT/VTT ilegible', 'Unreadable SRT/VTT'));
         return;
     }
-    const n = edCapMake(edCueWords(cues), 0, edCapPer(), edCapStyleSel());
+    const off = (+($('edCapOff') && $('edCapOff').value) || 0) + (src ? src.start - (src.in || 0) : 0), n = edCapMake(edCueWords(cues), off, edCapPer(), edCapStyleSel());
     edCapStatus('✔ ' + n + ' ' + tr3('sous-titres', 'subtítulos', 'captions'));
+}
+/* --- Whisper cloud via le panel (clés sur le serveur) --- */
+function wavB64(f32, sr) {
+    const n = f32.length, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+    const w = (o, t) => { for (let i = 0; i < t.length; i++)
+        v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, 'RIFF');
+    v.setUint32(4, 36 + n * 2, true);
+    w(8, 'WAVEfmt ');
+    v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true);
+    v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true);
+    v.setUint32(28, sr * 2, true);
+    v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true);
+    w(36, 'data');
+    v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) {
+        const x = Math.max(-1, Math.min(1, f32[i]));
+        v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+    }
+    const u = new Uint8Array(b);
+    let s = '';
+    for (let i = 0; i < u.length; i += 0x8000)
+        s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+    return btoa(s);
+}
+async function edClipPcm(c) {
+    const m = HF[c.mid];
+    if (!m)
+        throw new Error('média introuvable');
+    const buf = await (m.file || await (await fetch(m.url)).blob()).arrayBuffer(), ac = new (window.AudioContext || window.webkitAudioContext)(), dec = await ac.decodeAudioData(buf.slice(0));
+    ac.close && ac.close();
+    const len = Math.max(1, Math.ceil(dec.duration * 16000)), oc = new OfflineAudioContext(1, len, 16000), src = oc.createBufferSource();
+    src.buffer = dec;
+    src.connect(oc.destination);
+    src.start();
+    const rb = await oc.startRendering();
+    let pcm = rb.getChannelData(0);
+    const i0 = Math.floor((c.in || 0) * 16000);
+    pcm = pcm.slice(i0, Math.min(pcm.length, i0 + Math.floor(c.dur * 16000)));
+    let mx = 0;
+    for (let i = 0; i < pcm.length; i += 7)
+        mx = Math.max(mx, Math.abs(pcm[i]));
+    if (mx > 0 && mx < .5) {
+        const g = Math.min(8, .9 / mx);
+        const o = new Float32Array(pcm.length);
+        for (let i = 0; i < pcm.length; i++)
+            o[i] = pcm[i] * g;
+        pcm = o;
+    }
+    return pcm;
+}
+async function edCapCloud() {
+    const c = edCapSource();
+    if (!c) {
+        edCapStatus(tr3('Ajoutez/sélectionnez un clip vidéo ou audio', 'Añada/seleccione un clip de video o audio', 'Add/select a video or audio clip'));
+        return;
+    }
+    if (!(PRO() && LIC && LIC.api)) {
+        needPro();
+        return;
+    }
+    try {
+        edCapStatus('⏳ ' + tr3('préparation de l’audio…', 'preparando audio…', 'preparing audio…'));
+        const pcm = await edClipPcm(c), CH = 16000 * 480, words = [];
+        let txt = '';
+        for (let o = 0, k = 1; o < pcm.length; o += CH, k++) {
+            edCapStatus('☁ Whisper cloud… ' + k + '/' + Math.ceil(pcm.length / CH));
+            const { j } = await licCall('transcribe', { key: LIC.key, device: DEVID, lang: (($('edCapLg') && $('edCapLg').value) || 'auto').replace('french', 'fr').replace('spanish', 'es').replace('english', 'en'), audio: { mime: 'audio/wav', b64: wavB64(pcm.subarray(o, o + CH), 16000) } });
+            if (!j.ok)
+                throw new Error(j.error || 'transcribe');
+            const off = o / 16000;
+            txt += ' ' + (j.text || '');
+            if (j.words && j.words.length)
+                j.words.forEach(w => words.push({ w: String(w.word).trim(), s: w.start + off, e: w.end + off }));
+            else
+                (j.segments || []).forEach(sg => { const ws = String(sg.text).trim().split(/\s+/).filter(Boolean), d = (sg.end - sg.start) / Math.max(1, ws.length); ws.forEach((x, i) => words.push({ w: x, s: sg.start + off + i * d, e: sg.start + off + (i + 1) * d })); });
+        }
+        if (!words.length) {
+            edCapStatus(tr3('Aucune parole détectée par Whisper cloud', 'Whisper cloud no detectó voz', 'Cloud Whisper detected no speech'));
+            return;
+        }
+        const n = edCapMake(words, c.start, edCapPer(), edCapStyleSel());
+        edCapStatus('✔ ' + n + ' ' + tr3('sous-titres (Whisper cloud, synchronisés)', 'subtítulos (Whisper cloud, sincronizados)', 'captions (cloud Whisper, synced)'));
+    }
+    catch (e) {
+        console.error(e);
+        const m = String(e.message || e);
+        edCapStatus('✕ ' + (/no_whisper_provider/.test(m) ? tr3('Aucun fournisseur Whisper (Groq/OpenAI) n’est configuré dans le panel — ajoutez Groq dans Admin › IA', 'Ningún proveedor Whisper (Groq/OpenAI) configurado en el panel — añada Groq en Admin › IA', 'No Whisper provider (Groq/OpenAI) configured in the panel — add Groq in Admin › AI') : m));
+    }
 }
 async function edCapWhisper() {
     const c = edCapSource();
@@ -2331,17 +2446,9 @@ async function edCapWhisper() {
             window.__asrM = model;
         }
         edCapStatus('⏳ ' + tr3('extraction audio…', 'extrayendo audio…', 'extracting audio…'));
-        const buf = await (m.file || await (await fetch(m.url)).blob()).arrayBuffer(), ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 16000, 16000), dec = await ac.decodeAudioData(buf);
-        const len = Math.ceil(dec.duration * 16000), oc = new OfflineAudioContext(1, len, 16000), src = oc.createBufferSource();
-        src.buffer = dec;
-        src.connect(oc.destination);
-        src.start();
-        const rb = await oc.startRendering();
-        let pcm = rb.getChannelData(0);
-        const i0 = Math.floor((c.in || 0) * 16000), i1 = Math.min(pcm.length, i0 + Math.floor(c.dur * 16000));
-        pcm = pcm.slice(i0, i1);
+        const pcm = await edClipPcm(c);
         edCapStatus('⏳ ' + tr3('transcription…', 'transcribiendo…', 'transcribing…'));
-        const lang = ($('edCapLg') && $('edCapLg').value) || null;
+        const lang = ($('edCapLg') && $('edCapLg').value && $('edCapLg').value !== 'auto') ? $('edCapLg').value : ({ fr: 'french', es: 'spanish', en: 'english' }[LANG] || null);
         const opt = { chunk_length_s: 30, stride_length_s: 5, return_timestamps: 'word', task: 'transcribe' };
         if (lang && lang !== 'auto')
             opt.language = lang;
@@ -2350,6 +2457,10 @@ async function edCapWhisper() {
             r = await window.__asr(pcm, opt);
         }
         catch (e) {
+            opt.return_timestamps = true;
+            r = await window.__asr(pcm, opt);
+        }
+        if (!((r.chunks || []).length) && !(r.text || '').trim()) {
             opt.return_timestamps = true;
             r = await window.__asr(pcm, opt);
         }
@@ -2382,6 +2493,7 @@ function edCapBrowser() {
         return;
     }
     if (EDSR) {
+        EDSR.__stop = 1;
         EDSR.stop();
         return;
     }
@@ -2402,14 +2514,21 @@ function edCapBrowser() {
             w.forEach((x, k) => words.push({ w: x, s: last + k * d, e: last + (k + 1) * d }));
             last = now;
         } };
-    r.onend = () => { EDSR = null; edStop(); const b = $('edCapBr'); if (b)
+    r.onend = () => { if (!r.__stop && EDSR === r) {
+        try {
+            r.start();
+            return;
+        }
+        catch (_a) { }
+    } EDSR = null; edStop(); const b = $('edCapBr'); if (b)
         b.textContent = '🎤 ' + tr3('Reconnaissance du navigateur', 'Reconocimiento del navegador', 'Browser recognition'); if (words.length) {
         const n = edCapMake(words, t0, edCapPer(), edCapStyleSel());
         edCapStatus('✔ ' + n + ' ' + tr3('sous-titres', 'subtítulos', 'captions'));
     }
     else
         edCapStatus(tr3('Rien reconnu', 'Nada reconocido', 'Nothing recognised')); };
-    r.onerror = e => edCapStatus('✕ ' + e.error);
+    r.onerror = e => { if (e.error === 'no-speech' || e.error === 'aborted')
+        return; edCapStatus('✕ ' + e.error + (e.error === 'not-allowed' ? ' — ' + tr3('autorisez le micro', 'permita el micro', 'allow the microphone') : '')); };
     EDSR = r;
     if (c) {
         edSeek(c.start);
@@ -2421,20 +2540,64 @@ function edCapBrowser() {
         b.textContent = '⏹ ' + tr3('Arrêter', 'Detener', 'Stop');
     edCapStatus('🎤 ' + tr3('écoute… le son du clip joue dans les haut-parleurs ; cliquez Arrêter à la fin', 'escuchando… el sonido del clip suena en los altavoces; pulse Detener al final', 'listening… clip audio plays on speakers; click Stop when done'));
 }
+function edCapShift(d) { let n = 0; ED.clips.forEach(c => { if (c.cap) {
+    c.start = Math.max(0, c.start + d);
+    n++;
+} }); edSave(); edUI(); edDraw(ED.t); edCapStatus(n + ' ' + tr3('sous-titres décalés de ', 'subtítulos desplazados ', 'captions shifted ') + d + ' s'); }
 function edCapApply() { const s = edCapStyleSel(); ED.capStyle = s; let n = 0; ED.clips.forEach(c => { if (c.cap) {
     c.tpl = s;
     n++;
 } }); edSave(); edDraw(ED.t); edTl(); edInsp(); edCapStatus(n + ' ' + tr3('sous-titres restylés', 'subtítulos reestilizados', 'captions restyled')); }
+function edBrief() { return { ratio: ED.ratio, q: ED.q, fps: ED.fps, total: +edTotal().toFixed(2), cursor: +ED.t.toFixed(2), tracks: '0=V1 1=V2/comp 2=Texte 3=Audio', clips: ED.clips.map(c => ({ id: c.id, type: c.type, name: c.name || c.text || '', track: c.track, start: +c.start.toFixed(2), dur: +c.dur.toFixed(2), mute: !!c.mute })) }; }
+function edFind(id, t) {
+    let c = ED.clips.find(x => x.id === id);
+    if (c)
+        return c;
+    if (id) {
+        const q = String(id).toLowerCase();
+        c = ED.clips.find(x => String(x.name || x.text || '').toLowerCase().includes(q));
+        if (c)
+            return c;
+    }
+    if (t != null) {
+        c = ED.clips.find(x => x.track < 2 && t >= x.start && t < x.start + x.dur);
+        if (c)
+            return c;
+    }
+    return ED.clips.find(x => x.id === ED.sel) || null;
+}
+async function edAssist() {
+    const q = ($('edAiQ') || {}).value;
+    if (!q || !q.trim())
+        return;
+    const out = $('edAiOut');
+    out.textContent = '…';
+    const cat = Object.entries(AIA).filter(([k]) => /^editor_/.test(k)).map(([k, v]) => `- ${k}: ${v.d}`).join('\n');
+    const sys = `Tu es l'assistant de montage vidéo de WDSCS (comme un monteur pro). Réponds UNIQUEMENT par un JSON {"say":"réponse courte et utile dans la langue de l'utilisateur (analyse, conseils)","actions":[{"action":"nom","args":{...}}]}. Actions :\n${cat}\nCompositions animées « hyperframes » : editor_add_comp (modèles title|lower|verse|count|promo|logo|quote|credits) ou editor_add_html (HTML avec data-start, data-dur, data-anim, data-split, data-stagger, {{champ}}). Règles : n'invente aucun id, utilise ceux de l'état ; enchaîne analyse puis actions ; langue interface : ${LANG}.\nÉtat actuel du montage : ${JSON.stringify(edBrief())}`;
+    try {
+        const raw = await callAI(q, { system: sys, json: true }), j = parseJSONLoose(raw), log = [];
+        if (j.say)
+            log.push('💬 ' + j.say);
+        await aiRunActions(Array.isArray(j.actions) ? j.actions : [], log);
+        out.textContent = log.join('\n') || '—';
+        edUI();
+    }
+    catch (e) {
+        out.textContent = e.message || String(e);
+    }
+}
 function edCapPanel() {
     const T = (a, b, c) => esc(tr3(a, b, c));
-    return `<b style="display:block;margin-top:10px">💬 ${T('Sous-titres auto', 'Subtítulos auto', 'Auto captions')}</b>
+    return `<b style="display:block;margin-top:10px">🤖 ${T('Assistant montage IA', 'Asistente de montaje IA', 'AI editing assistant')}</b><div style="display:flex;flex-direction:column;gap:4px;margin-top:4px"><textarea id="edAiQ" rows="3" placeholder="${T('Ex. : analyse le montage, coupe à 12 s, coupe le son de la vidéo, ajoute un titre animé « Culte de louange », sous-titre tout…', 'Ej.: analiza el montaje, corta a los 12 s, silencia el video, añade un título animado…', 'E.g. analyse the edit, cut at 12 s, mute the video, add an animated title…')}"></textarea><button class="sm pri" onclick="edAssist()">✨ ${T('Exécuter', 'Ejecutar', 'Run')}</button><small id="edAiOut" style="white-space:pre-wrap;color:#8b95b8"></small></div><b style="display:block;margin-top:10px">💬 ${T('Sous-titres auto', 'Subtítulos auto', 'Auto captions')}</b>
 <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px"><select id="edCapLg"><option value="auto">${T('Langue : auto', 'Idioma: auto', 'Language: auto')}</option><option value="french">Français</option><option value="spanish">Español</option><option value="english">English</option></select>
 <select id="edCapMd"><option value="Xenova/whisper-tiny">Whisper tiny (rapide)</option><option value="Xenova/whisper-base">Whisper base</option><option value="Xenova/whisper-small">Whisper small (précis)</option></select>
 <select id="edCapSty">${ED_CC.map(o => `<option value="${o[0]}" ${(ED.capStyle || 'cc_pop') === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
 <label style="display:flex;justify-content:space-between">${T('Mots / sous-titre', 'Palabras / subtítulo', 'Words / caption')}<input id="edCapPer" type="number" min="1" max="12" value="4" style="width:56px"></label>
-<button class="sm pri" onclick="edCapWhisper()">🧠 ${T('Extraire la parole (Whisper)', 'Extraer el habla (Whisper)', 'Extract speech (Whisper)')}</button>
+<button class="sm pri" onclick="edCapCloud()">☁ ${T('Extraire la parole — Whisper cloud (panel)', 'Extraer el habla — Whisper cloud (panel)', 'Extract speech — cloud Whisper (panel)')}</button>
+<button class="sm" onclick="edCapWhisper()">🧠 ${T('Whisper local (navigateur)', 'Whisper local (navegador)', 'Local Whisper (browser)')}</button>
 <button class="sm" id="edCapBr" onclick="edCapBrowser()">🎤 ${T('Reconnaissance du navigateur', 'Reconocimiento del navegador', 'Browser recognition')}</button>
 <label class="sm btn" style="cursor:pointer;text-align:center">⬆ ${T('Importer .srt / .vtt', 'Importar .srt / .vtt', 'Import .srt / .vtt')}<input type="file" accept=".srt,.vtt,text/vtt" hidden onchange="edCapSrt(this.files);this.value=''"></label>
+<label style="display:flex;justify-content:space-between;align-items:center">${T('Décalage (s)', 'Desfase (s)', 'Offset (s)')}<input id="edCapOff" type="number" step="0.1" value="0" style="width:70px"></label><div style="display:flex;gap:3px"><button class="sm" onclick="edCapShift(-0.5)">⏪ −0,5 s</button><button class="sm" onclick="edCapShift(0.5)">+0,5 s ⏩</button><button class="sm" onclick="edCapShift(+(($('edCapOff')||{}).value)||0)">⇄ ${T('Décaler tout', 'Desplazar todo', 'Shift all')}</button></div>
 <button class="sm" onclick="edCapApply()">🎨 ${T('Appliquer ce style à tous', 'Aplicar este estilo a todos', 'Apply this style to all')}</button><small id="edCapSt" style="color:#8b95b8;min-height:14px"></small></div>`;
 }
 const ED_FXP = { none: {}, bw: { gr: 100, ct: 115 }, sepia: { se: 90, ct: 105 }, vintage: { se: 45, ct: 95, br: 105, sa: 80, vg: 45 }, warm: { sa: 120, hu: -12, br: 104 }, cold: { sa: 95, hu: 14, br: 98 }, cinema: { ct: 125, sa: 85, br: 92, vg: 55, bars: 1 }, vivid: { sa: 160, ct: 112 }, soft: { bl: 1.2, br: 106, ct: 92 } };
@@ -2599,9 +2762,14 @@ function edSync(t, play) {
             continue;
         const act = t >= c.start && t < edEnd(c);
         if (c.track === 3 || c.type === 'video') {
-            const g = c.track === 3 || c.vol > 0 ? edAudioNode(e) : null;
-            if (g)
-                g.gain.value = (c.vol || 0) / 100 * (c.track === 3 ? 1 : 1);
+            const v = edVol(c);
+            try {
+                const g = edAudioNode(e);
+                if (g)
+                    g.gain.value = v;
+            }
+            catch (_a) { }
+            e.muted = v === 0;
             e.volume = 1;
         }
         if (act) {
@@ -2611,7 +2779,7 @@ function edSync(t, play) {
                     try {
                         e.currentTime = want;
                     }
-                    catch (_a) { }
+                    catch (_b) { }
                     e.play().catch(() => { });
                 }
             }
@@ -2620,7 +2788,7 @@ function edSync(t, play) {
                     try {
                         e.currentTime = want;
                     }
-                    catch (_b) { }
+                    catch (_c) { }
                 }
                 if (!e.paused)
                     e.pause();
@@ -2738,7 +2906,7 @@ function mp4Mux(o) {
     return new Blob([ftyp, new Uint8Array([...u32(mdatSize), ...[...'mdat'].map(c => c.charCodeAt(0))]), ...mdatBody, moov], { type: 'video/mp4' });
 }
 async function edMixAudio(total) {
-    const sr = 48000, clips = ED.clips.filter(c => (c.track === 3 || (c.type === 'video' && c.vol > 0)) && HF[c.mid]);
+    const sr = 48000, clips = ED.clips.filter(c => (c.track === 3 || c.type === 'video') && HF[c.mid] && edVol(c) > 0);
     if (!clips.length)
         return null;
     const ctx = new OfflineAudioContext(2, Math.ceil(total * sr), sr);
@@ -2747,7 +2915,7 @@ async function edMixAudio(total) {
         try {
             const m = HF[c.mid], ab = await (m.file ? m.file.arrayBuffer() : (await fetch(m.url)).arrayBuffer()), buf = await ctx.decodeAudioData(ab.slice(0)), src = ctx.createBufferSource(), g = ctx.createGain();
             src.buffer = buf;
-            g.gain.value = (c.vol || 100) / 100;
+            g.gain.value = edVol(c);
             src.connect(g);
             g.connect(ctx.destination);
             const off = Math.min(c.in || 0, Math.max(0, buf.duration - .01));
@@ -2904,7 +3072,8 @@ async function edExportRT() {
     mr.start(500);
     edPlay();
 }
-function edOpen() { let o = $('edOv'); if (!o) {
+function edOpen() { if (!EDH.length)
+    edHistPush(); let o = $('edOv'); if (!o) {
     o = document.createElement('div');
     o.id = 'edOv';
     document.body.appendChild(o);
@@ -3068,7 +3237,7 @@ function edUI(full) {
         const sel = (k, opts) => `<select onchange="edSet('${k}',this.value)">${opts.map(x => `<option value="${x[0]}" ${String(ED[k]) === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select>`;
         o.innerHTML = `<div style="display:flex;gap:8px;align-items:center;padding:8px 12px;background:#0d1326;border-bottom:1px solid #243"><b style="font-size:15px">✂ ${T('Montage vidéo', 'Montaje de video', 'Video editor')}</b>${sel('ratio', [['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1'], ['4:5', '4:5'], ['4:3', '4:3'], ['21:9', '21:9']])}${sel('q', [['720', 'HD 720p'], ['1080', 'FHD 1080p'], ['1440', '2K 1440p'], ['2160', '4K 2160p']])}${sel('fps', [['24', '24 fps'], ['30', '30 fps'], ['60', '60 fps']])}<span style="color:#8b95b8">${W}×${H}</span><input type="color" value="${ED.bg}" onchange="edSet('bg',this.value)" title="Fond"><div style="flex:1"></div><button class="pri" id="edExp" onclick="edExport()">⬇ ${T('Exporter', 'Exportar', 'Export')}</button><button onclick="edClose()">✕</button></div>
     <div style="flex:1;display:flex;min-height:0"><div style="width:230px;overflow:auto;padding:8px;border-right:1px solid #243"><b>${T('Médias', 'Medios', 'Media')}</b><button class="sm" style="margin-left:6px" onclick="$('mFile').click()">＋</button><div id="edBin"></div><b style="display:block;margin-top:10px">${T('Textes animés', 'Textos animados', 'Animated text')}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${ED_TPL.map(t => `<button class="sm" onclick="edAddText('${t[0]}')">${t[1]}</button>`).join('')}</div>${edCapPanel()}<b style="display:block;margin-top:10px">${T('Compositions HTML', 'Composiciones HTML', 'HTML compositions')}</b><div style="display:flex;gap:4px;margin-top:4px"><button class="sm" onclick="edTplDownload()">⬇ ${T('Modèle HTML', 'Modelo HTML', 'HTML template')}</button><label class="sm btn" style="cursor:pointer">⬆ .html<input type="file" accept=".html,.htm" hidden onchange="edImportHtml(this.files);this.value=''"></label></div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${Object.entries(COMP_T).map(([k, v]) => `<button class="sm" onclick="edAddComp('${k}')">${v.n}</button>`).join('')}</div></div>
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#03050b;min-width:0;min-height:0;padding:8px"><canvas id="edCv" width="${W}" height="${H}" style="max-width:100%;height:calc(100% - 44px);width:auto;aspect-ratio:${W}/${H};background:#000;box-shadow:0 0 0 1px #243"></canvas><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button onclick="edSeek(0)">⏮</button><button class="pri" id="edPlayB" onclick="edPlay()">▶</button><span id="edTm">0:00.0</span><span style="display:flex;gap:3px;align-items:center"><button class="sm" title="Zoom −" onclick="edZoom(-1)">🔍−</button><input type="range" id="edZ" min="8" max="400" value="${ED.pps}" oninput="edZoomSet(+this.value)" style="width:90px"><button class="sm" title="Zoom +" onclick="edZoom(1)">🔍+</button><button class="sm" title="${T('Ajuster', 'Ajustar', 'Fit')}" onclick="edZoomFit()">⇔</button></span><span style="display:flex;gap:3px"><button class="sm" title="${T('Couper (S)', 'Cortar (S)', 'Cut (S)')}" onclick="edSplit()">✂ ${T('Couper', 'Cortar', 'Cut')}</button><button class="sm" title="Ctrl+X" onclick="edCutClip()">✂⎘</button><button class="sm" title="Ctrl+C" onclick="edCopy()">⎘ ${T('Copier', 'Copiar', 'Copy')}</button><button class="sm" title="Ctrl+V" onclick="edPaste()">📋 ${T('Coller', 'Pegar', 'Paste')}</button><button class="sm" title="${T('Séparer l\'audio', 'Separar audio', 'Detach audio')}" onclick="edDetach()">🔊⇥ ${T('Séparer audio', 'Separar audio', 'Detach audio')}</button><button class="sm" title="Suppr" onclick="edDel()">🗑</button></span></div></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#03050b;min-width:0;min-height:0;padding:8px"><canvas id="edCv" width="${W}" height="${H}" style="max-width:100%;height:calc(100% - 44px);width:auto;aspect-ratio:${W}/${H};background:#000;box-shadow:0 0 0 1px #243"></canvas><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button onclick="edSeek(0)">⏮</button><button class="pri" id="edPlayB" onclick="edPlay()">▶</button><span id="edTm">0:00.0</span><span style="display:flex;gap:3px;align-items:center"><button class="sm" title="Zoom −" onclick="edZoom(-1)">🔍−</button><input type="range" id="edZ" min="8" max="400" value="${ED.pps}" oninput="edZoomSet(+this.value)" style="width:90px"><button class="sm" title="Zoom +" onclick="edZoom(1)">🔍+</button><button class="sm" title="${T('Ajuster', 'Ajustar', 'Fit')}" onclick="edZoomFit()">⇔</button></span><span style="display:flex;gap:3px"><button class="sm" title="${T('Couper (S)', 'Cortar (S)', 'Cut (S)')}" onclick="edSplit()">✂ ${T('Couper', 'Cortar', 'Cut')}</button><button class="sm" title="Ctrl+X" onclick="edCutClip()">✂⎘</button><button class="sm" title="Ctrl+C" onclick="edCopy()">⎘ ${T('Copier', 'Copiar', 'Copy')}</button><button class="sm" title="Ctrl+V" onclick="edPaste()">📋 ${T('Coller', 'Pegar', 'Paste')}</button><button class="sm" title="${T('Séparer l\'audio', 'Separar audio', 'Detach audio')}" onclick="edDetach()">🔊⇥ ${T('Séparer audio', 'Separar audio', 'Detach audio')}</button><button class="sm" title="Suppr" onclick="edDel()">🗑 ${T('Suppr', 'Supr', 'Del')}</button><button class="sm" title="Ctrl+Z" onclick="edUndo()">↶ ${T('Annuler', 'Deshacer', 'Undo')}</button><button class="sm" title="Ctrl+Y" onclick="edRedo()">↷ ${T('Rétablir', 'Rehacer', 'Redo')}</button><button class="sm" title="${T('Couper/rétablir le son du clip', 'Silenciar/activar clip', 'Mute/unmute clip')}" onclick="edMute()">🔇 ${T('Muet', 'Silencio', 'Mute')}</button><button class="sm" title="${T('Couper le son de toute la piste du clip sélectionné', 'Silenciar toda la pista', 'Mute the whole track')}" onclick="{const c=ED.clips.find(x=>x.id===ED.sel);if(c)edMuteTrack(c.track);else toast('?')}">🔇 ${T('Piste', 'Pista', 'Track')}</button></span></div></div>
     <div id="edIn" style="width:250px;overflow:auto;padding:8px;border-left:1px solid #243"></div></div>
     <div style="height:230px;overflow:auto;border-top:1px solid #243;position:relative"><div id="edTl" style="position:relative;min-width:100%"></div></div>`;
         EDC = $('edCv');
@@ -3101,8 +3270,7 @@ function edDetach() {
     a.track = 3;
     a.vol = c.vol == null ? 100 : c.vol;
     a.name = (c.name || '') + ' 🔊';
-    c.vol = 0;
-    c.muted = true;
+    c.mute = true;
     ED.clips.push(a);
     ED.sel = a.id;
     edSave();
@@ -3169,31 +3337,52 @@ document.addEventListener('drop', e => { const o = $('edOv'); if (!o || o.style.
     e.stopPropagation();
     edPlaceMedia(id, e.clientX, e.clientY);
 } }, true);
-document.addEventListener('keydown', e => { const o = $('edOv'); if (!o || o.style.display === 'none' || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))
-    return; if (e.key === ' ') {
-    e.preventDefault();
-    edPlay();
-}
-else if (e.key === 'Delete' || e.key === 'Backspace')
-    edDel();
-else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-    e.preventDefault();
-    edCopy();
-}
-else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-    e.preventDefault();
-    edPaste();
-}
-else if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
-    e.preventDefault();
-    edCutClip();
-}
-else if (e.key === '+' || e.key === '=')
-    edZoom(1);
-else if (e.key === '-')
-    edZoom(-1);
-else if (e.key === 's' || e.key === 'S')
-    edSplit(); });
+document.addEventListener('keydown', e => {
+    const o = $('edOv');
+    if (!o || o.style.display === 'none')
+        return;
+    const tg = e.target, tn = tg.tagName, ed = (tn === 'TEXTAREA' || tn === 'SELECT' || (tn === 'INPUT' && !/^(range|checkbox|color|file|button)$/.test(tg.type)) || tg.isContentEditable);
+    if (ed)
+        return;
+    const k = (e.key || '').toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    let h = 1;
+    if (k === ' ')
+        edPlay();
+    else if (k === 'delete' || k === 'backspace')
+        edDel();
+    else if (mod && k === 'z' && !e.shiftKey)
+        edUndo();
+    else if (mod && (k === 'y' || (k === 'z' && e.shiftKey)))
+        edRedo();
+    else if (mod && k === 'c')
+        edCopy();
+    else if (mod && k === 'v')
+        edPaste();
+    else if (mod && k === 'x')
+        edCutClip();
+    else if (mod && k === 'a') {
+        ED.ms = ED.clips.map(c => c.id);
+        edTl();
+    }
+    else if (mod && k === 'd') {
+        edCopy();
+        edPaste();
+    }
+    else if (k === 'm')
+        edMute();
+    else if (k === '+' || k === '=')
+        edZoom(1);
+    else if (k === '-')
+        edZoom(-1);
+    else if (k === 's')
+        edSplit();
+    else
+        h = 0;
+    if (h) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}, true);
 document.addEventListener('wheel', e => { const o = $('edOv'); if (o && o.style.display !== 'none' && (e.ctrlKey || e.metaKey) && e.target.closest && e.target.closest('#edTl')) {
     e.preventDefault();
     edZoom(e.deltaY < 0 ? 1 : -1);
@@ -5081,14 +5270,16 @@ function setLang(l) {
     finally {
         trBusy = false;
     }
-    try {
-        if (typeof MODE !== 'undefined' && MODE === 'host') {
-            renderLTPane && renderLTPane();
-            renderTKPane();
-            renderPL && renderPL();
+    if (typeof MODE !== 'undefined' && MODE === 'host') {
+        for (const f of [() => renderLTPane && renderLTPane(), () => renderTKPane(), () => renderPL && renderPL()]) {
+            try {
+                f();
+            }
+            catch (e) {
+                console.error(e);
+            }
         }
     }
-    catch (_a) { }
 }
 function langVis() { const sel = $('langSel'); if (sel)
     sel.style.display = (typeof MODE !== 'undefined' && MODE === 'viewer') ? 'none' : ''; }
@@ -5226,7 +5417,12 @@ function tkSet(k, v) { TKF[k] = v; tkSave(); if (S.tk && S.tk.on) {
     render();
     sync();
 } }
-const tkAll = () => TK_D.concat(gtList('tk').map(x => ['cu:' + x.id + ':' + x.base, '★ ' + x.name, x.v.ac]));
+const tkAll = () => { let a = []; try {
+    a = gtList('tk').map(x => ['cu:' + x.id + ':' + x.base, '★ ' + (x.name || '?'), (x.v && x.v.ac) || '#e11d2a']);
+}
+catch (e) {
+    console.error(e);
+} return TK_D.concat(a); };
 function tkDesign(d) { const x = tkAll().find(a => a[0] === d); if (!x)
     return; TKF.design = d; TKF.accent = x[2]; tkSave(); if (S.tk && S.tk.on)
     S.tk = Object.assign({}, TKF, { on: true }); renderTKPane(); render(); sync(); }
@@ -5245,7 +5441,16 @@ else {
         tkSave();
     }
 } openTab('gt'); renderGT(); renderTKPane(); }
-function renderTKPane() {
+function renderTKPane() { try {
+    renderTKPane0();
+}
+catch (e) {
+    console.error(e);
+    const el = $('tkCard');
+    if (el)
+        el.innerHTML = '<textarea rows="3" style="width:100%" oninput="tkSet(\'text\',this.value)">' + esc(TKF.text || '') + '</textarea><button class="pri" style="width:100%;margin-top:6px" onclick="tkToggle()">📰 ON/OFF</button>';
+} }
+function renderTKPane0() {
     const el = $('tkCard');
     if (!el)
         return;
@@ -5623,6 +5828,8 @@ function gtStep(id) {
     WSSIG = '';
     renderWS(true);
 }
+function gtFav(id) { const t = GT.find(x => x.id === id); if (t)
+    ltFavAdd(gtLtOf(t), t.name); }
 function gtEditOpen(id) { GTE = id; GTS = 'designs'; openTab('gt'); renderGT(); }
 function gtDbl(id, e) { if (e && e.target.closest('button'))
     return; clearTimeout(gtClick.T); gtEditOpen(id); }
@@ -5635,7 +5842,7 @@ function ltClearAll() { clearTimeout(LTT); if (S.lt)
     S.pvLt.on = false; S.lts = []; render(); sync(); toast('🧹 ' + tr3('Lower thirds vidés', 'Lower thirds vaciados', 'Lower thirds cleared')); }
 function gtDesignTiles() {
     const T = (a, b, c) => esc(tr3(a, b, c));
-    return '<h4 style="margin-top:14px">🎨 ' + T('Mes designs GT', 'Mis diseños GT', 'My GT designs') + ' — ' + GT.length + ' <button class="sm" onclick="ltClearAll()">🧹 ' + T('Vider lower thirds', 'Vaciar lower thirds', 'Clear lower thirds') + '</button></h4><div class="tiles">' + (GT.map(x => `<div class="tile" onclick="gtClick('${x.id}',event)" ondblclick="gtDbl('${x.id}',event)" title="${T('Clic : Preview → Program → efface → efface Preview · Double-clic : éditer', 'Clic: Preview → Program → borra → borra Preview · Doble clic: editar', 'Click: Preview → Program → clear → clear Preview · Double-click: edit')}"><div class="tx"><b>${esc(x.name)}</b><br><small>${esc(GT_KIND[x.kind])}</small></div><div class="cb"><button class="sm" onclick="gtToPL('${x.id}')">+ Prog.</button><button class="sm" onclick="gtEditOpen('${x.id}')">✎</button></div></div>`).join('') || `<div class="ai">${T('Créez un design dans l’onglet GT.', 'Cree un diseño en la pestaña GT.', 'Create a design in the GT tab.')}</div>`) + '</div>';
+    return '<h4 style="margin-top:14px">🎨 ' + T('Mes designs GT', 'Mis diseños GT', 'My GT designs') + ' — ' + GT.length + ' <button class="sm" onclick="ltClearAll()">🧹 ' + T('Vider lower thirds', 'Vaciar lower thirds', 'Clear lower thirds') + '</button></h4><div class="tiles">' + (GT.map(x => `<div class="tile" onclick="gtClick('${x.id}',event)" ondblclick="gtDbl('${x.id}',event)" title="${T('Clic : Preview → Program → efface → efface Preview · Double-clic : éditer', 'Clic: Preview → Program → borra → borra Preview · Doble clic: editar', 'Click: Preview → Program → clear → clear Preview · Double-click: edit')}"><div class="tx"><b>${esc(x.name)}</b><br><small>${esc(GT_KIND[x.kind])}</small></div><div class="cb"><button class="sm" onclick="gtToPL('${x.id}')">+ Prog.</button>${x.kind === 'lt' ? `<button class="sm" title="⭐" onclick="gtFav('${x.id}')">⭐</button>` : ''}<button class="sm" onclick="gtEditOpen('${x.id}')">✎</button></div></div>`).join('') || `<div class="ai">${T('Créez un design dans l’onglet GT.', 'Cree un diseño en la pestaña GT.', 'Create a design in the GT tab.')}</div>`) + '</div>';
 }
 function gfxTilesHtml() {
     const T = (a, b, c) => esc(tr3(a, b, c));
@@ -5778,6 +5985,26 @@ function renderOv() {
 }
 function ltHide() { clearTimeout(LTT); if (S.lt)
     S.lt.on = false; render(); sync(); }
+/* --- Favoris lower thirds (accès rapide) --- */
+let LTFAV = LS.get('wcLTFav', []);
+const ltFavSave = () => LS.set('wcLTFav', LTFAV);
+function ltFavAdd(cfg, name) { cfg = cfg || ltFromForm(); name = name || prompt(tr3('Nom du favori', 'Nombre del favorito', 'Favourite name'), (cfg.l1 || 'Lower third').slice(0, 30)); if (!name)
+    return; delete cfg.id; LTFAV.push({ id: uid(), name, cfg: JSON.parse(JSON.stringify(cfg)) }); ltFavSave(); renderLTPane(); WSSIG = ''; try {
+    renderWS(true);
+}
+catch (_a) { } toast('⭐ ' + tr3('Enregistré', 'Guardado', 'Saved')); }
+function ltFavDel(id) { LTFAV = LTFAV.filter(f => f.id !== id); ltFavSave(); renderLTPane(); }
+function ltFavUse(id, live) { const f = LTFAV.find(x => x.id === id); if (!f)
+    return; Object.assign(LTF, { type: f.cfg.type, l1: f.cfg.l1, l2: f.cfg.l2, style: f.cfg.style, anim: f.cfg.anim, pos: f.cfg.pos, accent: f.cfg.accent, dur: f.cfg.dur, scale: f.cfg.scale || 100 }); LS.set('wcLTF', LTF); if (live)
+    ltLive(Object.assign(ltFromForm()));
+else {
+    S.pvLt = ltFromForm();
+    render();
+    sync();
+} renderLTPane(); }
+function ltFavPL(id) { const f = LTFAV.find(x => x.id === id); if (!f)
+    return; plAdd({ t: 'lt', label: '⭐ ' + f.name, lt: Object.assign({}, f.cfg, { id: uid() }) }); }
+function ltFavHtml() { const T = (a, b, c) => esc(tr3(a, b, c)); return `<div class="bar" style="margin:8px 0 4px"><button class="sm pri" onclick="ltFavAdd()">⭐ ${T('Enregistrer ce lower third (accès rapide)', 'Guardar este lower third (acceso rápido)', 'Save this lower third (quick access)')}</button><button class="sm" onclick="ltClearAll()">🧹 ${T('Vider les lower thirds', 'Vaciar lower thirds', 'Clear lower thirds')}</button></div>` + (LTFAV.length ? `<div class="tiles">${LTFAV.map(f => `<div class="tile" title="${T('Clic : Preview · Double-clic : Program', 'Clic: Preview · Doble clic: Program', 'Click: Preview · Double-click: Program')}" onclick="ltFavUse('${f.id}',false)" ondblclick="ltFavUse('${f.id}',true)"><div class="tx"><b>⭐ ${esc(f.name)}</b><br><small>${esc(f.cfg.l1 || '')}</small></div><div class="cb"><button class="sm" onclick="event.stopPropagation();ltFavPL('${f.id}')">+ Prog.</button><button class="sm" onclick="event.stopPropagation();ltFavDel('${f.id}')">✕</button></div></div>`).join('')}</div>` : ''); }
 function renderLTPane() {
     const el = $('p-lt');
     if (!el)
@@ -5794,7 +6021,7 @@ function renderLTPane() {
   <div class="cfgRow"><span>Zoom / taille</span><input type="range" min="40" max="300" value="${LTF.scale || 100}" oninput="ltSet('scale',+this.value);this.nextElementSibling.textContent=this.value+'%'"><b style="width:44px">${LTF.scale || 100}%</b></div>
   <div class="cfgRow"><span>Couleur</span><input type="color" value="${LTF.accent}" oninput="ltSet('accent',this.value)"></div>
   <div class="cfgRow"><span>Durée d’affichage (s, 0 = manuel)</span><input type="number" min="0" value="${LTF.dur}" style="width:80px" oninput="ltSet('dur',+this.value)"></div>
-  <div class="bar" style="margin-top:8px"><button onclick="ltPrev()">Aperçu</button><button class="live" onclick="ltLive()">▶ Afficher</button><button onclick="ltHide()">⏹ Masquer</button><button onclick="addLTToPL()">+ Programme</button></div>`;
+  <div class="bar" style="margin-top:8px"><button onclick="ltPrev()">Aperçu</button><button class="live" onclick="ltLive()">▶ Afficher</button><button onclick="ltHide()">⏹ Masquer</button><button onclick="addLTToPL()">+ Programme</button></div>${ltFavHtml()}`;
 }
 function ltHTML(l) {
     const ty = ltType(l.type);
@@ -7645,6 +7872,41 @@ const AIA = {
             c.start = +a.start; if (a.dur != null)
             c.dur = +a.dur; edSave(); edUI(); return c.id; } },
     editor_add_html: { d: 'Ajoute une composition HTML personnalisée (data-start/data-anim…). args:{html,dur,start}', f: a => { edOpen(); const c = edAdd({ type: 'html', track: 1, name: 'HTML', start: a.start != null ? +a.start : edNextStart(0), dur: +a.dur || 4, html: String(a.html || COMP_T.title.h.replace(/\{\{\w+\}\}/g, '…')) }); return c.id; } },
+    editor_state: { d: 'Lit l’état du montage (clips, durées, pistes). args:{}', f: () => JSON.stringify(edBrief()) },
+    editor_split_at: { d: 'Coupe le clip (id ou nom partiel, sinon celui sous le curseur) à un temps en secondes du montage. args:{id,time}', f: a => { const c = edFind(a.id, a.time); if (!c)
+            return 'clip introuvable'; ED.sel = c.id; ED.ms = []; ED.t = +a.time || ED.t; edSplit(); return 'ok'; } },
+    editor_delete: { d: 'Supprime des clips. args:{ids:["id"...]} ou {type:"text|image|video|audio|comp|html"}', f: a => { const ids = a.ids || ED.clips.filter(c => a.type && c.type === a.type).map(c => c.id); ED.ms = ids; ED.sel = null; edDel(); return ids.length + ' supprimé(s)'; } },
+    editor_move: { d: 'Déplace/redimensionne un clip. args:{id,start,dur,track}', f: a => { const c = edFind(a.id); if (!c)
+            return 'clip introuvable'; ['start', 'dur', 'track'].forEach(k => { if (a[k] != null)
+            c[k] = +a[k]; }); edSave(); edUI(); return 'ok'; } },
+    editor_set: { d: 'Modifie des propriétés d’un clip (text, col, fs, tpl, vol, mute, fi, fo, kb, x, y, sc, op, fx:{br,ct,sa,bl,vg,bars}). args:{id,props:{...}}', f: a => { const c = edFind(a.id); if (!c)
+            return 'clip introuvable'; Object.assign(c, a.props || {}); edSave(); edUI(); edDraw(ED.t); return 'ok'; } },
+    editor_mute: { d: 'Coupe/rétablit le son d’un clip ou d’une piste (3=audio). args:{id,track,mute:true}', f: a => { if (a.track != null) {
+            ED.tm = ED.tm || {};
+            ED.tm[a.track] = a.mute !== false;
+        }
+        else {
+            const c = edFind(a.id);
+            if (c)
+                c.mute = a.mute !== false;
+        } edSave(); edUI(); return 'ok'; } },
+    editor_detach_audio: { d: 'Sépare l’audio d’un clip vidéo (le clip vidéo devient muet). args:{id}', f: a => { const c = edFind(a.id); if (!c)
+            return 'clip introuvable'; ED.sel = c.id; edDetach(); return 'ok'; } },
+    editor_captions: { d: 'Extrait la parole (Whisper cloud du panel) et crée des sous-titres animés. args:{style:"cc_pop|cc_karaoke|cc_hormozi|cc_box|cc_neon|cc_bounce|cc_type|cc_wave|cc_slideup|cc_shake",id}', f: async (a) => { edOpen(); if (a.id) {
+            const c = edFind(a.id);
+            if (c)
+                ED.sel = c.id;
+        } if (a.style) {
+            ED.capStyle = a.style;
+            const e = $('edCapSty');
+            if (e)
+                e.value = a.style;
+        } await edCapCloud(); return 'ok'; } },
+    editor_undo: { d: 'Annule la dernière modification du montage. args:{}', f: () => { edUndo(); return 'ok'; } },
+    editor_zoom: { d: 'Zoom timeline. args:{pps:8..400} ou {fit:true}', f: a => { if (a.fit)
+            edZoomFit();
+        else
+            edZoomSet(+a.pps || 60); return 'ok'; } },
     editor_export: { d: 'Exporte le montage (fichier + médiathèque). args:{}', f: () => { edOpen(); edExport(); return 'ok'; } },
     wait: { d: 'Pause en secondes (max 30). args:{s}', f: async (a) => { await new Promise(r => setTimeout(r, Math.min(30, +a.s || 1) * 1000)); return 'ok'; } }
 };
@@ -11705,6 +11967,17 @@ try {
         navigator.serviceWorker.register('sw.js');
 }
 catch (_a) { }
+;
+(function () { const go = () => { try {
+    if (MODE === 'host') {
+        renderTKPane();
+        if (!$('p-lt').innerHTML.trim())
+            renderLTPane();
+    }
+}
+catch (e) {
+    console.error(e);
+} }; setTimeout(go, 50); setTimeout(go, 1500); setTimeout(go, 4000); })();
 </script>
 </body>
 </html>
