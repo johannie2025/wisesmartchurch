@@ -2183,7 +2183,7 @@ function edText(x, c, t, W, H) {
 /* ============ SOUS-TITRES AUTO + styles animés façon CapCut ============ */
 const ED_CC = [['cc_pop', '💥 Pop (mot par mot)'], ['cc_karaoke', '🎤 Karaoké'], ['cc_hormozi', '🔥 Impact (contour)'], ['cc_box', '🟨 Boîte surlignée'], ['cc_neon', '✨ Néon'], ['cc_bounce', '⛹ Rebond'], ['cc_type', '⌨ Machine à écrire'], ['cc_wave', '🌊 Vague'], ['cc_slideup', '⬆ Glissé haut'], ['cc_shake', '📳 Tremblement']];
 ED_TPL.push(...ED_CC);
-function edCapWords(c) { if (c.words && c.words.length)
+function edCapWords(c) { if (c.words && c.words.length && c.words.map(w => w.w).join(' ') === String(c.text || '').trim().split(/\s+/).join(' '))
     return c.words; const w = String(c.text || '').split(/\s+/).filter(Boolean), d = c.dur / Math.max(1, w.length); return w.map((x, i) => ({ w: x, s: i * d, e: (i + 1) * d })); }
 function edCaption(x, c, t, W, H) {
     const lt = t - c.start, W0 = edCapWords(c), st = c.tpl, hl = c.hlc || '#ffd400', fs = c.fs / 100 * H * (c.sc / 100), po = clamp01((edEnd(c) - t) / .2), pin = clamp01(lt / .15);
@@ -3243,14 +3243,18 @@ function edUI(full) {
         EDC = $('edCv');
         EDX = EDC.getContext('2d');
     }
+    edBinRender();
+    edTl();
+    edInsp();
+    edDraw(ED.t);
+}
+function edBinRender() {
+    const T = (a, b, c) => tr3(a, b, c);
     const bin = $('edBin');
     if (bin) {
         bin.innerHTML = Object.values(HF).filter(m => !m.builtin && m.kind !== 'model').map(m => `<div draggable="true" data-mid="${m.id}" ondblclick="edAddMedia('${m.id}')" title="${T('Double-clic ou glisser vers la timeline', 'Doble clic o arrastrar a la línea de tiempo', 'Double-click or drag to the timeline')}" style="display:flex;gap:6px;align-items:center;padding:4px;margin:3px 0;background:#121a33;border-radius:6px;cursor:grab"><span style="width:44px;height:28px;flex:none;background:#000 center/cover;border-radius:4px;${m.kind === 'image' ? `background-image:url(${m.url})` : ''};display:flex;align-items:center;justify-content:center">${m.kind === 'video' ? '🎬' : m.kind === 'audio' ? '🔊' : ''}</span><small style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</small><button class="sm" title="+" onclick="edAddMedia('${m.id}')">＋</button><button class="sm" title="${T('Retirer de la liste', 'Quitar de la lista', 'Remove from list')}" onclick="edBinDel('${m.id}')">✕</button></div>`).join('') || '<div style="color:#8b95b8;font-size:12px">' + T('Importez des médias (＋), glissez-déposez des fichiers ici ou capturez-les.', 'Importe medios (＋), arrastre archivos aquí o capturelos.', 'Import media (＋), drop files here or capture them.') + '</div>';
         bin.querySelectorAll('[draggable]').forEach(d => d.ondragstart = e => { e.dataTransfer.setData('text/wdscs-mid', d.dataset.mid); e.dataTransfer.effectAllowed = 'copy'; });
     }
-    edTl();
-    edInsp();
-    edDraw(ED.t);
 }
 /* --- zoom / copier-coller / glisser-déposer du montage --- */
 function edZoomSet(v) { ED.pps = Math.max(8, Math.min(400, v)); const z = $('edZ'); if (z)
@@ -4144,6 +4148,11 @@ function bgStrip() {
     el.innerHTML = l.map(m => `<div class="bgt" title="${esc(m.name)}" onclick="assignLayer('${m.id}',1)"><img src="${m.url}"><span>${esc(m.name.replace('🎨 ', ''))}</span></div>`).join('');
 }
 function renderMedia() {
+    try {
+        if ($('edBin'))
+            edBinRender();
+    }
+    catch (_a) { }
     airMediaOpts();
     renderFrame();
     bgStrip();
@@ -5451,11 +5460,11 @@ catch (e) {
         el.innerHTML = '<textarea rows="3" style="width:100%" oninput="tkSet(\'text\',this.value)">' + esc(TKF.text || '') + '</textarea><button class="pri" style="width:100%;margin-top:6px" onclick="tkToggle()">📰 ON/OFF</button>';
 } }
 function renderTKPane0() {
-    const el = $('tkCard');
-    if (!el)
+    const els = ['tkCard', 'tkCard2'].map(i => $(i)).filter(Boolean);
+    if (!els.length)
         return;
     const T = (a, b, c) => esc(tr3(a, b, c)), on = !!(S.tk && S.tk.on);
-    el.innerHTML = `<div class="tkdg">${tkAll().map(d => `<button class="sm ${TKF.design === d[0] ? 'pri' : ''}" onclick="tkDesign('${d[0]}')" style="border-left:4px solid ${d[2]}">${esc(d[1])}</button>`).join('')}</div>
+    const html = `<div class="tkdg">${tkAll().map(d => `<button class="sm ${TKF.design === d[0] ? 'pri' : ''}" onclick="tkDesign('${d[0]}')" style="border-left:4px solid ${d[2]}">${esc(d[1])}</button>`).join('')}</div>
   <input id="tkLab" placeholder="${T('Étiquette (ex. FLASH INFO)', 'Etiqueta (p. ej. ÚLTIMA HORA)', 'Label (e.g. BREAKING)')}" value="${esc(TKF.label)}" oninput="tkSet('label',this.value)" style="margin-top:6px">
   <textarea id="tkTxt" rows="3" placeholder="${T('Une annonce par ligne', 'Un anuncio por línea', 'One announcement per line')}" oninput="tkSet('text',this.value)" style="margin-top:6px;width:100%">${esc(TKF.text)}</textarea>
   <div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Mode', 'Modo', 'Mode')}</span><select onchange="tkSet('mode',this.value);renderTKPane()" style="flex:1"><option value="scroll" ${TKF.mode === 'scroll' ? 'selected' : ''}>${T('Défilant', 'Desplazable', 'Scrolling')}</option><option value="static" ${TKF.mode === 'static' ? 'selected' : ''}>${T('Fixe (une annonce à la fois)', 'Fijo (un anuncio a la vez)', 'Static (one at a time)')}</option></select>
@@ -5465,6 +5474,7 @@ function renderTKPane0() {
   <div class="bar" style="margin-top:6px"><span style="font-size:11px;color:var(--tx3)">${T('Hauteur du bord bas (%)', 'Elevación del borde (%)', 'Lift from edge (%)')}</span><input type="range" min="0" max="30" value="${TKF.lift}" style="flex:1" oninput="tkSet('lift',+this.value)"><input type="color" value="${TKF.accent}" oninput="tkSet('accent',this.value)" style="width:40px;height:28px"></div>
   <div class="bar" style="margin-top:6px"><button class="sm pri" onclick="tkEditDesign()">🎨 ${T('Designer ce bandeau (couleurs, fond, police, forme…)', 'Diseñar esta banda (colores, fondo, fuente, forma…)', 'Design this ticker (colours, background, font, shape…)')}</button></div>
   <button class="${on ? 'live' : 'pri'}" style="width:100%;margin-top:6px" onclick="tkToggle()">${on ? '⏹ ' + T('Masquer le bandeau', 'Ocultar la banda', 'Hide ticker') : '📰 ' + T('Afficher le bandeau', 'Mostrar la banda', 'Show ticker')}</button>`;
+    els.forEach(e => e.innerHTML = html);
 }
 function renderTicker(root, k) {
     if (!root)
@@ -5828,6 +5838,16 @@ function gtStep(id) {
     WSSIG = '';
     renderWS(true);
 }
+function gtStar(id) { const t = GT.find(x => x.id === id); if (!t)
+    return; t.fav = !t.fav; gtCommit(); if (t.fav && t.kind === 'lt')
+    ltFavAdd(gtLtOf(t), t.name);
+else if (!t.fav) {
+    LTFAV = LTFAV.filter(f => f.name !== t.name);
+    ltFavSave();
+} renderGT(); renderLTPane(); WSSIG = ''; try {
+    renderWS(true);
+}
+catch (_a) { } }
 function gtFav(id) { const t = GT.find(x => x.id === id); if (t)
     ltFavAdd(gtLtOf(t), t.name); }
 function gtEditOpen(id) { GTE = id; GTS = 'designs'; openTab('gt'); renderGT(); }
@@ -5842,7 +5862,7 @@ function ltClearAll() { clearTimeout(LTT); if (S.lt)
     S.pvLt.on = false; S.lts = []; render(); sync(); toast('🧹 ' + tr3('Lower thirds vidés', 'Lower thirds vaciados', 'Lower thirds cleared')); }
 function gtDesignTiles() {
     const T = (a, b, c) => esc(tr3(a, b, c));
-    return '<h4 style="margin-top:14px">🎨 ' + T('Mes designs GT', 'Mis diseños GT', 'My GT designs') + ' — ' + GT.length + ' <button class="sm" onclick="ltClearAll()">🧹 ' + T('Vider lower thirds', 'Vaciar lower thirds', 'Clear lower thirds') + '</button></h4><div class="tiles">' + (GT.map(x => `<div class="tile" onclick="gtClick('${x.id}',event)" ondblclick="gtDbl('${x.id}',event)" title="${T('Clic : Preview → Program → efface → efface Preview · Double-clic : éditer', 'Clic: Preview → Program → borra → borra Preview · Doble clic: editar', 'Click: Preview → Program → clear → clear Preview · Double-click: edit')}"><div class="tx"><b>${esc(x.name)}</b><br><small>${esc(GT_KIND[x.kind])}</small></div><div class="cb"><button class="sm" onclick="gtToPL('${x.id}')">+ Prog.</button>${x.kind === 'lt' ? `<button class="sm" title="⭐" onclick="gtFav('${x.id}')">⭐</button>` : ''}<button class="sm" onclick="gtEditOpen('${x.id}')">✎</button></div></div>`).join('') || `<div class="ai">${T('Créez un design dans l’onglet GT.', 'Cree un diseño en la pestaña GT.', 'Create a design in the GT tab.')}</div>`) + '</div>';
+    return '<h4 style="margin-top:14px">🎨 ' + T('Mes designs GT', 'Mis diseños GT', 'My GT designs') + ' — ' + GT.length + ' <button class="sm" onclick="ltClearAll()">🧹 ' + T('Vider lower thirds', 'Vaciar lower thirds', 'Clear lower thirds') + '</button></h4><div class="tiles">' + (GT.slice().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0)).map(x => `<div class="tile" onclick="gtClick('${x.id}',event)" ondblclick="gtDbl('${x.id}',event)" title="${T('Clic : Preview → Program → efface → efface Preview · Double-clic : éditer', 'Clic: Preview → Program → borra → borra Preview · Doble clic: editar', 'Click: Preview → Program → clear → clear Preview · Double-click: edit')}"><div class="tx"><b>${esc(x.name)}</b><br><small>${esc(GT_KIND[x.kind])}</small></div><div class="cb"><button class="sm" onclick="gtToPL('${x.id}')">+ Prog.</button><button class="sm" title="⭐" onclick="gtStar('${x.id}')">${x.fav ? '★' : '☆'}</button><button class="sm" onclick="gtEditOpen('${x.id}')">✎</button></div></div>`).join('') || `<div class="ai">${T('Créez un design dans l’onglet GT.', 'Cree un diseño en la pestaña GT.', 'Create a design in the GT tab.')}</div>`) + '</div>';
 }
 function gfxTilesHtml() {
     const T = (a, b, c) => esc(tr3(a, b, c));
@@ -5911,18 +5931,23 @@ function renderGT() {
     const el = $('p-gt');
     if (!el)
         return;
+    setTimeout(() => { try {
+        renderTKPane();
+    }
+    catch (_a) { } }, 0);
     const T = (a, b, c) => esc(tr3(a, b, c));
-    const nav = [['designs', '🎨 ' + T('Mes designs', 'Mis diseños', 'My designs')], ['upnext', '⏭ ' + T('À suivre', 'A continuación', 'Up next')], ['promo', '📣 ' + T('Promo événement', 'Promo evento', 'Event promo')], ['loop', '🔁 ' + T('Annonces en boucle', 'Anuncios en bucle', 'Announcement loop')], ['stinger', '✦ ' + T('Logo stinger', 'Logo stinger', 'Logo stinger')]].map(a => `<button class="sm ${GTS === a[0] ? 'pri' : ''}" onclick="GTS='${a[0]}';renderGT()">${a[1]}</button>`).join('');
+    const nav = [['designs', '🎨 ' + T('Mes designs', 'Mis diseños', 'My designs')], ['upnext', '⏭ ' + T('À suivre', 'A continuación', 'Up next')], ['promo', '📣 ' + T('Promo événement', 'Promo evento', 'Event promo')], ['loop', '🔁 ' + T('Annonces en boucle', 'Anuncios en bucle', 'Announcement loop')], ['stinger', '✦ ' + T('Logo stinger', 'Logo stinger', 'Logo stinger')], ['ticker', '📰 ' + T('Bandeau (exemple)', 'Banda (ejemplo)', 'Ticker (example)')]].map(a => `<button class="sm ${GTS === a[0] ? 'pri' : ''}" onclick="GTS='${a[0]}';renderGT()">${a[1]}</button>`).join('');
     let body = '';
     if (GTS === 'designs') {
         const t = GT.find(x => x.id === GTE);
         body = `<div class="ai">${T('Créez et modifiez vos propres designs : ils apparaissent ensuite dans Lower 3rd (style), dans le bandeau et comme thème des graphiques.', 'Cree y edite sus propios diseños: aparecen luego en Lower 3rd (estilo), en la banda y como tema de los gráficos.', 'Create and edit your own designs: they then appear in Lower 3rd (style), in the ticker and as graphics theme.')}</div>
     <div class="bar" style="flex-wrap:wrap;margin:6px 0"><button class="sm pri" onclick="gtNew('lt')">➕ Lower third</button><button class="sm pri" onclick="gtNew('tk')">➕ ${T('Bandeau', 'Banda', 'Ticker')}</button><button class="sm pri" onclick="gtNew('gfx')">➕ ${T('Thème graphique', 'Tema gráfico', 'Graphics theme')}</button><button class="sm" onclick="gtExport()">⬇ JSON</button><label class="sm btn" style="cursor:pointer">⬆ JSON<input type="file" accept=".json" hidden onchange="gtImport(this.files)"></label></div>
-    <div class="gtl">${GT.length ? GT.map(x => `<div class="gti ${GTE === x.id ? 'on' : ''}"><span onclick="GTE='${x.id}';renderGT()" style="flex:1;cursor:pointer"><b>${esc(x.name)}</b> <small>${esc(GT_KIND[x.kind])}</small></span><button class="sm" onclick="GTE='${x.id}';renderGT()">✎</button><button class="sm" title="Conducteur" onclick="gtToPL('${x.id}')">＋Prog.</button><button class="sm" onclick="gtDup('${x.id}')">⧉</button><button class="sm" onclick="gtDel('${x.id}')">🗑</button></div>`).join('') : `<div class="ai">${T('Aucun design perso pour l’instant.', 'Ningún diseño propio todavía.', 'No custom design yet.')}</div>`}</div>`;
+    <div class="gtl">${GT.length ? GT.map(x => `<div class="gti ${GTE === x.id ? 'on' : ''}"><span onclick="GTE='${x.id}';renderGT()" style="flex:1;cursor:pointer"><b>${esc(x.name)}</b> <small>${esc(GT_KIND[x.kind])}</small></span><button class="sm" onclick="GTE='${x.id}';renderGT()">✎</button><button class="sm" title="⭐" onclick="gtStar('${x.id}')">${x.fav ? '★' : '☆'}</button><button class="sm" title="Conducteur" onclick="gtToPL('${x.id}')">＋Prog.</button><button class="sm" onclick="gtDup('${x.id}')">⧉</button><button class="sm" onclick="gtDel('${x.id}')">🗑</button></div>`).join('') : `<div class="ai">${T('Aucun design perso pour l’instant.', 'Ningún diseño propio todavía.', 'No custom design yet.')}</div>`}</div>`;
         if (t) {
             const v = Object.assign({}, GT_V0, t.v), row = (lb, inp) => `<div class="cfgRow"><span>${lb}</span>${inp}</div>`, col = (k) => `<input type="color" value="${v[k]}" oninput="gtEdit('${k}',this.value)">`, rg = (k, mn, mx, st) => `<input type="range" min="${mn}" max="${mx}" step="${st || 1}" value="${v[k]}" oninput="gtEdit('${k}',+this.value)">`;
             const bases = t.kind === 'lt' ? LT_STYLES : t.kind === 'tk' ? TK_D.map(d => [d[0], d[1]]) : null;
             body += `${gtPvBox()}<label>${T('Nom', 'Nombre', 'Name')}</label><input value="${esc(t.name)}" oninput="gtEdit('name',this.value)">
+      ${t.kind === 'tk' ? `<label>${T('Étiquette', 'Etiqueta', 'Label')}</label><input value="${esc(TKF.label)}" oninput="tkSet('label',this.value)"><label>${T('Textes du bandeau (un par ligne)', 'Textos (uno por línea)', 'Ticker texts (one per line)')}</label><textarea rows="3" style="width:100%" oninput="tkSet('text',this.value)">${esc(TKF.text)}</textarea><div class="bar" style="margin:4px 0"><button class="sm" onclick="TKF.design='cu:${t.id}:${t.base}';tkSave();tkToggle()">📰 ${T('Afficher / masquer ce bandeau', 'Mostrar / ocultar', 'Show / hide this ticker')}</button></div>` : ''}
       ${bases ? row(T('Mise en page de base', 'Diseño base', 'Base layout'), `<select onchange="gtEdit('base',this.value)">${bases.map(b => `<option value="${b[0]}" ${t.base === b[0] ? 'selected' : ''}>${esc(b[1])}</option>`).join('')}</select>`) : ''}
       ${row(T('Fond', 'Fondo', 'Background'), col('bg'))}${row(T('Dégradé vers (option)', 'Degradado a (opción)', 'Gradient to (optional)'), `<input type="color" value="${v.bg2 || v.bg}" oninput="gtEdit('bg2',this.value)"><button class="sm" onclick="gtEditRe('bg2','')">✕</button>`)}${v.bg2 ? row(T('Angle', 'Ángulo', 'Angle'), rg('ang', 0, 360, 5)) : ''}
       ${row(T('Couleur du texte', 'Color del texto', 'Text colour'), col('tx'))}${row(T('Couleur d’accent / étiquette', 'Color de acento / etiqueta', 'Accent / label colour'), col('ac'))}
@@ -5934,6 +5959,9 @@ function renderGT() {
       ${row(T('Ombre', 'Sombra', 'Shadow'), `<select onchange="gtEdit('sh',+this.value)">${[T('Aucune', 'Ninguna', 'None'), T('Douce', 'Suave', 'Soft'), T('Forte', 'Fuerte', 'Strong')].map((s, i) => `<option value="${i}" ${v.sh === i ? 'selected' : ''}>${s}</option>`).join('')}</select>`)}
       ${row(T('MAJUSCULES', 'MAYÚSCULAS', 'UPPERCASE'), `<input type="checkbox" ${v.up ? 'checked' : ''} onchange="gtEdit('up',this.checked?1:0)">`)}`;
         }
+    }
+    else if (GTS === 'ticker') {
+        body = `<div class="ai">${T('Bandeau défilant (synthé) : modifiez les textes, choisissez un thème d’exemple, utilisez-le ou personnalisez-le entièrement.', 'Banda (ticker): edite los textos, elija un tema de ejemplo, úselo o personalícelo.', 'Ticker: edit the texts, pick an example theme, use it or customise it fully.')}</div><div id="tkCard2" class="alertcard"></div><h4 style="margin-top:10px">🎨 ${T('Thèmes d’exemple (cliquer = utiliser · ➕ = personnaliser)', 'Temas de ejemplo (clic = usar · ➕ = personalizar)', 'Example themes (click = use · ➕ = customise)')}</h4><div class="tiles">${TK_D.map(d => `<div class="tile" onclick="tkDesign('${d[0]}')" style="border-left:4px solid ${d[2]}"><div class="tx"><b>${esc(d[1])}</b></div><div class="cb"><button class="sm" onclick="event.stopPropagation();gtNew('tk','${d[0]}');GTS='designs';renderGT()">➕ ${T('Personnaliser', 'Personalizar', 'Customise')}</button></div></div>`).join('')}</div>`;
     }
     else if (['upnext', 'promo', 'loop'].includes(GTS)) {
         GFXF.kind = GTS;
@@ -11977,7 +12005,12 @@ catch (_a) { }
 }
 catch (e) {
     console.error(e);
-} }; setTimeout(go, 50); setTimeout(go, 1500); setTimeout(go, 4000); })();
+} }; setTimeout(go, 50); setInterval(() => { try {
+    const e = $('tkCard');
+    if (MODE === 'host' && e && !e.firstChild)
+        renderTKPane();
+}
+catch (_a) { } }, 1500); })();
 </script>
 </body>
 </html>
