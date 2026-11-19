@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(true);
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView v, String url) {
-                if (!lastRelay.isEmpty()) v.evaluateJavascript("if(window.useRelay)useRelay('" + lastRelay + "')", null);
+                if (!lastRelay.isEmpty()) v.evaluateJavascript("if(window.useRelayNative)useRelayNative('" + lastRelay + "')", null);
                 handleIntent(getIntent());
             }
         });
@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
                     public void onServiceResolved(NsdServiceInfo i) {
                         final String url = "ws://" + i.getHost().getHostAddress() + ":" + i.getPort();
                         lastRelay = url;
-                        runOnUiThread(() -> web.evaluateJavascript("if(window.useRelay)useRelay('" + url + "')", null));
+                        runOnUiThread(() -> web.evaluateJavascript("if(window.useRelayNative)useRelayNative('" + url + "')", null));
                     }
                 });
             }
@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
                 if (found[0] != null) {
                     final String url = "ws://" + found[0];
                     lastRelay = url;
-                    runOnUiThread(() -> web.evaluateJavascript("if(window.useRelay)useRelay('" + url + "')", null));
+                    runOnUiThread(() -> web.evaluateJavascript("if(window.useRelayNative)useRelayNative('" + url + "')", null));
                 }
             } catch (Exception ignored) {
             } finally { scanning = false; }

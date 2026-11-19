@@ -834,7 +834,7 @@ function useRelay(url,save){
 }
 let LASTMSG=Date.now(),RSM=0;
 function wcResume(force){try{wcResume0(force)}catch{}}
-function wcResume0(force){if(MODE==='host'||!MODE)return;const n=Date.now();if(!force&&n-RSM<1500)return;RSM=n;
+function wcResume0(force){if(MODE==='host'||!MODE||(typeof RUPBUSY!=='undefined'&&RUPBUSY&&WS&&WS.readyState===1))return;const n=Date.now();if(!force&&n-RSM<1500)return;RSM=n;
   const u=RELAY||LS.get('wcRelay',null)||LS.get('wcRelayLast',null);
   try{WS&&WS.close()}catch{}WS=null;if(u){RELAY='';useRelay(u)}
   try{NATIVE&&NATIVE.scanLan&&NATIVE.scanLan()}catch{}
@@ -842,7 +842,7 @@ function wcResume0(force){if(MODE==='host'||!MODE)return;const n=Date.now();if(!
   setTimeout(()=>{try{helloAll()}catch{}if(MODE==='viewer')try{renderViewer()}catch{}},900)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wcResume()});
 addEventListener('pageshow',()=>wcResume());addEventListener('online',()=>wcResume(true));addEventListener('focus',()=>wcResume());
-setInterval(()=>{try{NATIVE&&NATIVE.setVolKeys&&NATIVE.setVolKeys(MODE==='remote')}catch{}if(MODE==='host'||!MODE||document.visibilityState!=='visible')return;if(!WS||WS.readyState!==1){if(RELAY||LS.get('wcRelayLast',null))wcResume(true);return}if(PAIRED&&Date.now()-LASTMSG>45000)wcResume(true)},6000);
+setInterval(()=>{try{NATIVE&&NATIVE.setVolKeys&&NATIVE.setVolKeys(MODE==='remote')}catch{}if(MODE==='host'||!MODE||document.visibilityState!=='visible')return;if(!WS||WS.readyState!==1){if(RELAY||LS.get('wcRelayLast',null))wcResume(true);return}},6000);
 function setRelayInfo(ok){const p=$('relayP');if(p){p.textContent='relais : '+(ok?'actif':'—');p.className='pill'+(ok?' ok':'')}}
 async function lanIp(){
   if(NATIVE){try{const ip=NATIVE.getIp();if(ip)return ip}catch{}}
@@ -1276,6 +1276,7 @@ function edMute(){const m=edMS();if(!m.length){toast(tr3('Sélectionnez un clip'
 function edMuteTrack(tr){ED.tm=ED.tm||{};ED.tm[tr]=!ED.tm[tr];edSave();edUI();edSync(ED.t,false)}
 function edDims(){const [w16,h16]=CAP_Q[ED.q]||CAP_Q['1080'],[a,b]=CAP_R[ED.ratio]||[16,9];let W,H;if(a/b>=16/9){W=w16;H=Math.round(w16*b/a)}else if(a<b){H=w16;W=Math.round(w16*a/b)}else{H=h16;W=Math.round(h16*a/b)}return[W&~1,H&~1]}
 const edEnd=c=>c.start+c.dur,edTotal=()=>Math.max(1,...ED.clips.map(edEnd));
+const LFM=new WeakMap();
 function edEl(c){if(!c.mid||!HF[c.mid])return null;const K=(c.id&&c.type!=='image')?c.mid+'#'+c.id:c.mid;let e=EDM[K];if(!e){const m=HF[c.mid];e=m.kind==='image'?new Image():document.createElement(m.kind==='audio'?'audio':'video');e.crossOrigin='anonymous';e.src=m.url;if(m.kind==='image')e.onload=()=>{try{edDraw(ED.t)}catch{}};if(m.kind!=='image'){e.preload='auto';e.playsInline=true}EDM[K]=e}return e}
 function edAudioNode(e){if(!EDAC){EDAC=new(window.AudioContext||window.webkitAudioContext)();EDDEST=EDAC.createMediaStreamDestination()}if(!e._src){try{e._src=EDAC.createMediaElementSource(e);e._g=EDAC.createGain();e._src.connect(e._g);e._g.connect(EDDEST);e._g.connect(EDAC.destination)}catch{}}return e._g}
 function edAdd(c){c=Object.assign({id:'e'+uid(),track:0,start:0,dur:4,in:0,x:0,y:0,sc:100,op:100,vol:100,fi:'fade',fo:'fade',kb:0},c);
@@ -1439,7 +1440,7 @@ function edDraw(t){const cv=EDC;if(!cv)return;const x=EDX,W=cv.width,H=cv.height
     const TR=(ty,p,inn)=>{const e=eoc(p),d=1-e,sg=inn?-1:1;switch(ty){case'fade':a*=p;break;case'dip':a*=p<.5?0:(p-.5)*2;break;case'slide':ox+=sg*d*W;break;case'slide-up':oy+=-sg*d*H;break;case'wipe-left':cr=[0,0,e*W,H];break;case'wipe-right':cr=[W-e*W,0,e*W,H];break;case'wipe-up':cr=[0,0,W,e*H];break;case'wipe-down':cr=[0,H-e*H,W,e*H];break;case'zoom':sc*=.6+.4*e;a*=p;break;case'spin':rot+=sg*d*Math.PI;sc*=.4+.6*e;a*=p;break;case'blur':bl+=d*30*(W/1920);a*=Math.min(1,p*2);break;case'flash':a*=p;fl=Math.max(fl,(1-p)*.9);break;case'glitch':gl=Math.max(gl,1-p);a*=p>.15?1:.4;break}};
     if(tin<1)TR(c.fi,tin,true);if(tout<1)TR(c.fo,tout,false);
     let src=null,sw=0,sh=0;if(c.type==='html'||c.type==='comp'){compEnsure(c,t,W,H);src=c._img;if(src){sw=src.width;sh=src.height}}
-    else{src=edEl(c);if(src){sw=src.videoWidth||src.naturalWidth||src.width;sh=src.videoHeight||src.naturalHeight||src.height;if(c.type==='video'){if(src.readyState<2)src=c._lf||null;else{const n=performance.now();if(!c._lf||n-(c._lt||0)>250){const k=Math.min(1,640/sw),cv=c._lf||document.createElement('canvas');cv.width=Math.round(sw*k);cv.height=Math.round(sh*k);try{cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);c._lf=cv;c._lt=n}catch{}}}if(src===c._lf){sw=src.width;sh=src.height}}}}
+    else{src=edEl(c);if(src){sw=src.videoWidth||src.naturalWidth||src.width;sh=src.videoHeight||src.naturalHeight||src.height;if(c.type==='video'){let L=LFM.get(c);if(src.readyState<2)src=(L&&L.cv)||null;else{const n=performance.now();if(!L){L={cv:document.createElement('canvas'),t:0};LFM.set(c,L)}if(n-L.t>250){const k=Math.min(1,640/sw);L.cv.width=Math.round(sw*k);L.cv.height=Math.round(sh*k);try{L.cv.getContext('2d').drawImage(src,0,0,L.cv.width,L.cv.height);L.t=n}catch{}}}if(L&&src===L.cv){sw=src.width;sh=src.height}}}}
     if(!src||!sw)continue;if(c.kb)sc*=1+.12*clamp01(lt/c.dur);
     const k=Math.max(W/sw,H/sh),dw=sw*k*sc,dh=sh*k*sc,cx=W/2+ox+c.x/100*W,cy=H/2+oy+c.y/100*H;
     x.save();if(cr){x.beginPath();x.rect(cr[0],cr[1],cr[2],cr[3]);x.clip()}
@@ -4597,10 +4598,9 @@ async function rUpload(files,go){
       const kind=f.type.startsWith('video')?'video':f.type.startsWith('audio')?'audio':'image';
       send({type:'rUpStart',id,name:f.name,mime:f.type||'application/octet-stream',kind,n,go:go||'pv',last:k===files.length-1});
       for(let i=0;i<n;i++){
-        while(WS&&WS.readyState===1&&WS.bufferedAmount>3e6)await sleep(40);
+        {let w=0;while(!WS||WS.readyState!==1||WS.bufferedAmount>2e6){await sleep(60);if(++w>600)throw new Error('timeout')}}
         send({type:'rUpChunk',id,i,d:await b64(f.slice(i*CH,(i+1)*CH))});
         if(i%4===0||i===n-1)toast('Envoi : '+f.name+' '+Math.round((i+1)/n*100)+'%');
-        if(!WS||WS.readyState!==1)await sleep(6);
       }
     }
   }catch(e){toast('Échec de l’envoi')}
@@ -4646,7 +4646,7 @@ async function manualRelay(id){
 
 /* ============ DÉMARRAGE ============ */
 window.handleDeepLink=handleDeepLink;
-window.useRelay=useRelay;window.cmd=cmd;window.wcResume=wcResume;
+window.useRelay=useRelay;window.useRelayNative=u=>{if(MODE&&MODE!=='host'&&PAIRED&&WS&&WS.readyState===1&&RELAY&&RELAY!==u)return;useRelay(u)};window.cmd=cmd;window.wcResume=wcResume;
 function boot(){
   const q=getQ();
   const sp=$('splash');
