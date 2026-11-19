@@ -6,7 +6,7 @@
   "build": { "frontendDist": "../web" },
   "app": {
     "windows": [
-      { "label": "main", "title": "Wise Design Smart Church System", "width": 1440, "height": 860, "minWidth": 640, "minHeight": 420, "useHttpsScheme": true }
+      { "label": "main", "title": "Wise Design Smart Church System", "width": 1440, "height": 860, "minWidth": 640, "minHeight": 420, "useHttpsScheme": true, "dragDropEnabled": false }
     ],
     "security": { "csp": null }
   },

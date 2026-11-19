@@ -162,6 +162,24 @@ public class MainActivity extends Activity {
     }
 
     /** Détection automatique des hôtes sur le LAN, puis la page se branche sur le relais trouvé. */
+    private volatile boolean volKeys = false;
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent ev) {
+        int k = ev.getKeyCode();
+        if (volKeys && (k == android.view.KeyEvent.KEYCODE_VOLUME_UP || k == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) {
+            if (ev.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                final int d = k == android.view.KeyEvent.KEYCODE_VOLUME_UP ? 2 : -2;
+                runOnUiThread(() -> web.evaluateJavascript("if(window.cmd)cmd('vol',0," + d + ")", null));
+            }
+            return true;
+        }
+        return super.dispatchKeyEvent(ev);
+    }
+    @Override protected void onResume() {
+        super.onResume();
+        try { if (mlock != null && !mlock.isHeld()) mlock.acquire(); } catch (Exception ignored) {}
+        try { if (discListener != null) nsd.stopServiceDiscovery(discListener); } catch (Exception ignored) {}
+        new android.os.Handler().postDelayed(() -> { discover(); web.evaluateJavascript("if(window.wcResume)wcResume(true)", null); }, 600);
+    }
     private void discover() {
         discListener = new NsdManager.DiscoveryListener() {
             public void onStartDiscoveryFailed(String t, int e) {}
@@ -171,7 +189,7 @@ public class MainActivity extends Activity {
             public void onServiceLost(NsdServiceInfo i) {}
             public void onServiceFound(NsdServiceInfo found) {
                 nsd.resolveService(found, new NsdManager.ResolveListener() {
-                    public void onResolveFailed(NsdServiceInfo i, int e) {}
+                    public void onResolveFailed(NsdServiceInfo i, int e) { new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> { try { discover(); } catch (Exception ignored) {} }, 2000); }
                     public void onServiceResolved(NsdServiceInfo i) {
                         final String url = "ws://" + i.getHost().getHostAddress() + ":" + i.getPort();
                         lastRelay = url;
@@ -252,6 +270,7 @@ public class MainActivity extends Activity {
     }
 
     public class Bridge {
+        @JavascriptInterface public void setVolKeys(boolean b) { volKeys = b; }
         @JavascriptInterface public String getRelay() { return lastRelay; }
         @JavascriptInterface public int getRelayPort() { return relayPort; }
         @JavascriptInterface public void scanLan() { MainActivity.this.scanLan(); }

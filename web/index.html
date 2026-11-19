@@ -759,7 +759,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
   <div class="rctl">
     <button class="s2" onclick="rStep(-1)">◀ Précédent</button><button class="s2" onclick="rStep(1)">Suivant ▶</button>
     <button class="live" onclick="cmd('take')">CUT / TAKE</button>
-    <button onclick="cmd('blank')">⬛ Noir</button><button onclick="cmd('vplay')">⏯ Vidéo</button>
+    <button onclick="cmd('blank')">⬛ Noir</button><button onclick="cmd('blankpv')">🧹 PV</button><button onclick="cmd('vplay')">⏯ Vidéo</button><button onclick="cmd('vol',0,-2)">🔉</button><button onclick="cmd('vol',0,2)">🔊</button>
     <button onclick="cmd('plprev')">◀ Élément</button><button onclick="cmd('plnext')">Élément ▶</button><button class="s2" onclick="cmd('audio')">🔊 Audio</button><button class="s2" id="rSnd" onclick="rSound()">🎧 Écouter sur ce téléphone</button>
   </div>
   <div class="rstu" id="rStu"></div>
@@ -823,15 +823,26 @@ function useRelay(url,save){
   if(!url)return;
   if(MODE==='host'&&save!==true&&WS&&WS.readyState===1)return;
   if(WS&&WS.readyState<=1&&RELAY===url)return;
-  RELAY=url;if(save)LS.set('wcRelay',url);
+  RELAY=url;if(save)LS.set('wcRelay',url);else if(MODE!=='host')LS.set('wcRelayLast',url);
   try{WS&&WS.close()}catch{}
   let w;try{w=new WebSocket(url)}catch{return}
   WS=w;
   w.onopen=()=>{wsJoin('LOBBY');if(CODE)wsJoin(CODE);setRelayInfo(true);if(MODE==='viewer'||MODE==='remote')helloAll()};
-  w.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch{}};
+  w.onmessage=e=>{LASTMSG=Date.now();try{onMsg(JSON.parse(e.data))}catch{}};
   w.onclose=()=>{setRelayInfo(false);if(RELAY===url)setTimeout(()=>{if(RELAY===url&&WS===w)useRelay(url)},2500)};
   w.onerror=()=>{};
 }
+let LASTMSG=Date.now(),RSM=0;
+function wcResume(force){try{wcResume0(force)}catch{}}
+function wcResume0(force){if(MODE==='host'||!MODE)return;const n=Date.now();if(!force&&n-RSM<1500)return;RSM=n;
+  const u=RELAY||LS.get('wcRelay',null)||LS.get('wcRelayLast',null);
+  try{WS&&WS.close()}catch{}WS=null;if(u){RELAY='';useRelay(u)}
+  try{NATIVE&&NATIVE.scanLan&&NATIVE.scanLan()}catch{}
+  Object.keys(NEED).forEach(k=>delete NEED[k]);
+  setTimeout(()=>{try{helloAll()}catch{}if(MODE==='viewer')try{renderViewer()}catch{}},900)}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wcResume()});
+addEventListener('pageshow',()=>wcResume());addEventListener('online',()=>wcResume(true));addEventListener('focus',()=>wcResume());
+setInterval(()=>{try{NATIVE&&NATIVE.setVolKeys&&NATIVE.setVolKeys(MODE==='remote')}catch{}if(MODE==='host'||!MODE||document.visibilityState!=='visible')return;if(!WS||WS.readyState!==1){if(RELAY||LS.get('wcRelayLast',null))wcResume(true);return}if(PAIRED&&Date.now()-LASTMSG>45000)wcResume(true)},6000);
 function setRelayInfo(ok){const p=$('relayP');if(p){p.textContent='relais : '+(ok?'actif':'—');p.className='pill'+(ok?' ok':'')}}
 async function lanIp(){
   if(NATIVE){try{const ip=NATIVE.getIp();if(ip)return ip}catch{}}
@@ -968,7 +979,7 @@ async function initHost(){
   handlers.ping=m=>{if(screens[m.id])screens[m.id].t=Date.now();else{screens[m.id]={id:m.id,name:m.id.slice(0,5),role:ROLES[m.id]||m.role||'program',t:Date.now()};renderScreens()}};
   handlers.rhello=()=>sync();
   handlers.mNeed=m=>pushMedia(m.id);
-  handlers.cmd=m=>{({stlayout:()=>stuLayout(m.i),stview:()=>camPre(m.i),tk:tkToggle,mixcut:mixCut,mixauto:mixAuto,mixftb:mixFtb,mixpvw:()=>mixPvw(m.i),ston:stuTake,stoff:stuOff,stclear:stuClear,blankpv:blankPv,stcam:()=>stuSlot(m.i,m.a),alert:()=>alertSet(m.k||'garderie',m.msg||'',!!m.on),next:()=>step(1),prev:()=>step(-1),take,blank,goto:()=>pick(m.i),vplay:toggleVideo,audio:toggleAudio,clearlayers:clearLayers,plnext:()=>plStep(1),plprev:()=>plStep(-1),plgoto:()=>runItem(m.i),bible:()=>{$('bref').value=m.a;bibleGo()},song:()=>loadSong(m.i,true),pladdverse:()=>{$('plVerse').value=m.a;addVerseRefToPL()},pladdsong:()=>addSongToPL(m.i),pladdmedia:()=>addMediaToPL(m.i),media:()=>assignLayer(m.i,+m.a),mflag:()=>mediaFlag(m.i,m.a),maudio:()=>mediaAudioToggle(m.i),songstep:()=>songStep(m.i),mediastep:()=>mediaStep(m.i),mtap:()=>mediaTap(m.i,m.a),unlive:()=>unlive(m.a),unpv:()=>unpv(m.a),ltprev:()=>remoteLt(m.a,'pv'),ltlive:()=>remoteLt(m.a,'live'),lthide:()=>{ltHide()},lcfg:()=>lcfgSet(m.i,m.a.k,m.a.v),songadd:()=>remoteSongAdd(m.a),songfile:()=>remoteSongFile(m.a)})[m.cmd]?.()};
+  handlers.cmd=m=>{({stlayout:()=>stuLayout(m.i),stview:()=>camPre(m.i),tk:tkToggle,mixcut:mixCut,mixauto:mixAuto,mixftb:mixFtb,mixpvw:()=>mixPvw(m.i),ston:stuTake,stoff:stuOff,stclear:stuClear,blankpv:blankPv,vol:()=>hostVol(+m.a||0),stcam:()=>stuSlot(m.i,m.a),alert:()=>alertSet(m.k||'garderie',m.msg||'',!!m.on),next:()=>step(1),prev:()=>step(-1),take,blank,goto:()=>pick(m.i),vplay:toggleVideo,audio:toggleAudio,clearlayers:clearLayers,plnext:()=>plStep(1),plprev:()=>plStep(-1),plgoto:()=>runItem(m.i),bible:()=>{$('bref').value=m.a;bibleGo()},song:()=>loadSong(m.i,true),pladdverse:()=>{$('plVerse').value=m.a;addVerseRefToPL()},pladdsong:()=>addSongToPL(m.i),pladdmedia:()=>addMediaToPL(m.i),media:()=>assignLayer(m.i,+m.a),mflag:()=>mediaFlag(m.i,m.a),maudio:()=>mediaAudioToggle(m.i),songstep:()=>songStep(m.i),mediastep:()=>mediaStep(m.i),mtap:()=>mediaTap(m.i,m.a),unlive:()=>unlive(m.a),unpv:()=>unpv(m.a),ltprev:()=>remoteLt(m.a,'pv'),ltlive:()=>remoteLt(m.a,'live'),lthide:()=>{ltHide()},lcfg:()=>lcfgSet(m.i,m.a.k,m.a.v),songadd:()=>remoteSongAdd(m.a),songfile:()=>remoteSongFile(m.a)})[m.cmd]?.()};
   handlers.rUpStart=m=>{RUP[m.id]={m,parts:[],got:0}};
   handlers.rUpChunk=m=>{const r=RUP[m.id];if(!r||r.parts[m.i]!=null)return;r.parts[m.i]=m.d;if(++r.got===r.m.n)rUpDone(m.id)};
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{if(['gt','cap','edit'].includes(t.dataset.t)&&!PRO()){needPro();return}document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));['songs','bible','media','studio','pl','lt','gt','cap','edit','air','ai','tools'].forEach(k=>$('p-'+k).classList.toggle('hidden',k!==t.dataset.t));WSTAB=t.dataset.t;if(t.dataset.t==='studio'){const e=$('p-studio');delete e.dataset.k;stuUI()}if(t.dataset.t==='gt')renderGT();if(t.dataset.t==='cap')capUI();if(t.dataset.t==='edit')setTimeout(edOpen,0);renderWS(true)});
@@ -1265,7 +1276,7 @@ function edMute(){const m=edMS();if(!m.length){toast(tr3('Sélectionnez un clip'
 function edMuteTrack(tr){ED.tm=ED.tm||{};ED.tm[tr]=!ED.tm[tr];edSave();edUI();edSync(ED.t,false)}
 function edDims(){const [w16,h16]=CAP_Q[ED.q]||CAP_Q['1080'],[a,b]=CAP_R[ED.ratio]||[16,9];let W,H;if(a/b>=16/9){W=w16;H=Math.round(w16*b/a)}else if(a<b){H=w16;W=Math.round(w16*a/b)}else{H=h16;W=Math.round(h16*a/b)}return[W&~1,H&~1]}
 const edEnd=c=>c.start+c.dur,edTotal=()=>Math.max(1,...ED.clips.map(edEnd));
-function edEl(c){if(!c.mid||!HF[c.mid])return null;let e=EDM[c.mid];if(!e){const m=HF[c.mid];e=m.kind==='image'?new Image():document.createElement(m.kind==='audio'?'audio':'video');e.crossOrigin='anonymous';e.src=m.url;if(m.kind==='image')e.onload=()=>{try{edDraw(ED.t)}catch{}};if(m.kind!=='image'){e.preload='auto';e.playsInline=true}EDM[c.mid]=e}return e}
+function edEl(c){if(!c.mid||!HF[c.mid])return null;const K=(c.id&&c.type!=='image')?c.mid+'#'+c.id:c.mid;let e=EDM[K];if(!e){const m=HF[c.mid];e=m.kind==='image'?new Image():document.createElement(m.kind==='audio'?'audio':'video');e.crossOrigin='anonymous';e.src=m.url;if(m.kind==='image')e.onload=()=>{try{edDraw(ED.t)}catch{}};if(m.kind!=='image'){e.preload='auto';e.playsInline=true}EDM[K]=e}return e}
 function edAudioNode(e){if(!EDAC){EDAC=new(window.AudioContext||window.webkitAudioContext)();EDDEST=EDAC.createMediaStreamDestination()}if(!e._src){try{e._src=EDAC.createMediaElementSource(e);e._g=EDAC.createGain();e._src.connect(e._g);e._g.connect(EDDEST);e._g.connect(EDAC.destination)}catch{}}return e._g}
 function edAdd(c){c=Object.assign({id:'e'+uid(),track:0,start:0,dur:4,in:0,x:0,y:0,sc:100,op:100,vol:100,fi:'fade',fo:'fade',kb:0},c);
   if(c.start==null||c.start<0)c.start=0;ED.clips.push(c);ED.sel=c.id;edSave();edUI();edDraw(ED.t);if(ED.autoN&&(c.type==='audio'||c.type==='video'))setTimeout(()=>edNormClip(c,.14).then(()=>{edSave();edInsp()}),300);return c}
@@ -1398,10 +1409,9 @@ function edBrief(){return{ratio:ED.ratio,q:ED.q,fps:ED.fps,total:+edTotal().toFi
 function edFind(id,t){let c=ED.clips.find(x=>x.id===id);if(c)return c;if(id){const q=String(id).toLowerCase();c=ED.clips.find(x=>String(x.name||x.text||'').toLowerCase().includes(q));if(c)return c}
   if(t!=null){c=ED.clips.find(x=>edTrType(x.track)==='video'&&t>=x.start&&t<x.start+x.dur);if(c)return c}return ED.clips.find(x=>x.id===ED.sel)||null}
 async function edAssist(){const q=($('edAiQ')||{}).value;if(!q||!q.trim())return;const out=$('edAiOut');out.textContent='…';
-  const cat=Object.entries(AIA).filter(([k])=>/^editor_/.test(k)).map(([k,v])=>`- ${k}: ${v.d}`).join('\n');
-  const sys=`Tu es l'assistant de montage vidéo de WDSCS (comme un monteur pro). Réponds UNIQUEMENT par un JSON {"say":"réponse courte et utile dans la langue de l'utilisateur (analyse, conseils)","actions":[{"action":"nom","args":{...}}]}. Actions :\n${cat}\nCompositions animées « hyperframes » : editor_add_comp (modèles title|lower|verse|count|promo|logo|quote|credits) ou editor_add_html (HTML avec data-start, data-dur, data-anim, data-split, data-stagger, {{champ}}). Règles : n'invente aucun id, utilise ceux de l'état ; enchaîne analyse puis actions ; langue interface : ${LANG}.\nÉtat actuel du montage : ${JSON.stringify(edBrief())}`;
-  try{const raw=await callAI(q,{system:sys,json:true}),j=parseJSONLoose(raw),log=[];if(j.say)log.push('💬 '+j.say);await aiRunActions(Array.isArray(j.actions)?j.actions:[],log);out.textContent=log.join('\n')||'—';edUI()}
-  catch(e){out.textContent=e.message||String(e)}}
+  const sys=()=>`Tu es l'assistant de montage vidéo de WDSCS (monteur pro) ET le pilote de toute l'application : tu utilises exactement les mêmes actions que l'IA principale. Réponds UNIQUEMENT par un JSON {"say":"réponse courte dans la langue de l'utilisateur","actions":[{"action":"nom","args":{...}}],"done":true|false}. Mets done:false si tu dois voir le résultat (editor_state, editor_analyze, ui_list…) avant de continuer. Actions :\n${aiCatalog()}\nCompositions animées « hyperframes » : editor_add_comp (modèles title|lower|verse|count|promo|logo|quote|credits) ou editor_add_html (HTML avec data-start, data-dur, data-anim, data-split, data-stagger, {{champ}}). Règles : n'invente aucun id, utilise ceux de l'état ; enchaîne analyse puis actions ; langue : ${LANG}.\nÉtat actuel du montage : ${JSON.stringify(edBrief())}`;
+  try{edOpen();const all=[];let prompt=q;for(let r=0;r<8;r++){const raw=await callAI(prompt,{system:sys(),json:true}),j=parseJSONLoose(raw),log=[];if(j.say)all.push('💬 '+j.say);await aiRunActions(Array.isArray(j.actions)?j.actions:[],log);all.push(...log);{const o2=$('edAiOut');if(o2)o2.textContent=all.join('\n')||'—'}edBinRender();edTl();edInsp();edDraw(ED.t);if(j.done!==false||!(j.actions||[]).length)break;prompt='Demande initiale : '+q+'\nRésultat de tes actions (étape '+(r+1)+') :\n'+log.join('\n')+'\nContinue ou termine (done:true).'}}
+  catch(e){const o2=$('edAiOut');if(o2)o2.textContent=e.message||String(e)}}
 function edCapPanel(){const T=(a,b,c)=>esc(tr3(a,b,c));return`<b style="display:block;margin-top:10px">🤖 ${T('Assistant montage IA','Asistente de montaje IA','AI editing assistant')}</b><div style="display:flex;flex-direction:column;gap:4px;margin-top:4px"><textarea id="edAiQ" rows="3" placeholder="${T('Ex. : analyse le montage, coupe à 12 s, coupe le son de la vidéo, ajoute un titre animé « Culte de louange », sous-titre tout…','Ej.: analiza el montaje, corta a los 12 s, silencia el video, añade un título animado…','E.g. analyse the edit, cut at 12 s, mute the video, add an animated title…')}"></textarea><button class="sm pri" onclick="edAssist()">✨ ${T('Exécuter','Ejecutar','Run')}</button><small id="edAiOut" style="white-space:pre-wrap;color:#8b95b8"></small></div><b style="display:block;margin-top:10px">💬 ${T('Sous-titres auto','Subtítulos auto','Auto captions')}</b>
 <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px"><select id="edCapLg"><option value="auto">${T('Langue : auto','Idioma: auto','Language: auto')}</option><option value="french">Français</option><option value="spanish">Español</option><option value="english">English</option></select>
 <select id="edCapMd"><option value="Xenova/whisper-tiny">Whisper tiny (rapide)</option><option value="Xenova/whisper-base">Whisper base</option><option value="Xenova/whisper-small">Whisper small (précis)</option></select>
@@ -1429,7 +1439,7 @@ function edDraw(t){const cv=EDC;if(!cv)return;const x=EDX,W=cv.width,H=cv.height
     const TR=(ty,p,inn)=>{const e=eoc(p),d=1-e,sg=inn?-1:1;switch(ty){case'fade':a*=p;break;case'dip':a*=p<.5?0:(p-.5)*2;break;case'slide':ox+=sg*d*W;break;case'slide-up':oy+=-sg*d*H;break;case'wipe-left':cr=[0,0,e*W,H];break;case'wipe-right':cr=[W-e*W,0,e*W,H];break;case'wipe-up':cr=[0,0,W,e*H];break;case'wipe-down':cr=[0,H-e*H,W,e*H];break;case'zoom':sc*=.6+.4*e;a*=p;break;case'spin':rot+=sg*d*Math.PI;sc*=.4+.6*e;a*=p;break;case'blur':bl+=d*30*(W/1920);a*=Math.min(1,p*2);break;case'flash':a*=p;fl=Math.max(fl,(1-p)*.9);break;case'glitch':gl=Math.max(gl,1-p);a*=p>.15?1:.4;break}};
     if(tin<1)TR(c.fi,tin,true);if(tout<1)TR(c.fo,tout,false);
     let src=null,sw=0,sh=0;if(c.type==='html'||c.type==='comp'){compEnsure(c,t,W,H);src=c._img;if(src){sw=src.width;sh=src.height}}
-    else{src=edEl(c);if(src){sw=src.videoWidth||src.naturalWidth||src.width;sh=src.videoHeight||src.naturalHeight||src.height;if(c.type==='video'&&src.readyState<2)src=null}}
+    else{src=edEl(c);if(src){sw=src.videoWidth||src.naturalWidth||src.width;sh=src.videoHeight||src.naturalHeight||src.height;if(c.type==='video'){if(src.readyState<2)src=c._lf||null;else{const n=performance.now();if(!c._lf||n-(c._lt||0)>250){const k=Math.min(1,640/sw),cv=c._lf||document.createElement('canvas');cv.width=Math.round(sw*k);cv.height=Math.round(sh*k);try{cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);c._lf=cv;c._lt=n}catch{}}}if(src===c._lf){sw=src.width;sh=src.height}}}}
     if(!src||!sw)continue;if(c.kb)sc*=1+.12*clamp01(lt/c.dur);
     const k=Math.max(W/sw,H/sh),dw=sw*k*sc,dh=sh*k*sc,cx=W/2+ox+c.x/100*W,cy=H/2+oy+c.y/100*H;
     x.save();if(cr){x.beginPath();x.rect(cr[0],cr[1],cr[2],cr[3]);x.clip()}
@@ -1444,12 +1454,12 @@ function edDraw(t){const cv=EDC;if(!cv)return;const x=EDX,W=cv.width,H=cv.height
 const edFmt=t=>{t=Math.max(0,t);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+String(Math.floor(t%1*10))};
 function edSync(t,play){for(const c of ED.clips){if(c.type==='text'||c.type==='html'||c.type==='comp'||c.type==='image')continue;const e=edEl(c);if(!e)continue;const act=t>=c.start&&t<edEnd(c);
   if(c.type==='audio'||c.type==='video'){const v=edVol(c);try{const g=edAudioNode(e);if(g)g.gain.value=v}catch{}e.muted=v===0;e.volume=1}
-  if(act){const want=c.in+(t-c.start);if(play){if(e.paused||Math.abs(e.currentTime-want)>.4){try{e.currentTime=want}catch{}e.play().catch(()=>{})}}else{if(Math.abs(e.currentTime-want)>.05){try{e.currentTime=want}catch{}}if(!e.paused)e.pause()}}else if(!e.paused)e.pause()}}
+  if(act){const want=c.in+(t-c.start);if(play){if(e.paused||Math.abs(e.currentTime-want)>.4){try{e.currentTime=want}catch{}e.play().catch(()=>{})}}else{if(Math.abs(e.currentTime-want)>.05){try{e.currentTime=want}catch{}}if(!e.paused)e.pause()}}else{if(!e.paused)e.pause();if(t<c.start&&c.start-t<2.5&&e.readyState>=1&&Math.abs(e.currentTime-(c.in||0))>.1){try{e.currentTime=c.in||0}catch{}}}}}
 function edSeek(t){ED.t=Math.max(0,Math.min(edTotal(),t));edSync(ED.t,false);edDraw(ED.t);edFollow()}
 function edPlay(){if(ED.playing){edStop();return}if(EDAC&&EDAC.state==='suspended')EDAC.resume();ED.playing=true;if(ED.t>=edTotal()-.05)ED.t=0;EDT0=performance.now()-ED.t*1000;$('edPlayB').textContent='⏸';
   const loop=()=>{if(!ED.playing)return;ED.t=(performance.now()-EDT0)/1000;if(ED.t>=edTotal()){ED.t=edTotal();edDraw(ED.t);edStop();if(EDREC)EDREC.stop();return}edSync(ED.t,true);edDraw(ED.t);edFollow();EDRAF=requestAnimationFrame(loop)};loop()}
 function edFollow(){const w=$('edTl')&&$('edTl').parentElement;if(!w)return;const x=ED.t*ED.pps;if(x<w.scrollLeft+60||x>w.scrollLeft+w.clientWidth-80)w.scrollLeft=Math.max(0,x-w.clientWidth*.3)}
-function edStop(){ED.playing=false;cancelAnimationFrame(EDRAF);ED.clips.forEach(c=>{const e=EDM[c.mid];if(e&&e.pause)e.pause()});const b=$('edPlayB');if(b)b.textContent='▶'}
+function edStop(){ED.playing=false;cancelAnimationFrame(EDRAF);Object.values(EDM).forEach(e=>{if(e&&e.pause)e.pause()});const b=$('edPlayB');if(b)b.textContent='▶'}
 
 /* --- export PRO image par image (WebCodecs) : indépendant du temps réel, jusqu'à 4K 60 fps, audio mixé hors-ligne --- */
 const ebU=(n)=>{const a=[];do{a.unshift(n&255);n=Math.floor(n/256)}while(n>0);return a};
@@ -1623,8 +1633,8 @@ function edPaste(){if(!EDCLIP)return;const g=JSON.parse(JSON.stringify(Array.isA
 function edBinDel(id){const used=ED.clips.some(c=>c.mid===id);if(used&&!confirm(tr3('Ce média est utilisé dans le montage. Le retirer aussi de la timeline ?','Este medio se usa en el montaje. ¿Quitarlo también de la línea de tiempo?','This media is used in the project. Remove it from the timeline too?')))return;ED.clips=ED.clips.filter(c=>c.mid!==id);delMedia(id);edSave();edUI()}
 function edDropAt(x,y){const tl=$('edTl');if(!tl)return{start:ED.t,track:0};const r=tl.getBoundingClientRect(),st=Math.max(0,(x-r.left)/ED.pps);const row=document.elementFromPoint(x,y),rw=row&&row.closest&&row.closest('.edRow');return{start:st,track:rw?+rw.dataset.tr:null}}
 function edPlaceMedia(mid,x,y){const m=HF[mid];if(!m)return;const at=edDropAt(x,y);const n0=ED.clips.length;edAddMedia(mid);
-  const place=()=>{const c=ED.clips[ED.clips.length-1];if(!c||ED.clips.length===n0)return;c.start=at.start;if(at.track!=null&&edTrType(at.track)===edKind(c))c.track=at.trackED.sel=c.id;edSave();edTl();edInsp();edDraw(ED.t)};
-  if(m.kind==='audio'){setTimeout(place,350)}else place()}
+  let tries=0;const place=()=>{const c=ED.clips[ED.clips.length-1];if(!c||ED.clips.length===n0){if(++tries<15)setTimeout(place,200);return}c.start=at.start;if(at.track!=null&&edTrType(at.track)===edKind(c))c.track=at.track;ED.sel=c.id;edSave();edTl();edInsp();edDraw(ED.t)};
+  place()}
 async function edDropFiles(files,x,y){const hs=files.filter(f=>/\.(html?)$/i.test(f.name)),rest=files.filter(f=>!hs.includes(f));
   if(hs.length&&edImportHtml){await edImportHtml(hs)}
   if(rest.length){const ids=await addMedia(rest);let k=0;for(const id of(ids||[])){edPlaceMedia(id,x+k*40,y);k++}}
@@ -3236,6 +3246,7 @@ function mixRender(){
   const strip=(id,nm,c,master)=>`<div class="mxc ${(master?MIX.mmute:c.mute)?'ms':''}" data-id="${esc(id)}"><div class="nm" title="${esc(nm)}">${esc(nm)}</div><div class="mxf"><input type="range" min="0" max="1.5" step="0.01" value="${master?MIX.mv:c.gv}" oninput="mixGain('${esc(id)}',this.value)"><div class="mxm"><i></i></div></div><button class="${(master?MIX.mmute:c.mute)?'on':''}" onclick="mixMute('${esc(id)}')">${tr3('Muet','Silencio','Mute')}</button>${master?'':`<button class="${c.mon?'on':''}" onclick="mixMon('${esc(id)}')" title="${esc(tr3('Écouter dans la régie','Escuchar en la regiduría','Monitor in control room'))}">🎧</button>`}</div>`;
   $('mxS').innerHTML=Object.values(MIX.ch).map(c=>strip(c.id,c.label,c,false)).join('')+strip('master',tr3('MAÎTRE','MASTER','MASTER'),null,true);
   $('mxN').textContent=Object.keys(MIX.ch).length?tr3('Le mixage remplace le son capturé lors de l’enregistrement / diffusion (EXE).','La mezcla sustituye el sonido capturado al grabar / emitir (EXE).','The mix replaces the captured sound when recording / streaming (EXE).'):tr3('Aucune source audio : connectez une caméra téléphone ou activez le micro.','Ninguna fuente de audio: conecte una cámara o active el micrófono.','No audio source: connect a phone camera or enable the mic.')}
+function hostVol(d){if(!MIX||!MIX.master){toast('🔊 '+tr3('Mixeur non démarré','Mezclador no iniciado','Mixer not started'));return}const v=Math.max(0,Math.min(1.5,(MIX.mv==null?1:MIX.mv)+d*.05));mixGain('master',v);if(MIX.mmute&&d>0)mixMute('master');try{mixRender()}catch{}toast('🔊 '+Math.round(v*100)+'%')}
 function mixGain(id,v){v=+v;if(id==='master'){MIX.mv=v;if(!MIX.mmute)MIX.master.gain.value=v}else{const c=MIX.ch[id];if(!c)return;c.gv=v;if(!c.mute)c.g.gain.value=v}mixSave()}
 function mixMute(id){if(id==='master'){MIX.mmute=!MIX.mmute;MIX.master.gain.value=MIX.mmute?0:MIX.mv}else{const c=MIX.ch[id];if(!c)return;c.mute=!c.mute;c.g.gain.value=c.mute?0:c.gv}mixSave();mixRender()}
 function mixMon(id){const c=MIX.ch[id];if(!c)return;c.mon=!c.mon;mixRender();mixMonApply()}
@@ -4635,7 +4646,7 @@ async function manualRelay(id){
 
 /* ============ DÉMARRAGE ============ */
 window.handleDeepLink=handleDeepLink;
-window.useRelay=useRelay;
+window.useRelay=useRelay;window.cmd=cmd;window.wcResume=wcResume;
 function boot(){
   const q=getQ();
   const sp=$('splash');

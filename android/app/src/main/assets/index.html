@@ -759,7 +759,7 @@ button.live{background:linear-gradient(180deg,#ff5566,#d62e40);box-shadow:0 2px 
   <div class="rctl">
     <button class="s2" onclick="rStep(-1)">◀ Précédent</button><button class="s2" onclick="rStep(1)">Suivant ▶</button>
     <button class="live" onclick="cmd('take')">CUT / TAKE</button>
-    <button onclick="cmd('blank')">⬛ Noir</button><button onclick="cmd('vplay')">⏯ Vidéo</button>
+    <button onclick="cmd('blank')">⬛ Noir</button><button onclick="cmd('blankpv')">🧹 PV</button><button onclick="cmd('vplay')">⏯ Vidéo</button><button onclick="cmd('vol',0,-2)">🔉</button><button onclick="cmd('vol',0,2)">🔊</button>
     <button onclick="cmd('plprev')">◀ Élément</button><button onclick="cmd('plnext')">Élément ▶</button><button class="s2" onclick="cmd('audio')">🔊 Audio</button><button class="s2" id="rSnd" onclick="rSound()">🎧 Écouter sur ce téléphone</button>
   </div>
   <div class="rstu" id="rStu"></div>
@@ -847,6 +847,8 @@ function useRelay(url, save) {
     RELAY = url;
     if (save)
         LS.set('wcRelay', url);
+    else if (MODE !== 'host')
+        LS.set('wcRelayLast', url);
     try {
         WS && WS.close();
     }
@@ -862,7 +864,7 @@ function useRelay(url, save) {
     w.onopen = () => { wsJoin('LOBBY'); if (CODE)
         wsJoin(CODE); setRelayInfo(true); if (MODE === 'viewer' || MODE === 'remote')
         helloAll(); };
-    w.onmessage = e => { try {
+    w.onmessage = e => { LASTMSG = Date.now(); try {
         onMsg(JSON.parse(e.data));
     }
     catch (_a) { } };
@@ -871,6 +873,57 @@ function useRelay(url, save) {
             useRelay(url); }, 2500); };
     w.onerror = () => { };
 }
+let LASTMSG = Date.now(), RSM = 0;
+function wcResume(force) { try {
+    wcResume0(force);
+}
+catch (_a) { } }
+function wcResume0(force) {
+    if (MODE === 'host' || !MODE)
+        return;
+    const n = Date.now();
+    if (!force && n - RSM < 1500)
+        return;
+    RSM = n;
+    const u = RELAY || LS.get('wcRelay', null) || LS.get('wcRelayLast', null);
+    try {
+        WS && WS.close();
+    }
+    catch (_a) { }
+    WS = null;
+    if (u) {
+        RELAY = '';
+        useRelay(u);
+    }
+    try {
+        NATIVE && NATIVE.scanLan && NATIVE.scanLan();
+    }
+    catch (_b) { }
+    Object.keys(NEED).forEach(k => delete NEED[k]);
+    setTimeout(() => { try {
+        helloAll();
+    }
+    catch (_a) { } if (MODE === 'viewer')
+        try {
+            renderViewer();
+        }
+        catch (_b) { } }, 900);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible')
+    wcResume(); });
+addEventListener('pageshow', () => wcResume());
+addEventListener('online', () => wcResume(true));
+addEventListener('focus', () => wcResume());
+setInterval(() => { try {
+    NATIVE && NATIVE.setVolKeys && NATIVE.setVolKeys(MODE === 'remote');
+}
+catch (_a) { } if (MODE === 'host' || !MODE || document.visibilityState !== 'visible')
+    return; if (!WS || WS.readyState !== 1) {
+    if (RELAY || LS.get('wcRelayLast', null))
+        wcResume(true);
+    return;
+} if (PAIRED && Date.now() - LASTMSG > 45000)
+    wcResume(true); }, 6000);
 function setRelayInfo(ok) { const p = $('relayP'); if (p) {
     p.textContent = 'relais : ' + (ok ? 'actif' : '—');
     p.className = 'pill' + (ok ? ' ok' : '');
@@ -1210,7 +1263,7 @@ async function initHost() {
     } };
     handlers.rhello = () => sync();
     handlers.mNeed = m => pushMedia(m.id);
-    handlers.cmd = m => { var _a, _b; (_b = (_a = ({ stlayout: () => stuLayout(m.i), stview: () => camPre(m.i), tk: tkToggle, mixcut: mixCut, mixauto: mixAuto, mixftb: mixFtb, mixpvw: () => mixPvw(m.i), ston: stuTake, stoff: stuOff, stclear: stuClear, blankpv: blankPv, stcam: () => stuSlot(m.i, m.a), alert: () => alertSet(m.k || 'garderie', m.msg || '', !!m.on), next: () => step(1), prev: () => step(-1), take, blank, goto: () => pick(m.i), vplay: toggleVideo, audio: toggleAudio, clearlayers: clearLayers, plnext: () => plStep(1), plprev: () => plStep(-1), plgoto: () => runItem(m.i), bible: () => { $('bref').value = m.a; bibleGo(); }, song: () => loadSong(m.i, true), pladdverse: () => { $('plVerse').value = m.a; addVerseRefToPL(); }, pladdsong: () => addSongToPL(m.i), pladdmedia: () => addMediaToPL(m.i), media: () => assignLayer(m.i, +m.a), mflag: () => mediaFlag(m.i, m.a), maudio: () => mediaAudioToggle(m.i), songstep: () => songStep(m.i), mediastep: () => mediaStep(m.i), mtap: () => mediaTap(m.i, m.a), unlive: () => unlive(m.a), unpv: () => unpv(m.a), ltprev: () => remoteLt(m.a, 'pv'), ltlive: () => remoteLt(m.a, 'live'), lthide: () => { ltHide(); }, lcfg: () => lcfgSet(m.i, m.a.k, m.a.v), songadd: () => remoteSongAdd(m.a), songfile: () => remoteSongFile(m.a) }))[m.cmd]) === null || _b === void 0 ? void 0 : _b.call(_a); };
+    handlers.cmd = m => { var _a, _b; (_b = (_a = ({ stlayout: () => stuLayout(m.i), stview: () => camPre(m.i), tk: tkToggle, mixcut: mixCut, mixauto: mixAuto, mixftb: mixFtb, mixpvw: () => mixPvw(m.i), ston: stuTake, stoff: stuOff, stclear: stuClear, blankpv: blankPv, vol: () => hostVol(+m.a || 0), stcam: () => stuSlot(m.i, m.a), alert: () => alertSet(m.k || 'garderie', m.msg || '', !!m.on), next: () => step(1), prev: () => step(-1), take, blank, goto: () => pick(m.i), vplay: toggleVideo, audio: toggleAudio, clearlayers: clearLayers, plnext: () => plStep(1), plprev: () => plStep(-1), plgoto: () => runItem(m.i), bible: () => { $('bref').value = m.a; bibleGo(); }, song: () => loadSong(m.i, true), pladdverse: () => { $('plVerse').value = m.a; addVerseRefToPL(); }, pladdsong: () => addSongToPL(m.i), pladdmedia: () => addMediaToPL(m.i), media: () => assignLayer(m.i, +m.a), mflag: () => mediaFlag(m.i, m.a), maudio: () => mediaAudioToggle(m.i), songstep: () => songStep(m.i), mediastep: () => mediaStep(m.i), mtap: () => mediaTap(m.i, m.a), unlive: () => unlive(m.a), unpv: () => unpv(m.a), ltprev: () => remoteLt(m.a, 'pv'), ltlive: () => remoteLt(m.a, 'live'), lthide: () => { ltHide(); }, lcfg: () => lcfgSet(m.i, m.a.k, m.a.v), songadd: () => remoteSongAdd(m.a), songfile: () => remoteSongFile(m.a) }))[m.cmd]) === null || _b === void 0 ? void 0 : _b.call(_a); };
     handlers.rUpStart = m => { RUP[m.id] = { m, parts: [], got: 0 }; };
     handlers.rUpChunk = m => { const r = RUP[m.id]; if (!r || r.parts[m.i] != null)
         return; r.parts[m.i] = m.d; if (++r.got === r.m.n)
@@ -2010,7 +2063,7 @@ else {
 } return [W & ~1, H & ~1]; }
 const edEnd = c => c.start + c.dur, edTotal = () => Math.max(1, ...ED.clips.map(edEnd));
 function edEl(c) { if (!c.mid || !HF[c.mid])
-    return null; let e = EDM[c.mid]; if (!e) {
+    return null; const K = (c.id && c.type !== 'image') ? c.mid + '#' + c.id : c.mid; let e = EDM[K]; if (!e) {
     const m = HF[c.mid];
     e = m.kind === 'image' ? new Image() : document.createElement(m.kind === 'audio' ? 'audio' : 'video');
     e.crossOrigin = 'anonymous';
@@ -2024,7 +2077,7 @@ function edEl(c) { if (!c.mid || !HF[c.mid])
         e.preload = 'auto';
         e.playsInline = true;
     }
-    EDM[c.mid] = e;
+    EDM[K] = e;
 } return e; }
 function edAudioNode(e) { if (!EDAC) {
     EDAC = new (window.AudioContext || window.webkitAudioContext)();
@@ -2595,18 +2648,35 @@ async function edAssist() {
         return;
     const out = $('edAiOut');
     out.textContent = '…';
-    const cat = Object.entries(AIA).filter(([k]) => /^editor_/.test(k)).map(([k, v]) => `- ${k}: ${v.d}`).join('\n');
-    const sys = `Tu es l'assistant de montage vidéo de WDSCS (comme un monteur pro). Réponds UNIQUEMENT par un JSON {"say":"réponse courte et utile dans la langue de l'utilisateur (analyse, conseils)","actions":[{"action":"nom","args":{...}}]}. Actions :\n${cat}\nCompositions animées « hyperframes » : editor_add_comp (modèles title|lower|verse|count|promo|logo|quote|credits) ou editor_add_html (HTML avec data-start, data-dur, data-anim, data-split, data-stagger, {{champ}}). Règles : n'invente aucun id, utilise ceux de l'état ; enchaîne analyse puis actions ; langue interface : ${LANG}.\nÉtat actuel du montage : ${JSON.stringify(edBrief())}`;
+    const sys = () => `Tu es l'assistant de montage vidéo de WDSCS (monteur pro) ET le pilote de toute l'application : tu utilises exactement les mêmes actions que l'IA principale. Réponds UNIQUEMENT par un JSON {"say":"réponse courte dans la langue de l'utilisateur","actions":[{"action":"nom","args":{...}}],"done":true|false}. Mets done:false si tu dois voir le résultat (editor_state, editor_analyze, ui_list…) avant de continuer. Actions :\n${aiCatalog()}\nCompositions animées « hyperframes » : editor_add_comp (modèles title|lower|verse|count|promo|logo|quote|credits) ou editor_add_html (HTML avec data-start, data-dur, data-anim, data-split, data-stagger, {{champ}}). Règles : n'invente aucun id, utilise ceux de l'état ; enchaîne analyse puis actions ; langue : ${LANG}.\nÉtat actuel du montage : ${JSON.stringify(edBrief())}`;
     try {
-        const raw = await callAI(q, { system: sys, json: true }), j = parseJSONLoose(raw), log = [];
-        if (j.say)
-            log.push('💬 ' + j.say);
-        await aiRunActions(Array.isArray(j.actions) ? j.actions : [], log);
-        out.textContent = log.join('\n') || '—';
-        edUI();
+        edOpen();
+        const all = [];
+        let prompt = q;
+        for (let r = 0; r < 8; r++) {
+            const raw = await callAI(prompt, { system: sys(), json: true }), j = parseJSONLoose(raw), log = [];
+            if (j.say)
+                all.push('💬 ' + j.say);
+            await aiRunActions(Array.isArray(j.actions) ? j.actions : [], log);
+            all.push(...log);
+            {
+                const o2 = $('edAiOut');
+                if (o2)
+                    o2.textContent = all.join('\n') || '—';
+            }
+            edBinRender();
+            edTl();
+            edInsp();
+            edDraw(ED.t);
+            if (j.done !== false || !(j.actions || []).length)
+                break;
+            prompt = 'Demande initiale : ' + q + '\nRésultat de tes actions (étape ' + (r + 1) + ') :\n' + log.join('\n') + '\nContinue ou termine (done:true).';
+        }
     }
     catch (e) {
-        out.textContent = e.message || String(e);
+        const o2 = $('edAiOut');
+        if (o2)
+            o2.textContent = e.message || String(e);
     }
 }
 function edCapPanel() {
@@ -2770,8 +2840,28 @@ function edDraw(t) {
                 if (src) {
                     sw = src.videoWidth || src.naturalWidth || src.width;
                     sh = src.videoHeight || src.naturalHeight || src.height;
-                    if (c.type === 'video' && src.readyState < 2)
-                        src = null;
+                    if (c.type === 'video') {
+                        if (src.readyState < 2)
+                            src = c._lf || null;
+                        else {
+                            const n = performance.now();
+                            if (!c._lf || n - (c._lt || 0) > 250) {
+                                const k = Math.min(1, 640 / sw), cv = c._lf || document.createElement('canvas');
+                                cv.width = Math.round(sw * k);
+                                cv.height = Math.round(sh * k);
+                                try {
+                                    cv.getContext('2d').drawImage(src, 0, 0, cv.width, cv.height);
+                                    c._lf = cv;
+                                    c._lt = n;
+                                }
+                                catch (_a) { }
+                            }
+                        }
+                        if (src === c._lf) {
+                            sw = src.width;
+                            sh = src.height;
+                        }
+                    }
                 }
             }
             if (!src || !sw)
@@ -2873,8 +2963,16 @@ function edSync(t, play) {
                     e.pause();
             }
         }
-        else if (!e.paused)
-            e.pause();
+        else {
+            if (!e.paused)
+                e.pause();
+            if (t < c.start && c.start - t < 2.5 && e.readyState >= 1 && Math.abs(e.currentTime - (c.in || 0)) > .1) {
+                try {
+                    e.currentTime = c.in || 0;
+                }
+                catch (_d) { }
+            }
+        }
     }
 }
 function edSeek(t) { ED.t = Math.max(0, Math.min(edTotal(), t)); edSync(ED.t, false); edDraw(ED.t); edFollow(); }
@@ -2904,7 +3002,7 @@ function edPlay() {
 function edFollow() { const w = $('edTl') && $('edTl').parentElement; if (!w)
     return; const x = ED.t * ED.pps; if (x < w.scrollLeft + 60 || x > w.scrollLeft + w.clientWidth - 80)
     w.scrollLeft = Math.max(0, x - w.clientWidth * .3); }
-function edStop() { ED.playing = false; cancelAnimationFrame(EDRAF); ED.clips.forEach(c => { const e = EDM[c.mid]; if (e && e.pause)
+function edStop() { ED.playing = false; cancelAnimationFrame(EDRAF); Object.values(EDM).forEach(e => { if (e && e.pause)
     e.pause(); }); const b = $('edPlayB'); if (b)
     b.textContent = '▶'; }
 /* --- export PRO image par image (WebCodecs) : indépendant du temps réel, jusqu'à 4K 60 fps, audio mixé hors-ligne --- */
@@ -3506,14 +3604,14 @@ function edPlaceMedia(mid, x, y) {
     const at = edDropAt(x, y);
     const n0 = ED.clips.length;
     edAddMedia(mid);
-    const place = () => { const c = ED.clips[ED.clips.length - 1]; if (!c || ED.clips.length === n0)
-        return; c.start = at.start; if (at.track != null && edTrType(at.track) === edKind(c))
-        c.track = at.trackED.sel = c.id; edSave(); edTl(); edInsp(); edDraw(ED.t); };
-    if (m.kind === 'audio') {
-        setTimeout(place, 350);
-    }
-    else
-        place();
+    let tries = 0;
+    const place = () => { const c = ED.clips[ED.clips.length - 1]; if (!c || ED.clips.length === n0) {
+        if (++tries < 15)
+            setTimeout(place, 200);
+        return;
+    } c.start = at.start; if (at.track != null && edTrType(at.track) === edKind(c))
+        c.track = at.track; ED.sel = c.id; edSave(); edTl(); edInsp(); edDraw(ED.t); };
+    place();
 }
 async function edDropFiles(files, x, y) {
     const hs = files.filter(f => /\.(html?)$/i.test(f.name)), rest = files.filter(f => !hs.includes(f));
@@ -7623,6 +7721,14 @@ function mixRender() {
     $('mxS').innerHTML = Object.values(MIX.ch).map(c => strip(c.id, c.label, c, false)).join('') + strip('master', tr3('MAÎTRE', 'MASTER', 'MASTER'), null, true);
     $('mxN').textContent = Object.keys(MIX.ch).length ? tr3('Le mixage remplace le son capturé lors de l’enregistrement / diffusion (EXE).', 'La mezcla sustituye el sonido capturado al grabar / emitir (EXE).', 'The mix replaces the captured sound when recording / streaming (EXE).') : tr3('Aucune source audio : connectez une caméra téléphone ou activez le micro.', 'Ninguna fuente de audio: conecte una cámara o active el micrófono.', 'No audio source: connect a phone camera or enable the mic.');
 }
+function hostVol(d) { if (!MIX || !MIX.master) {
+    toast('🔊 ' + tr3('Mixeur non démarré', 'Mezclador no iniciado', 'Mixer not started'));
+    return;
+} const v = Math.max(0, Math.min(1.5, (MIX.mv == null ? 1 : MIX.mv) + d * .05)); mixGain('master', v); if (MIX.mmute && d > 0)
+    mixMute('master'); try {
+    mixRender();
+}
+catch (_a) { } toast('🔊 ' + Math.round(v * 100) + '%'); }
 function mixGain(id, v) { v = +v; if (id === 'master') {
     MIX.mv = v;
     if (!MIX.mmute)
@@ -11828,6 +11934,8 @@ async function manualRelay(id) {
 /* ============ DÉMARRAGE ============ */
 window.handleDeepLink = handleDeepLink;
 window.useRelay = useRelay;
+window.cmd = cmd;
+window.wcResume = wcResume;
 function boot() {
     const q = getQ();
     const sp = $('splash');
