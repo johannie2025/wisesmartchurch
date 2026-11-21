@@ -2502,8 +2502,14 @@ async function compBuild(c) {
     }
     const root = document.createElement('div');
     root.className = 'comp-root';
-    root.style.cssText = 'width:100%;height:100%';
+    root.style.cssText = 'width:100%;height:100%;color:#fff;font-family:system-ui,"Segoe UI",Roboto,sans-serif';
+    h = h.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').replace(/@import[^;]*;/g, '');
     root.innerHTML = h;
+    root.querySelectorAll('script,iframe,object,embed,video,audio,canvas,link,meta,base,noscript,title').forEach(e => e.remove());
+    root.querySelectorAll('*').forEach(e => { for (const a of [...e.attributes])
+        if (/^on/i.test(a.name))
+            e.removeAttribute(a.name); });
+    root.querySelectorAll('style').forEach(e => { e.textContent = e.textContent.replace(/@import[^;]*;/g, '').replace(/html\s*,\s*body\s*\{/g, '.comp-root{').replace(/body\s*>/g, '.comp-root>').replace(/(^|\})\s*body\s*\{/g, '$1.comp-root{'); });
     root.querySelectorAll('[data-split]').forEach(el => {
         const mode = el.dataset.split, st = +el.dataset.start || 0, sg = +el.dataset.stagger || .08, an = el.dataset.anim || 'fade', txt = el.textContent, parts = mode === 'chars' ? txt.split('') : txt.split(/(\s+)/);
         el.innerHTML = '';
@@ -2521,6 +2527,15 @@ async function compBuild(c) {
     c._root = root;
     return root;
 }
+function compDims(c) { if (c.cw && c.ch)
+    return [c.cw, c.ch]; if (c._dm !== undefined)
+    return c._dm; let d = null; const h = String(c.html || ''), w = h.match(/data-width\s*=\s*["']?(\d{3,5})/), ht = h.match(/data-height\s*=\s*["']?(\d{3,5})/); if (w && ht)
+    d = [+w[1], +ht[1]];
+else {
+    const m = h.match(/(?:html\s*,\s*)?body\s*\{[^}]*?width\s*:\s*(\d{3,5})px[^}]*?height\s*:\s*(\d{3,5})px/);
+    if (m)
+        d = [+m[1], +m[2]];
+} c._dm = d; return d; }
 function compApply(root, t, clipDur) {
     root.querySelectorAll('[data-anim],[data-out],[data-count-from],[data-scroll],[data-start],[data-dur],[data-fx]').forEach(el => {
         const st = +el.dataset.start || 0, dur = el.dataset.dur != null ? +el.dataset.dur : el.dataset.duration != null ? +el.dataset.duration : Math.max(0, clipDur - st), ad = +el.dataset.animDur || .7, an = el.dataset.anim || 'none', easing = cEase[el.dataset.ease] || (an === 'pop' ? cEase.back : cEase.out), loc = t - st, vis = loc >= 0 && loc < dur + 1e-6;
@@ -2581,21 +2596,72 @@ function compApply(root, t, clipDur) {
 function compSvg(root, c, t, W, H) {
     const lt = Math.max(0, t - c.start), p = Math.min(1, lt / c.dur);
     compApply(root, lt, c.dur);
-    root.classList.toggle('hfi', !!c.cw);
+    const DM = compDims(c);
+    root.classList.toggle('hfi', !!DM);
     let inner = new XMLSerializer().serializeToString(root);
-    if (c.cw && c.ch)
-        inner = `<div style="width:${c.cw}px;height:${c.ch}px;transform:scale(${(W / c.cw).toFixed(5)});transform-origin:0 0;position:relative">${inner}</div>`;
+    if (DM)
+        inner = `<div style="width:${DM[0]}px;height:${DM[1]}px;transform:scale(${(W / DM[0]).toFixed(5)});transform-origin:0 0;position:relative">${inner}</div>`;
     const ANI = '<style>.comp-root *,.comp-root *::before,.comp-root *::after{animation-play-state:paused!important;animation-delay:calc(var(--d,0s) - var(--lt,0s))!important;transition:none!important}.comp-root.hfi>[data-start]{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden}</style>';
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${W}px;height:${H}px;overflow:hidden;position:relative;container-type:size;--t:${lt.toFixed(3)};--lt:${lt.toFixed(3)}s;--p:${p.toFixed(4)}">${ANI}${inner}</div></foreignObject></svg>`;
 }
 const COMPIMG = {};
-async function compFrame(c, t, W, H) { const root = await compBuild(c), svg = compSvg(root, c, t, W, H), im = new Image(); await new Promise((ok, ko) => { im.onload = ok; im.onerror = () => ko(new Error('comp')); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }); c._img = im; return im; }
-function compEnsure(c, t, W, H) { const w = Math.min(W, 1920), h = Math.round(w * H / W), q = Math.round((t - c.start) * 20); if (c._pk === q + '|' + w || c._busy)
-    return; c._busy = 1; c._pk = q + '|' + w; const t0 = performance.now(); compFrame(c, t, w, h).catch(() => { }).finally(() => { c._busy = 0; c._ms = performance.now() - t0; try {
-    if (typeof edDraw === 'function' && $('edCv') && ED.t != null)
-        edDraw(ED.t);
+const compLoadImg = (src, ms) => new Promise((ok, ko) => { const im = new Image(), to = setTimeout(() => { im.onload = im.onerror = null; ko(new Error('timeout')); }, ms || 12000); im.onload = () => { clearTimeout(to); ok(im); }; im.onerror = () => { clearTimeout(to); ko(new Error('comp')); }; im.src = src; });
+const compEnc = svg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+function compLite(svg) { return svg.replace(/(-webkit-)?(backdrop-)?filter\s*:[^;"}]+;?/g, '').replace(/mix-blend-mode\s*:[^;"}]+;?/g, '').replace(/mask(-image)?\s*:[^;"}]+;?/g, ''); }
+async function compErrImg(c, W, H, msg) { const e = x => String(x).replace(/[<>&]/g, ''); const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="100%" height="100%" fill="#140d1c"/><text x="50%" y="46%" fill="#ff9a9a" font-size="${Math.round(H / 14)}" text-anchor="middle" font-family="sans-serif" font-weight="700">⚠ ${e(tr3('HTML non affichable', 'HTML no visible', 'HTML cannot be displayed'))}</text><text x="50%" y="58%" fill="#c8d0ea" font-size="${Math.round(H / 32)}" text-anchor="middle" font-family="sans-serif">${e((msg || '').slice(0, 90))}</text></svg>`; return compLoadImg(compEnc(svg), 4000); }
+async function compFrame(c, t, W, H) {
+    let root;
+    try {
+        root = await compBuild(c);
+    }
+    catch (e) {
+        c._img = await compErrImg(c, W, H, e.message);
+        return c._img;
+    }
+    const tries = [0, 1];
+    let last = null;
+    for (const lite of tries) {
+        try {
+            let svg = compSvg(root, c, t, W, H);
+            if (lite || c._lite)
+                svg = compLite(svg);
+            const im = await compLoadImg(compEnc(svg));
+            try {
+                await im.decode();
+            }
+            catch (_a) { }
+            c._img = im;
+            c._fail = 0;
+            if (lite)
+                c._lite = 1;
+            return im;
+        }
+        catch (e) {
+            last = e;
+        }
+    }
+    c._fail = (c._fail || 0) + 1;
+    if (!c._img || c._fail >= 3) {
+        c._img = await compErrImg(c, W, H, last && last.message);
+    }
+    return c._img;
 }
-catch (_a) { } }); }
+function compEnsure(c, t, W, H) {
+    if (c._busy && performance.now() - (c._bt || 0) > 20000)
+        c._busy = 0;
+    const w = Math.min(W, EDREC ? 1920 : 1280), h = Math.round(w * H / W), fq = c._ms > 150 ? Math.max(3, Math.floor(1000 / c._ms)) : 20, q = Math.round((t - c.start) * fq);
+    if (c._pk === q + '|' + w || c._busy)
+        return;
+    c._busy = 1;
+    c._bt = performance.now();
+    c._pk = q + '|' + w;
+    const t0 = performance.now();
+    compFrame(c, t, w, h).catch(() => { c._pk = null; }).finally(() => { c._busy = 0; c._ms = performance.now() - t0; setTimeout(() => { try {
+        if (typeof edDraw === 'function' && $('edCv') && ED.t != null && c._pk !== Math.round((ED.t - c.start) * (c._ms > 150 ? Math.max(3, Math.floor(1000 / c._ms)) : 20)) + '|' + w)
+            edDraw(ED.t);
+    }
+    catch (_a) { } }, 0); });
+}
 const EDM = {};
 let EDC = null, EDX = null, EDAC = null, EDDEST = null, EDRAF = 0, EDT0 = 0, EDREC = null;
 const edVol = c => (c.mute || (ED.tm && ED.tm[c.track]) || (ED.hid && ED.hid[c.track] && edKind(c) === 'audio')) ? 0 : (c.vol == null ? 100 : c.vol) / 100 * ((ED.tv && ED.tv[c.track] != null ? ED.tv[c.track] : 100) / 100) * ((ED.mv == null ? 100 : ED.mv) / 100);
@@ -3797,13 +3863,15 @@ async function edExport() {
                     }
                 }
                 if ((c.type === 'html' || c.type === 'comp') && t >= c.start && t < edEnd(c)) {
-                    const st = c.type === 'html' && !/data-|animation|@keyframes|<script/i.test(c.html || ''), qk = st ? 0 : Math.floor((t - c.start) * 20);
+                    const st = c.type === 'html' && !/data-|animation|@keyframes|<script/i.test(c.html || ''), qk = st ? 0 : Math.floor((t - c.start) * fps);
                     if (qs.get(c) !== qk || !c._img) {
                         qs.set(c, qk);
                         try {
                             await compFrame(c, t, Math.min(W, 3840), Math.round(Math.min(W, 3840) * H / W));
                         }
                         catch (_c) { }
+                        c._pk = Math.round((t - c.start) * (c._ms > 150 ? Math.max(3, Math.floor(1000 / c._ms)) : 20)) + '|' + Math.min(W, 1280);
+                        c._busy = 0;
                     }
                 }
             }

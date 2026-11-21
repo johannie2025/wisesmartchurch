@@ -1654,11 +1654,15 @@ function compSource(c){return c.type==='comp'?(COMP_T[c.tpl]||COMP_T.title).h.re
 const CMD={};async function compDataUrl(key){if(CMD[key])return CMD[key];let m=key==='logo'?HF[S.bug&&S.bug.id]:Object.values(HF).find(x=>x.id===key||x.name===key);if(!m||!m.url)return'';try{const b=await (await fetch(m.url)).blob(),r=await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)});CMD[key]=r;return r}catch{return''}}
 async function compBuild(c){const html=compSource(c),key=html+'|'+JSON.stringify(c.props||{});if(c._k===key&&c._root)return c._root;
   let h=html;const ms=[...h.matchAll(/\{\{media:([^}]+)\}\}/g)];for(const m of ms){h=h.replace(m[0],await compDataUrl(m[1]))}
-  const root=document.createElement('div');root.className='comp-root';root.style.cssText='width:100%;height:100%';root.innerHTML=h;
+  const root=document.createElement('div');root.className='comp-root';root.style.cssText='width:100%;height:100%;color:#fff;font-family:system-ui,"Segoe UI",Roboto,sans-serif';h=h.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/@import[^;]*;/g,'');root.innerHTML=h;
+  root.querySelectorAll('script,iframe,object,embed,video,audio,canvas,link,meta,base,noscript,title').forEach(e=>e.remove());
+  root.querySelectorAll('*').forEach(e=>{for(const a of [...e.attributes])if(/^on/i.test(a.name))e.removeAttribute(a.name)});
+  root.querySelectorAll('style').forEach(e=>{e.textContent=e.textContent.replace(/@import[^;]*;/g,'').replace(/html\s*,\s*body\s*\{/g,'.comp-root{').replace(/body\s*>/g,'.comp-root>').replace(/(^|\})\s*body\s*\{/g,'$1.comp-root{')});
   root.querySelectorAll('[data-split]').forEach(el=>{const mode=el.dataset.split,st=+el.dataset.start||0,sg=+el.dataset.stagger||.08,an=el.dataset.anim||'fade',txt=el.textContent,parts=mode==='chars'?txt.split(''):txt.split(/(\s+)/);el.innerHTML='';let n=0;
     parts.forEach(w=>{if(/^\s+$/.test(w)||w===''){el.appendChild(document.createTextNode(w||''));return}const sp=document.createElement('span');sp.textContent=w;sp.style.display='inline-block';sp.dataset.anim=an;sp.dataset.start=(st+n*sg).toFixed(3);if(el.dataset.animDur)sp.dataset.animDur=el.dataset.animDur;sp.dataset.cdur='1';el.appendChild(sp);n++});delete el.dataset.anim});
   root.querySelectorAll('[data-anim="typewriter"]').forEach(el=>{el.dataset.txt=el.textContent});
   compFxBuild(root);c._k=key;c._root=root;return root}
+function compDims(c){if(c.cw&&c.ch)return[c.cw,c.ch];if(c._dm!==undefined)return c._dm;let d=null;const h=String(c.html||''),w=h.match(/data-width\s*=\s*["']?(\d{3,5})/),ht=h.match(/data-height\s*=\s*["']?(\d{3,5})/);if(w&&ht)d=[+w[1],+ht[1]];else{const m=h.match(/(?:html\s*,\s*)?body\s*\{[^}]*?width\s*:\s*(\d{3,5})px[^}]*?height\s*:\s*(\d{3,5})px/);if(m)d=[+m[1],+m[2]]}c._dm=d;return d}
 function compApply(root,t,clipDur){root.querySelectorAll('[data-anim],[data-out],[data-count-from],[data-scroll],[data-start],[data-dur],[data-fx]').forEach(el=>{
   const st=+el.dataset.start||0,dur=el.dataset.dur!=null?+el.dataset.dur:el.dataset.duration!=null?+el.dataset.duration:Math.max(0,clipDur-st),ad=+el.dataset.animDur||.7,an=el.dataset.anim||'none',easing=cEase[el.dataset.ease]||(an==='pop'?cEase.back:cEase.out),loc=t-st,vis=loc>=0&&loc<dur+1e-6;
   if(!vis){el.style.visibility='hidden';return}el.style.visibility='';el.style.setProperty('--lt',Math.max(0,loc).toFixed(3)+'s');
@@ -1670,13 +1674,29 @@ function compApply(root,t,clipDur){root.querySelectorAll('[data-anim],[data-out]
   if(el.dataset.out&&Number.isFinite(dur)&&dur-loc<.4){const po=Math.max(0,(dur-loc)/.4);op*=po;if(el.dataset.out==='slide-up')tr+=`translateY(${-(1-po)*8}cqh) `;if(el.dataset.out==='scale-out')tr+=`scale(${1+(1-po)*.2}) `}
   else if(el.dataset.cdur&&clipDur-t<.4)op*=Math.max(0,(clipDur-t)/.4);
   if(el.dataset.fx){compFx(el,loc);return}el.style.opacity=op<1?op.toFixed(3):'';el.style.transform=tr.trim();el.style.filter=fl;el.style.clipPath=clip;if(org)el.style.transformOrigin=org;if(tr&&getComputedStyle&&el.tagName==='SPAN')el.style.display='inline-block'})}
-function compSvg(root,c,t,W,H){const lt=Math.max(0,t-c.start),p=Math.min(1,lt/c.dur);compApply(root,lt,c.dur);root.classList.toggle('hfi',!!c.cw);let inner=new XMLSerializer().serializeToString(root);
-  if(c.cw&&c.ch)inner=`<div style="width:${c.cw}px;height:${c.ch}px;transform:scale(${(W/c.cw).toFixed(5)});transform-origin:0 0;position:relative">${inner}</div>`;
+function compSvg(root,c,t,W,H){const lt=Math.max(0,t-c.start),p=Math.min(1,lt/c.dur);compApply(root,lt,c.dur);const DM=compDims(c);root.classList.toggle('hfi',!!DM);let inner=new XMLSerializer().serializeToString(root);
+  if(DM)inner=`<div style="width:${DM[0]}px;height:${DM[1]}px;transform:scale(${(W/DM[0]).toFixed(5)});transform-origin:0 0;position:relative">${inner}</div>`;
   const ANI='<style>.comp-root *,.comp-root *::before,.comp-root *::after{animation-play-state:paused!important;animation-delay:calc(var(--d,0s) - var(--lt,0s))!important;transition:none!important}.comp-root.hfi>[data-start]{position:absolute;inset:0;overflow:hidden}</style>';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${W}px;height:${H}px;overflow:hidden;position:relative;container-type:size;--t:${lt.toFixed(3)};--lt:${lt.toFixed(3)}s;--p:${p.toFixed(4)}">${ANI}${inner}</div></foreignObject></svg>`}
 const COMPIMG={};
-async function compFrame(c,t,W,H){const root=await compBuild(c),svg=compSvg(root,c,t,W,H),im=new Image();await new Promise((ok,ko)=>{im.onload=ok;im.onerror=()=>ko(new Error('comp'));im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});c._img=im;return im}
-function compEnsure(c,t,W,H){const w=Math.min(W,1920),h=Math.round(w*H/W),q=Math.round((t-c.start)*20);if(c._pk===q+'|'+w||c._busy)return;c._busy=1;c._pk=q+'|'+w;const t0=performance.now();compFrame(c,t,w,h).catch(()=>{}).finally(()=>{c._busy=0;c._ms=performance.now()-t0;try{if(typeof edDraw==='function'&&$('edCv')&&ED.t!=null)edDraw(ED.t)}catch{}})}
+const compLoadImg=(src,ms)=>new Promise((ok,ko)=>{const im=new Image(),to=setTimeout(()=>{im.onload=im.onerror=null;ko(new Error('timeout'))},ms||12000);im.onload=()=>{clearTimeout(to);ok(im)};im.onerror=()=>{clearTimeout(to);ko(new Error('comp'))};im.src=src});
+const compEnc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+function compLite(svg){return svg.replace(/(-webkit-)?(backdrop-)?filter\s*:[^;"}]+;?/g,'').replace(/mix-blend-mode\s*:[^;"}]+;?/g,'').replace(/mask(-image)?\s*:[^;"}]+;?/g,'')}
+async function compErrImg(c,W,H,msg){const e=x=>String(x).replace(/[<>&]/g,'');const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="100%" height="100%" fill="#140d1c"/><text x="50%" y="46%" fill="#ff9a9a" font-size="${Math.round(H/14)}" text-anchor="middle" font-family="sans-serif" font-weight="700">⚠ ${e(tr3('HTML non affichable','HTML no visible','HTML cannot be displayed'))}</text><text x="50%" y="58%" fill="#c8d0ea" font-size="${Math.round(H/32)}" text-anchor="middle" font-family="sans-serif">${e((msg||'').slice(0,90))}</text></svg>`;return compLoadImg(compEnc(svg),4000)}
+async function compFrame(c,t,W,H){
+  let root;try{root=await compBuild(c)}catch(e){c._img=await compErrImg(c,W,H,e.message);return c._img}
+  const tries=[0,1];let last=null;
+  for(const lite of tries){
+    try{let svg=compSvg(root,c,t,W,H);if(lite||c._lite)svg=compLite(svg);const im=await compLoadImg(compEnc(svg));try{await im.decode()}catch{}c._img=im;c._fail=0;if(lite)c._lite=1;return im}
+    catch(e){last=e}
+  }
+  c._fail=(c._fail||0)+1;
+  if(!c._img||c._fail>=3){c._img=await compErrImg(c,W,H,last&&last.message)}
+  return c._img}
+function compEnsure(c,t,W,H){if(c._busy&&performance.now()-(c._bt||0)>20000)c._busy=0;
+  const w=Math.min(W,EDREC?1920:1280),h=Math.round(w*H/W),fq=c._ms>150?Math.max(3,Math.floor(1000/c._ms)):20,q=Math.round((t-c.start)*fq);
+  if(c._pk===q+'|'+w||c._busy)return;c._busy=1;c._bt=performance.now();c._pk=q+'|'+w;const t0=performance.now();
+  compFrame(c,t,w,h).catch(()=>{c._pk=null}).finally(()=>{c._busy=0;c._ms=performance.now()-t0;setTimeout(()=>{try{if(typeof edDraw==='function'&&$('edCv')&&ED.t!=null&&c._pk!==Math.round((ED.t-c.start)*(c._ms>150?Math.max(3,Math.floor(1000/c._ms)):20))+'|'+w)edDraw(ED.t)}catch{}},0)})}
 const EDM={};let EDC=null,EDX=null,EDAC=null,EDDEST=null,EDRAF=0,EDT0=0,EDREC=null;
 const edVol=c=>(c.mute||(ED.tm&&ED.tm[c.track])||(ED.hid&&ED.hid[c.track]&&edKind(c)==='audio'))?0:(c.vol==null?100:c.vol)/100*((ED.tv&&ED.tv[c.track]!=null?ED.tv[c.track]:100)/100)*((ED.mv==null?100:ED.mv)/100);
 let EDH=[],EDHI=-1;
@@ -1940,7 +1960,7 @@ async function edExport(){if(!ED.clips.length){toast(tr3('Montage vide','Montaje
       if(acodec==='opus'&&!(adesc&&adesc.length>=19)){const h=new Uint8Array(19),dv=new DataView(h.buffer);'OpusHead'.split('').forEach((ch,i)=>h[i]=ch.charCodeAt(0));h[8]=1;h[9]=2;dv.setUint16(10,312,true);dv.setUint32(12,48000,true);adesc=h}}
     for(let i=0;i<N;i++){const t=i/fps;ED.t=t;
       for(const c of ED.clips){if(c.type==='video'&&t>=c.start&&t<edEnd(c)){const e=edEl(c);if(e){const want=c.in+(t-c.start);if(Math.abs(e.currentTime-want)>.001){await new Promise(r=>{let done=0;const f=()=>{if(!done){done=1;r()}};e.onseeked=f;try{e.currentTime=want}catch{f()}setTimeout(f,1500)})}}}
-        if((c.type==='html'||c.type==='comp')&&t>=c.start&&t<edEnd(c)){const st=c.type==='html'&&!/data-|animation|@keyframes|<script/i.test(c.html||''),qk=st?0:Math.floor((t-c.start)*20);if(qs.get(c)!==qk||!c._img){qs.set(c,qk);try{await compFrame(c,t,Math.min(W,3840),Math.round(Math.min(W,3840)*H/W))}catch{}}}}
+        if((c.type==='html'||c.type==='comp')&&t>=c.start&&t<edEnd(c)){const st=c.type==='html'&&!/data-|animation|@keyframes|<script/i.test(c.html||''),qk=st?0:Math.floor((t-c.start)*fps);if(qs.get(c)!==qk||!c._img){qs.set(c,qk);try{await compFrame(c,t,Math.min(W,3840),Math.round(Math.min(W,3840)*H/W))}catch{}c._pk=Math.round((t-c.start)*(c._ms>150?Math.max(3,Math.floor(1000/c._ms)):20))+'|'+Math.min(W,1280);c._busy=0}}}
       edDraw(t);const f=new VideoFrame(EDC,{timestamp:Math.round(i*1e6/fps)});venc.encode(f,{keyFrame:i%(fps*2)===0});f.close();
       while(venc.encodeQueueSize>8)await new Promise(r=>setTimeout(r,4));
       if(i%5===0){const el=(Date.now()-T0)/1000,eta=i?Math.round(el/i*(N-i)):0;setB('⏳ '+Math.round(i/N*100)+'% · '+Math.floor(eta/60)+'m'+String(eta%60).padStart(2,'0')+'s');await new Promise(r=>setTimeout(r,0))}}
