@@ -2,10 +2,12 @@ name: Build iOS (iPhone / iPad — Capacitor)
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags: ['v*']
 jobs:
   ios:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
