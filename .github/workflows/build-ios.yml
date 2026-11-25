@@ -2,8 +2,6 @@ name: Build iOS (iPhone / iPad — Capacitor)
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
     tags: ['v*']
 jobs:
   ios:
