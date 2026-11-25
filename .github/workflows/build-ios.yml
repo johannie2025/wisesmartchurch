@@ -1,61 +1,55 @@
-name: Build iOS (Tauri)
+name: Build iOS (iPhone / iPad — Capacitor)
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
     tags: ['v*']
 jobs:
   ios:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: 'aarch64-apple-ios,aarch64-apple-ios-sim'
-
-      - name: Bibliothèques QR
+        with: { node-version: 20 }
+      - name: Bibliothèques web (QR, PDF, ZIP)
         run: |
           mkdir -p web/vendor
           curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
           curl -fsSL -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
-          curl -fsSL --retry 3 -o web/vendor/jszip.min.js https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js && curl -fsSL --retry 3 -o web/vendor/pdf.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js && curl -fsSL --retry 3 -o web/vendor/pdf.worker.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js || true
-
+          curl -fsSL --retry 3 -o web/vendor/jszip.min.js https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js || true
+          curl -fsSL --retry 3 -o web/vendor/pdf.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js || true
+          curl -fsSL --retry 3 -o web/vendor/pdf.worker.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js || true
       - name: three.js (GitHub master.zip)
         shell: bash
-        run: bash tools/fetch-three.sh
-
-      - run: npm install
-      - run: npx tauri icon web/icon.png
-
-      - name: Initialiser le projet iOS
-        run: npx tauri ios init --ci
-
-      - name: Compiler l'application iOS (sans signature)
+        run: bash tools/fetch-three.sh || true
+      - name: Projet Capacitor iOS
         run: |
-          SCHEME=$(xcodebuild -list -project src-tauri/gen/apple/*.xcodeproj | awk '/Schemes:/{getline; gsub(/^[ \t]+/, ""); print; exit}')
-          xcodebuild \
-            -project src-tauri/gen/apple/*.xcodeproj \
-            -scheme "$SCHEME" \
-            -configuration Release \
-            -sdk iphoneos \
-            -arch arm64 \
-            -derivedDataPath build_ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            build
-
-      - name: Empaqueter en .ipa
+          mkdir -p ios-app && cd ios-app
+          npm init -y >/dev/null
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6
+          rm -rf www && cp -R ../web www
+          cp ../web/icon.png icon.png 2>/dev/null || true
+          cat > capacitor.config.json <<'JSON'
+          {"appId":"com.wisedesign.wdscs","appName":"WDSCS","webDir":"www","ios":{"contentInset":"always"}}
+          JSON
+          npx cap add ios
+          npx cap sync ios
+      - name: Autorisations (caméra, micro, réseau local, photos)
         run: |
-          mkdir -p build_ipa/Payload
-          cp -r build_ios/Build/Products/Release-iphoneos/*.app build_ipa/Payload/
-          cd build_ipa && zip -r ../WiseDesign-SmartChurchSystem-ios.ipa Payload
-
+          P=ios-app/ios/App/App/Info.plist
+          pb() { /usr/libexec/PlistBuddy -c "Add :$1 string $2" "$P" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :$1 $2" "$P"; }
+          pb NSCameraUsageDescription "WDSCS utilise la caméra pour la régie vidéo."
+          pb NSMicrophoneUsageDescription "WDSCS utilise le micro pour le son de la régie."
+          pb NSLocalNetworkUsageDescription "WDSCS se connecte à la régie sur le réseau local."
+          pb NSPhotoLibraryUsageDescription "WDSCS importe vos images et vidéos."
+          /usr/libexec/PlistBuddy -c "Add :NSBonjourServices array" "$P" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :NSBonjourServices:0 string _wdscs._tcp" "$P" 2>/dev/null || true
+      - name: Archive (non signée) + IPA
+        run: |
+          cd ios-app/ios/App
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir -p Payload && cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr ../../../wdscs-unsigned.ipa Payload
       - uses: actions/upload-artifact@v4
         with:
-          name: WiseDesign-SmartChurchSystem-ios
-          path: WiseDesign-SmartChurchSystem-ios.ipa
+          name: WDSCS-iOS-unsigned-ipa
+          path: wdscs-unsigned.ipa
