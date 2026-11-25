@@ -16,26 +16,45 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: 'aarch64-apple-ios,aarch64-apple-ios-sim'
+
       - name: Bibliothèques QR
         run: |
           mkdir -p web/vendor
           curl -fsSL -o web/vendor/qrcode.min.js https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js
           curl -fsSL -o web/vendor/jsQR.min.js https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js
           curl -fsSL --retry 3 -o web/vendor/jszip.min.js https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js && curl -fsSL --retry 3 -o web/vendor/pdf.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js && curl -fsSL --retry 3 -o web/vendor/pdf.worker.min.js https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js || true
+
       - name: three.js (GitHub master.zip)
         shell: bash
         run: bash tools/fetch-three.sh
+
       - run: npm install
       - run: npx tauri icon web/icon.png
-      - name: Init & Build iOS (sans signature Apple Developer)
+
+      - name: Initialiser le projet iOS
+        run: npx tauri ios init --ci
+
+      - name: Compiler l'application iOS (sans signature)
         run: |
-          npx tauri ios init
-          npx tauri ios build --ci --export-method development -- --allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-      - name: Générer l'archive .ipa (non signée pour Sideloadly / AltStore / TrollStore)
+          SCHEME=$(xcodebuild -list -project src-tauri/gen/apple/*.xcodeproj | awk '/Schemes:/{getline; gsub(/^[ \t]+/, ""); print; exit}')
+          xcodebuild \
+            -project src-tauri/gen/apple/*.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -arch arm64 \
+            -derivedDataPath build_ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empaqueter en .ipa
         run: |
           mkdir -p build_ipa/Payload
-          cp -r src-tauri/gen/apple/build/arm64/*.xcarchive/Products/Applications/*.app build_ipa/Payload/ || cp -r src-tauri/gen/apple/build/Release-iphoneos/*.app build_ipa/Payload/
+          cp -r build_ios/Build/Products/Release-iphoneos/*.app build_ipa/Payload/
           cd build_ipa && zip -r ../WiseDesign-SmartChurchSystem-ios.ipa Payload
+
       - uses: actions/upload-artifact@v4
         with:
           name: WiseDesign-SmartChurchSystem-ios
