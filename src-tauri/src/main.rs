@@ -409,6 +409,18 @@ fn stream_stop() {
     }
 }
 
+#[tauri::command]
+fn save_bytes(request: tauri::ipc::Request) -> Result<String, String> {
+    let name = request.headers().get("x-name").and_then(|v| v.to_str().ok()).unwrap_or("wdscs.mp4").to_string();
+    let name: String = name.chars().filter(|c| c.is_alphanumeric() || "-_. ".contains(*c)).collect();
+    let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).map_err(|e| e.to_string())?;
+    let dir = std::path::Path::new(&home).join("Videos").join("WDSCS");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let p = dir.join(&name);
+    if let tauri::ipc::InvokeBody::Raw(b) = request.body() { std::fs::write(&p, b).map_err(|e| e.to_string())?; }
+    Ok(p.to_string_lossy().to_string())
+}
+
 fn main() {
     let rt = tokio::runtime::Runtime::new().expect("tokio");
     let peers: Peers = Arc::new(Mutex::new(HashMap::new()));
@@ -431,7 +443,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![
+        .invoke_handler(tauri::generate_handler![save_bytes, 
             lan_ip,
             list_fonts,
             relay_port,
