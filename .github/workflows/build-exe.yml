@@ -49,7 +49,21 @@ jobs:
 
       - run: npm install
       - run: npx tauri icon web/icon.png
-      - run: npx tauri build
+      - name: Signature du EXE (optionnelle, si le secret WINDOWS_CERT_PFX_BASE64 existe)
+        shell: pwsh
+        env:
+          PFX_B64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          PFX_PWD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          if (-not $env:PFX_B64) { Write-Host "Pas de certificat : EXE non signé"; exit 0 }
+          [IO.File]::WriteAllBytes("$PWD\cert.pfx",[Convert]::FromBase64String($env:PFX_B64))
+          $sec = ConvertTo-SecureString $env:PFX_PWD -AsPlainText -Force
+          $c = Import-PfxCertificate -FilePath cert.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $sec
+          node -e "const f='src-tauri/tauri.conf.json',j=JSON.parse(require('fs').readFileSync(f));j.bundle.windows=Object.assign(j.bundle.windows||{},{certificateThumbprint:process.argv[1],digestAlgorithm:'sha256',timestampUrl:'http://timestamp.digicert.com'});require('fs').writeFileSync(f,JSON.stringify(j,null,2))" $c.Thumbprint
+
+      - name: Build EXE (capture WebView2 si possible, sinon build standard)
+        shell: bash
+        run: npx tauri build --features capture || npx tauri build
 
       - uses: actions/upload-artifact@v4
         with:
