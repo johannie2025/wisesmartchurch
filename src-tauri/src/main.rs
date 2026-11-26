@@ -421,6 +421,41 @@ fn save_bytes(request: tauri::ipc::Request) -> Result<String, String> {
     Ok(p.to_string_lossy().to_string())
 }
 
+#[cfg(all(windows, feature = "capture"))]
+#[tauri::command]
+async fn cdp_call(window: tauri::WebviewWindow, method: String, params: String) -> Result<String, String> {
+    let (tx, rx) = std::sync::mpsc::channel::<Result<String, String>>();
+    let tx2 = tx.clone();
+    window
+        .with_webview(move |wv| unsafe {
+            let core = match wv.controller().CoreWebView2() {
+                Ok(c) => c,
+                Err(e) => {
+                    let _ = tx2.send(Err(format!("{e:?}")));
+                    return;
+                }
+            };
+            let m = windows::core::HSTRING::from(method.as_str());
+            let p = windows::core::HSTRING::from(params.as_str());
+            let tx3 = tx2.clone();
+            let h = webview2_com::CallDevToolsProtocolMethodCompletedHandler::create(Box::new(move |err, res| {
+                let _ = tx3.send(if err.is_ok() { Ok(res) } else { Err(format!("{err:?}")) });
+                Ok(())
+            }));
+            if let Err(e) = core.CallDevToolsProtocolMethod(&m, &p, &h) {
+                let _ = tx2.send(Err(format!("{e:?}")));
+            }
+        })
+        .map_err(|e| e.to_string())?;
+    rx.recv_timeout(std::time::Duration::from_secs(20)).map_err(|e| e.to_string())?
+}
+
+#[cfg(not(all(windows, feature = "capture")))]
+#[tauri::command]
+async fn cdp_call(_method: String, _params: String) -> Result<String, String> {
+    Err("capture indisponible".to_string())
+}
+
 fn main() {
     let rt = tokio::runtime::Runtime::new().expect("tokio");
     let peers: Peers = Arc::new(Mutex::new(HashMap::new()));
@@ -443,7 +478,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![save_bytes, 
+        .invoke_handler(tauri::generate_handler![save_bytes, cdp_call, 
             lan_ip,
             list_fonts,
             relay_port,
