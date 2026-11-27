@@ -14481,7 +14481,7 @@ function tbAuto() { take(); }
         if (!$('hBrand')) {
             const lg = document.querySelector('#host .top .logo');
             if (lg) {
-                lg.insertAdjacentHTML('afterend', '<div id="hBrand"><b>WDSCS</b></div><div id="hVer"><i>v3.0</i></div>');
+                lg.insertAdjacentHTML('afterend', '<div id="hBrand"><b>WDSCS</b></div><div id="hVer"><i>v3.1</i></div>');
                 const u = document.createElement('div');
                 u.id = 'hUser';
                 u.innerHTML = `<img src="${(lg.querySelector('img') || {}).src || ''}"><span id="hUt">—</span>`;
@@ -14573,7 +14573,7 @@ setInterval(() => {
         if (!h || $('edBrand'))
             return;
         const lg = document.querySelector('#host .top .logo img');
-        h.insertAdjacentHTML('afterbegin', `<div id="edBrand"><img src="${lg ? lg.src : ''}"><div><b>WDSCS</b></div><div class="v"><i>v3.0</i></div></div>`);
+        h.insertAdjacentHTML('afterbegin', `<div id="edBrand"><img src="${lg ? lg.src : ''}"><div><b>WDSCS</b></div><div class="v"><i>v3.1</i></div></div>`);
     }
     catch (_a) { }
 }, 800);
@@ -16361,6 +16361,11 @@ window.CMD_EXTRA = () => {
         }
         let c = 1;
         try {
+            if (LS.get('wcUIv', 0) !== 31) {
+                LS.set('wcUIv', 31);
+                LS.set('wcClean', 1);
+                LS.set('wcRmUI', 'D');
+            }
             c = LS.get('wcClean', 1);
         }
         catch (_a) { }

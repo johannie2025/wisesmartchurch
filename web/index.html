@@ -5782,7 +5782,7 @@ function tbAuto(){take()}
 (function(){const t0=take;take=function(){if(mixV().on&&mixV().pvw){mixAuto();return}t0();if(S.pvStudio&&S.pvStudio.on&&PRO()){S.pvBlank=false;S.studio=JSON.parse(JSON.stringify(S.pvStudio));render();sync();stuUI()}}})();
 (function(){
  function once(){
-  if(!$('hBrand')){const lg=document.querySelector('#host .top .logo');if(lg){lg.insertAdjacentHTML('afterend','<div id="hBrand"><b>WDSCS</b></div><div id="hVer"><i>v3.0</i></div>');
+  if(!$('hBrand')){const lg=document.querySelector('#host .top .logo');if(lg){lg.insertAdjacentHTML('afterend','<div id="hBrand"><b>WDSCS</b></div><div id="hVer"><i>v3.1</i></div>');
     const u=document.createElement('div');u.id='hUser';u.innerHTML=`<img src="${(lg.querySelector('img')||{}).src||''}"><span id="hUt">—</span>`;const sp=document.querySelector('#host .top .sp');(sp||document.querySelector('#host .top')).after(u);
     const ft=$('ftLogo');if(ft)ft.src=(lg.querySelector('img')||{}).src||''}}
   document.querySelectorAll('#tbar2 [data-ic]').forEach(e=>{if(!e.firstChild)e.innerHTML=IC(e.dataset.ic,18)});
@@ -5810,7 +5810,7 @@ function tbAuto(){take()}
 })();
 
 setInterval(()=>{try{const h=document.querySelector('#edOv>div:first-child');if(!h||$('edBrand'))return;const lg=document.querySelector('#host .top .logo img');
- h.insertAdjacentHTML('afterbegin',`<div id="edBrand"><img src="${lg?lg.src:''}"><div><b>WDSCS</b></div><div class="v"><i>v3.0</i></div></div>`)}catch{}},800);
+ h.insertAdjacentHTML('afterbegin',`<div id="edBrand"><img src="${lg?lg.src:''}"><div><b>WDSCS</b></div><div class="v"><i>v3.1</i></div></div>`)}catch{}},800);
 
 setInterval(()=>{try{const t=document.querySelector('#host .top');if(!t)return;let h=$('hMon');if(!h){h=document.createElement('div');h.id='hMon';const u=$('hUser');(u||t.lastChild).before(h)}const d=$('dkMon');if(d&&d.innerHTML)h.innerHTML=d.innerHTML}catch{}},700);
 
@@ -6251,7 +6251,7 @@ function init(){
  /* bouton ⋯ dans la barre de transition */
  const tb=$('tbar2');if(tb&&!$('tbMore')){const b=document.createElement('button');b.className='tb';b.id='tbMore';b.textContent='⋯';b.title=T('Plus d’options','Más opciones','More options');b.onclick=uiMore;tb.appendChild(b)}
  if(tb&&!$('uiSwBtn')){const c=document.createElement('button');c.className='tb';c.id='uiSwBtn';c.style.marginLeft='auto';c.onclick=uiClean;tb.appendChild(c)}
- let c=1;try{c=LS.get('wcClean',1)}catch{}
+ let c=1;try{if(LS.get('wcUIv',0)!==31){LS.set('wcUIv',31);LS.set('wcClean',1);LS.set('wcRmUI','D')}c=LS.get('wcClean',1)}catch{}
  applyClean(c===0||c==='0'?false:true);segRefresh();lyBuild()}
 setTimeout(init,600);setInterval(()=>{try{segRefresh();lyBuild()}catch{}},700);
 })();
