@@ -6231,7 +6231,7 @@ window.CMD_EXTRA=()=>{const T=tr3,o=[['⏪ '+T('Instant replay : armer / arrête
 (function(){
 const T=(a,b,c)=>tr3(a,b,c);
 function applyClean(on){document.body.classList.toggle('cleanUI',!!on);document.body.classList.toggle('simpleUI',!!on);try{LS.set('wcClean',on?1:0)}catch{}
- const b=$('uiSwBtn');if(b)b.textContent=on?'🗔 '+T('Interface classique','Interfaz clásica','Classic UI'):'🗔 '+T('Interface épurée','Interfaz simple','Clean UI')}
+ const b=$('uiSwBtn');if(b)b.textContent=on?'⟲ '+T('Ancien design','Diseño anterior','Classic design'):'✨ '+T('Nouveau design','Nuevo diseño','New design')}
 window.uiClean=function(){applyClean(!document.body.classList.contains('cleanUI'))};
 window.uiMore=function(){const o=document.body.classList.toggle('moreOn');};
 const WS=[['culte',['Culte','Culto','Service']],['tv',['Émission TV','TV','TV show']],['concert',['Concert','Concierto','Concert']],['montage',['Montage','Montaje','Editing']]];
@@ -6312,6 +6312,22 @@ function rmRender(force){
  home();r.innerHTML=hd()+`<div class="bd">${u==='D'?bodyD():bodyE()}</div>`+nav;
  adopt();const b2=r.querySelector('.bd');if(b2)b2.scrollTop=st}
 setInterval(()=>{try{rmRender(false)}catch(e){}},400);
+})();
+/* ===== Performance bibliothèque média (beaucoup d'images/vidéos) ===== */
+(function(){
+ /* 1. miniatures : décodage réduit hors thread pour les images (au lieu du plein format) */
+ const tm=window.thMake;
+ window.thMake=async function(m){
+  if(m.kind==='image'&&m.file&&window.createImageBitmap){
+   try{const bm=await createImageBitmap(m.file,{resizeWidth:320,resizeQuality:'low'});const c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);m.ar=bm.height?bm.width/bm.height:null;try{bm.close()}catch(e){}
+    return await new Promise(ok=>c.toBlob(b=>ok(URL.createObjectURL(b)),'image/jpeg',.72))}catch(e){}}
+  return tm(m)};
+ /* 2. renderMedia : si la liste n'a pas changé, on ne rafraîchit que les scènes rapides (surbrillance) */
+ const rm=window.renderMedia;let last='';
+ const sig=()=>{let s='';for(const m of Object.values(HF))s+=m.id+'|'+m.name+'|'+(m.thumb?1:0)+'|'+(m.pct==null?'':m.pct)+'|'+(m.loop===false?0:1)+(m.mute?1:0)+';';return s+SRCF+'|'+(typeof SRCQ!=='undefined'?SRCQ:'')+'|'+LANG};
+ window.renderMedia=function(){const s=sig();if(s===last){try{qsRender()}catch(e){}return}last=s;rm()};
+ /* 3. rendu différé des tuiles hors écran */
+ const st=document.createElement('style');st.textContent='#p-src .sc,#qs .qsc,#mList .item,#edBin>div{content-visibility:auto;contain-intrinsic-size:auto 90px}#p-src .sgrid,#p-src .sg{contain:layout style}';document.head.appendChild(st);
 })();
 </script>
 </body>
