@@ -892,6 +892,36 @@ body.cleanUI:not(.moreOn) #tbar2>:not(.tb){display:none!important}
 body:has(#rmNew.on) #langSel{display:none!important}
 #rmOld{position:fixed;top:6px;right:6px;z-index:8000;font-size:11px;padding:5px 10px;border-radius:99px;background:#0878FF;color:#fff;border:0;display:none}
 </style>
+<style id="ftCss">
+#host .top{position:relative;z-index:400}
+.top #fmenu .dd,.fmenu .dd{z-index:500}
+@media(min-width:901px){
+#wdFoot{display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+#wdFoot #ftL,#wdFoot #ftR{display:flex;align-items:center;gap:8px;min-width:0;flex:none}
+#wdFoot{padding-right:140px!important}#wdFoot #ftL{justify-content:flex-start}#wdFoot #ftR{justify-content:flex-end}
+#wdFoot .ftm{text-align:center;flex:none;overflow:visible;letter-spacing:.35em;white-space:nowrap;padding:0 8px}
+}
+</style>
+<style id="rtCss">
+#rtTabs{display:none;gap:4px;margin:0 0 10px;padding:3px;background:#111B2D;border-radius:12px;position:sticky;top:0;z-index:5}
+body.cleanUI #rtTabs{display:flex}
+#rtTabs button{flex:1;background:transparent;border:0;color:#AAB6CC;border-radius:9px;padding:8px 4px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+#rtTabs button.on{background:#0878FF;color:#fff;font-weight:700}
+body.cleanUI #host .side.r .pane>[data-tg]:not(.tgOn){display:none!important}
+</style>
+<style id="rgCss">
+#rtCams .rtcam{background:#111B2D;border:1px solid #16233f;border-radius:12px;padding:10px;margin:8px 0}
+#rtCams .rth{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}#rtCams .rth span{margin-left:auto;font-size:11px;color:#AAB6CC}
+#rtCams .rth i{width:9px;height:9px;border-radius:50%;background:#ff3b5c}#rtCams .rth i.ok{background:#22c55e}
+#rtCams .rtb{display:flex;gap:5px;flex-wrap:wrap}#rtCams .rtb button{flex:1;min-width:34px;padding:7px 4px;border-radius:8px;border:0;background:#16233f;color:#fff;font-size:12px;cursor:pointer}
+#rtCams .rtb button.on{background:#0878FF;font-weight:700}#rtCams .rtb button.on.pg{background:#ff3b5c}#rtCams .rtb button.on.pv{background:#22c55e;color:#04210f}
+#rtAudio #dkMix{display:block}
+body.cleanUI:not(.moreOn) #topNav button[data-n="cap"],body.cleanUI:not(.moreOn) #topNav button[data-n="tools"],body.cleanUI:not(.moreOn) #topNav button[data-n="help"]{display:none!important}
+#hdGo,#hdK{flex:none;border-radius:10px;border:1px solid #223a68;background:#111B2D;color:#fff;font-size:12px;font-weight:700;padding:7px 12px;cursor:pointer;white-space:nowrap}
+#hdGo{background:#ff3b5c;border:0}#hdGo.on{background:#7a1020}
+#hdMore{flex:none;border-radius:10px;border:1px solid #223a68;background:#111B2D;color:#fff;font-size:13px;padding:6px 10px;cursor:pointer}
+</style>
+<style id="wfCss">body.wsFold #host .txd,body.wsFold #host #ws{display:none!important}#tbWs{white-space:nowrap}#tbWs.on{background:#0878FF!important;color:#fff}</style>
 </head>
 <body>
 <script>window.__errs=[];window.addEventListener('error',function(e){window.__errs.push((e.message||'')+' @'+(e.lineno||''))});
@@ -16445,10 +16475,7 @@ window.CMD_EXTRA = () => {
         const on = (L, id) => !!(L && L[2] && L[2].id === id);
         return `<div class="ch">${[['all', 'Tout'], ['img', 'Images'], ['vid', 'Vidéos'], ['aud', 'Audio']].map(f => `<button class="${FIL === f[0] ? 'on' : ''}" onclick="rmFil('${f[0]}')">${f[1]}</button>`).join('')}</div><div class="grid">${l.map(m => `<div class="tl ${on(S.layers, m.id) ? 'pg' : on(S.pvLayers, m.id) ? 'pv' : ''}" onclick="rTap('m',0,'${m.id}')"><i style="${RTH[m.id] ? `background-image:url(${RTH[m.id]})` : ''}">${RTH[m.id] ? '' : (m.kind === 'video' ? '🎬' : m.kind === 'audio' ? '🔊' : '🖼')}</i>${esc(m.name)}</div>`).join('') || '<div style="color:#7f8db0;font-size:13px">—</div>'}</div><div class="row"><button class="bt" onclick="cmd('clearlayers')">${T('Vider couches', 'Vaciar capas', 'Clear layers')}</button><button class="bt" onclick="rImport()">＋ ${T('Importer', 'Importar', 'Import')}</button></div><div class="lb" style="text-align:center">${T('Appui = Preview · 2e appui = Program', 'Toque = Preview · 2º = Program', 'Tap = Preview · 2nd = Program')}</div>`;
     }
-    window.rmCut = function (a) { const m = S.pvStudio && S.pvStudio.mix; if (m && m.on && m.pvw)
-        cmd(a ? 'mixauto' : 'mixcut', '');
-    else
-        cmd('take'); if (navigator.vibrate)
+    window.rmCut = function (a) { cmd(a ? 'mixauto' : 'mixcut', ''); if (navigator.vibrate)
         try {
             navigator.vibrate(30);
         }
@@ -16562,6 +16589,256 @@ window.CMD_EXTRA = () => {
     const st = document.createElement('style');
     st.textContent = '#p-src .sc,#qs .qsc,#mList .item,#edBin>div{content-visibility:auto;contain-intrinsic-size:auto 90px}#p-src .sgrid,#p-src .sg{contain:layout style}';
     document.head.appendChild(st);
+})();
+/* ===== Pied de page : texte central, boutons répartis de part et d'autre ===== */
+(function () {
+    function mk(id) { let e = document.getElementById(id); if (!e) {
+        e = document.createElement('div');
+        e.id = id;
+        const ft = document.getElementById('wdFoot'), fm = ft.querySelector('.ftm');
+        ft.insertBefore(e, id === 'ftL' ? fm : fm.nextSibling);
+    } return e; }
+    function place() {
+        const ft = document.getElementById('wdFoot');
+        if (!ft || !ft.querySelector('.ftm'))
+            return;
+        const L = mk('ftL'), R = mk('ftR');
+        const left = new Set(['stChips', 'ftLogo', 'ftMixB', 'ftBrandB']);
+        [...ft.children].forEach(c => {
+            if (c === L || c === R || c.classList.contains('ftm'))
+                return;
+            const isL = left.has(c.id) || (c.tagName === 'B' && !c.id) || (c.querySelector && c.querySelector('#ftMixB'));
+            (isL ? L : R).appendChild(c);
+        });
+        /* ordre à gauche : puces d'état, mixeur, logo ; à droite : diffusion/enregistrement, barre pro, date, heure, relais */
+        const mb = document.getElementById('ftMixB'), ch = document.getElementById('stChips');
+        if (ch && L.firstChild !== ch)
+            L.insertBefore(ch, L.firstChild);
+        const bc = document.getElementById('dkBc');
+        if (bc && R.firstChild !== bc)
+            R.insertBefore(bc, R.firstChild);
+    }
+    setTimeout(place, 900);
+    setInterval(() => { try {
+        place();
+    }
+    catch (e) { } }, 1500);
+})();
+/* ===== Panneau droit à onglets (interface épurée) ===== */
+(function () {
+    const T = (a, b, c) => tr3(a, b, c);
+    let cur = 0;
+    try {
+        cur = LS.get('wcRt', 0);
+    }
+    catch (_a) { }
+    const NM = () => [T('Titres', 'Títulos', 'Titles'), T('Audio', 'Audio', 'Audio'), T('Caméras', 'Cámaras', 'Cameras'), T('Écrans', 'Pantallas', 'Screens')];
+    function setTab(i) { cur = i; try {
+        LS.set('wcRt', i);
+    }
+    catch (_a) { } paint(); }
+    window.rtTab = setTab;
+    function group() {
+        const pane = document.querySelector('#host .side.r .pane');
+        if (!pane)
+            return null;
+        if (!pane.dataset.tgd) {
+            let g = 0, h = 0;
+            [...pane.children].forEach(c => { if (c.id === 'rtTabs')
+                return; if (c.classList.contains('pnl-h')) {
+                h++;
+                g = h <= 2 ? 0 : 3;
+            } c.setAttribute('data-tg', g); });
+            pane.dataset.tgd = 1;
+        }
+        if (!document.getElementById('rtTabs')) {
+            const d = document.createElement('div');
+            d.id = 'rtTabs';
+            pane.insertBefore(d, pane.firstChild);
+            const a = document.createElement('div');
+            a.id = 'rtAudio';
+            a.setAttribute('data-tg', '1');
+            a.innerHTML = '<div class="pnl-h in">' + esc(T('Mixeur audio', 'Mezclador de audio', 'Audio mixer')) + '</div>';
+            d.after(a);
+            const c = document.createElement('div');
+            c.id = 'rtCams';
+            c.setAttribute('data-tg', '2');
+            d.after(c);
+        }
+        return pane;
+    }
+    function paint() {
+        const pane = group();
+        if (!pane)
+            return;
+        const tb = document.getElementById('rtTabs'), n = NM();
+        const key = LANG + '|' + cur;
+        if (tb.dataset.k !== key) {
+            tb.dataset.k = key;
+            tb.innerHTML = n.map((x, i) => `<button class="${i === cur ? 'on' : ''}" onclick="rtTab(${i})">${esc(x)}</button>`).join('');
+        }
+        pane.querySelectorAll('[data-tg]').forEach(c => c.classList.toggle('tgOn', +c.dataset.tg === cur));
+        /* mixeur : intégré à l'onglet Audio en interface épurée, sinon dans sa fenêtre flottante */
+        const mx = document.getElementById('dkMix'), clean = document.body.classList.contains('cleanUI'), ra = document.getElementById('rtAudio'), fp = document.getElementById('ftMixP');
+        if (mx && ra && fp) {
+            if (clean && mx.parentNode !== ra)
+                ra.appendChild(mx);
+            else if (!clean && mx.parentNode !== fp)
+                fp.appendChild(mx);
+        }
+        camsPaint();
+    }
+    window.rtZoom = (id, z) => { try {
+        camZoom(id, z);
+    }
+    catch (e) { } };
+    window.rtTorch = (id, m) => { send({ type: 'camTorch', to: id, mode: m }); toast('🔦 ' + m); };
+    function camsPaint() {
+        const el = document.getElementById('rtCams');
+        if (!el || typeof CAMS === 'undefined')
+            return;
+        const ids = Object.keys(CAMS), m = (typeof mixV === 'function') ? mixV() : {};
+        const key = LANG + '|' + ids.map(i => i + (CAMS[i].stream ? 1 : 0) + (CAMS[i].name || '')).join(',') + '|' + m.pvw + '|' + m.pgm + '|' + JSON.stringify(typeof CAMZ !== 'undefined' ? CAMZ : {});
+        if (el.dataset.k === key)
+            return;
+        el.dataset.k = key;
+        el.innerHTML = '<div class="pnl-h in">' + esc(T('Caméras connectées', 'Cámaras conectadas', 'Connected cameras')) + '</div>' + (ids.length ? ids.map(i => { const c = CAMS[i], k = 'cam:' + i, z = (typeof CAMZ !== 'undefined' && CAMZ[i]) || 1; return `<div class="rtcam"><div class="rth"><i class="${c.stream ? 'ok' : ''}"></i><b>${esc(c.name || i)}</b><span>${c.stream ? T('en ligne', 'en línea', 'online') : T('hors ligne', 'sin conexión', 'offline')}</span></div><div class="rtb"><button class="${m.pvw === k ? 'on pv' : ''}" onclick="mixPvw('${k}')">PVW</button><button class="${m.pgm === k ? 'on pg' : ''}" onclick="mixDirect('${k}')">PGM</button>${[1, 2, 3, 4].map(n => `<button class="${z === n ? 'on' : ''}" onclick="rtZoom('${i}',${n})">${n}×</button>`).join('')}<button onclick="rtTorch('${i}','on')">🔦</button><button onclick="rtTorch('${i}','off')">✕</button></div></div>`; }).join('') : `<div class="rtcam" style="color:#7f8db0;font-size:12px">${esc(T('Aucune caméra : ouvrez l’app sur un téléphone, rôle Caméra.', 'Ninguna cámara: abra la app en un teléfono, rol Cámara.', 'No camera: open the app on a phone, Camera role.'))}</div>`);
+    }
+    setTimeout(paint, 800);
+    setInterval(() => { try {
+        paint();
+    }
+    catch (e) { } }, 1500);
+})();
+/* ===== En-tête façon maquette : recherche, Démarrer le direct, plus ===== */
+(function () {
+    const T = (a, b, c) => tr3(a, b, c);
+    function hd() {
+        const w = document.getElementById('wsSeg');
+        if (!w || document.getElementById('hdGo'))
+            return;
+        const k = document.createElement('button');
+        k.id = 'hdK';
+        k.textContent = '🔍 Ctrl K';
+        k.onclick = () => { try {
+            cmdPalette();
+        }
+        catch (e) { } };
+        const g = document.createElement('button');
+        g.id = 'hdGo';
+        g.onclick = () => liveToggle();
+        const m = document.createElement('button');
+        m.id = 'hdMore';
+        m.textContent = '⋯';
+        m.title = T('Plus : Rendu, Outils, Aide…', 'Más: Render, Herramientas, Ayuda…', 'More: Render, Tools, Help…');
+        m.onclick = () => uiMore();
+        w.after(k);
+        k.after(g);
+        g.after(m);
+    }
+    setInterval(() => { try {
+        hd();
+        const g = document.getElementById('hdGo');
+        if (g) {
+            const on = typeof LIVE !== 'undefined' && LIVE;
+            g.classList.toggle('on', !!on);
+            g.textContent = on ? '■ ' + T('Arrêter le direct', 'Detener el directo', 'Stop live') : '● ' + T('Démarrer le direct', 'Iniciar directo', 'Go live');
+        }
+    }
+    catch (e) { } }, 800);
+})();
+/* ===== Zone du bas repliable : « Versets & notes » ===== */
+(function () {
+    const T = (a, b, c) => tr3(a, b, c);
+    let f = 0;
+    try {
+        f = LS.get('wcWsFold', 0);
+    }
+    catch (_a) { }
+    function paint() { document.body.classList.toggle('wsFold', !!f); const b = document.getElementById('tbWs'); if (b) {
+        b.textContent = '📖 ' + T('Versets & notes', 'Versos y notas', 'Verses & notes') + (f ? ' ▸' : ' ▾');
+        b.classList.toggle('on', !f);
+    } }
+    window.wsFoldTog = function (v) { f = (v === undefined ? !f : !!v) ? 1 : 0; try {
+        LS.set('wcWsFold', f);
+    }
+    catch (_a) { } paint(); };
+    function mk() { const tb = document.getElementById('tbar2'); if (!tb || document.getElementById('tbWs'))
+        return; const b = document.createElement('button'); b.className = 'tb'; b.id = 'tbWs'; b.onclick = () => wsFoldTog(); const m = document.getElementById('tbMore'); tb.insertBefore(b, m || null); paint(); }
+    setInterval(() => { try {
+        mk();
+        paint();
+    }
+    catch (e) { } }, 900);
+    /* chargement d'un chant : on rouvre la zone pour voir les couplets */
+    const ls = window.loadSong;
+    if (typeof ls === 'function')
+        window.loadSong = function () { if (f)
+            wsFoldTog(0); return ls.apply(this, arguments); };
+})();
+/* ===== CUT / AUTO / TAKE unifiés : caméras (mixeur) ET versets / médias ===== */
+(function () {
+    const BLK = 'color:#000000';
+    let PVSIG = null;
+    const sig = () => JSON.stringify([S.pvMain, S.pvSub, S.pvLayers]);
+    /* le Preview vient du mixeur tant que le contenu (verset/média) n'a pas changé depuis la dernière sélection mixeur */
+    const mixMode = () => { const m = mixV(); if (!m.pvw)
+        return false; return PVSIG === null ? !!m.on : sig() === PVSIG; };
+    const mark = () => { PVSIG = sig(); };
+    const _pvw = window.mixPvw;
+    window.mixPvw = function (k) { _pvw(k); mark(); };
+    const _on = window.mixOn;
+    window.mixOn = function (o) { _on(o); if (o)
+        mark(); };
+    function ensureMix() { const m = mixV(); if (!m.on) {
+        m.prev = STU.layout;
+        m.on = 1;
+        if (!m.pgm)
+            m.pgm = BLK;
+    } }
+    const oldTake = window.take;
+    window.take = function () {
+        if (mixMode()) {
+            ensureMix();
+            mixAuto();
+            mark();
+            return;
+        }
+        const m = mixV(), pv = m.pvw;
+        m.pvw = '';
+        try {
+            oldTake();
+        }
+        finally {
+            m.pvw = pv;
+        }
+    };
+    window.tbAuto = function () { window.take(); };
+    window.tbCut = function () {
+        if (mixMode()) {
+            ensureMix();
+            mixCut();
+            mark();
+            return;
+        }
+        const o = S.tr;
+        S.tr = 'cut';
+        try {
+            window.take();
+        }
+        finally {
+            S.tr = o;
+        }
+    };
+    /* commandes du remote : mêmes règles que les boutons de la régie */
+    const hc = handlers.cmd;
+    handlers.cmd = function (m) { if (m && m.cmd === 'mixcut') {
+        tbCut();
+        return;
+    } if (m && m.cmd === 'mixauto') {
+        tbAuto();
+        return;
+    } return hc(m); };
 })();
 </script>
 </body>
